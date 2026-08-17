@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>空容器登録アプリ</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 0 15px;
+      color: #333;
+    }
+    .form-group {
+      margin-bottom: 20px;
+      position: relative; /* サジェスト表示の位置基準 */
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+    input[type="text"], select, button {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 16px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    
+    /* -----------------------------------
+       得意先検索用サジェストウィンドウのCSS
+    ----------------------------------- */
+    .search-container {
+      position: relative;
+    }
+    /* 候補一覧の枠（ウインドウ） */
+    .suggest-window {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      max-height: 220px; /* 高さを制限してスクロール表示 */
+      overflow-y: auto;
+      background: #ffffff;
+      border: 1px solid #0051c3;
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      z-index: 1000;
+      display: none; /* 初期状態は非表示 */
+    }
+    /* 各候補アイテム */
+    .suggest-item {
+      padding: 10px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid #eee;
+      font-size: 14px;
+    }
+    .suggest-item:last-child {
+      border-bottom: none;
+    }
+    .suggest-item:hover {
+      background-color: #f0f4f9;
+    }
+    .suggest-item .code {
+      font-weight: bold;
+      color: #0051c3;
+      margin-right: 8px;
+    }
+    .suggest-item .sub {
+      font-size: 12px;
+      color: #666;
+      margin-left: 6px;
+    }
+
+    /* 選択確定時のバッジ表示 */
+    .selected-badge {
+      margin-top: 6px;
+      padding: 6px 10px;
+      background: #e8f0fe;
+      color: #1967d2;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: bold;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>空容器登録</h2>
+
+  <form id="registerForm">
+    
+    <!-- 得意先検索（サジェスト付き） -->
+    <div class="form-group">
+      <label for="customerSearch">得意先（コード・名前・カナで検索）:</label>
+      <div class="search-container">
+        <input type="text" id="customerSearch" placeholder="例: 101 または 商事 または ｼｮｳｼﾞ" autocomplete="off">
+        <div id="suggestWindow" class="suggest-window"></div>
+      </div>
+      <!-- 確定した得意先の情報を保持（非表示フィールド） -->
+      <input type="hidden" id="selectedCustomerCode">
+      <input type="hidden" id="selectedCustomerName">
+      <!-- 選択確定された場合の確認バッジ -->
+      <div id="selectedBadge" class="selected-badge"></div>
+    </div>
+
+    <!-- 出荷店マスター（通常のドロップダウン） -->
+    <div class="form-group">
+      <label for="storeSelect">出荷店:</label>
+      <select id="storeSelect" required>
+        <option value="">読み込み中...</option>
+      </select>
+    </div>
+
+    <!-- 空容器マスター（通常のドロップダウン） -->
+    <div class="form-group">
+      <label for="containerSelect">空容器:</label>
+      <select id="containerSelect" required>
+        <option value="">読み込み中...</option>
+      </select>
+    </div>
+
+    <!-- 備考 -->
+    <div class="form-group">
+      <label for="note">備考:</label>
+      <input type="text" id="note" placeholder="メモ">
+    </div>
+
+    <button type="submit" id="submitBtn">送信する</button>
+  </form>
+
+  <script>
+    const GAS_WEB_APP_URL = 'YOUR_GAS_WEB_APP_URL';
+
+    let masterCustomers = []; // 得意先マスター保持用
+
+    const customerSearchInput = document.getElementById('customerSearch');
+    const suggestWindow = document.getElementById('suggestWindow');
+    const selectedCustomerCode = document.getElementById('selectedCustomerCode');
+    const selectedCustomerName = document.getElementById('selectedCustomerName');
+    const selectedBadge = document.getElementById('selectedBadge');
+
+    // 初期ロード：GASから3つのマスターデータを一括取得
+    window.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const response = await fetch(GAS_WEB_APP_URL);
+        const result = await response.json();
+
+        if (result.status === 'success') {
+          // 得意先マスターをメモリに保持
+          masterCustomers = result.data.customers;
+
+          // 出荷店・空容器のドロップダウン生成
+          populateSelect(document.getElementById('storeSelect'), result.data.stores);
+          populateSelect(document.getElementById('containerSelect'), result.data.containers);
+        }
+      } catch (err) {
+        console.error('マスター読み込み失敗:', err);
+      }
+    });
+
+    // ドロップダウン生成ヘルパー
+    function populateSelect(selectEl, list) {
+      selectEl.innerHTML = '<option value="">-- 選択してください --</option>';
+      list.forEach(item => {
+        const keys = Object.keys(item);
+        const code = item[keys[0]] || ''; // A列相当
+        const name = item[keys[1]] || item[keys[0]] || ''; // B列相当
+        const opt = document.createElement('option');
+        opt.value = code;
+        opt.textContent = `${code} : ${name}`;
+        opt.dataset.name = name;
+        selectEl.appendChild(opt);
+      });
+    }
+
+    // ----------------------------------------------------
+    // 得意先 リアルタイム検索 & サジェスト表示
+    // ----------------------------------------------------
+    customerSearchInput.addEventListener('input', () => {
+      const keyword = customerSearchInput.value.trim().toLowerCase();
+      suggestWindow.innerHTML = '';
+
+      if (!keyword) {
+        suggestWindow.style.display = 'none';
+        return;
+      }
+
+      // A列, B列, C列（オブジェクトの1, 2, 3番目のプロパティ）から部分一致検索
+      const filtered = masterCustomers.filter(item => {
+        const values = Object.values(item).map(val => String(val).toLowerCase());
+        const colA = values[0] || ''; // 例: 得意先コード
+        const colB = values[1] || ''; // 例: 得意先名
+        const colC = values[2] || ''; // 例: フリガナ / 略称等
+
+        return colA.includes(keyword) || colB.includes(keyword) || colC.includes(keyword);
+      });
+
+      if (filtered.length === 0) {
+        suggestWindow.innerHTML = '<div class="suggest-item" style="color:#999;">該当する得意先がありません</div>';
+        suggestWindow.style.display = 'block';
+        return;
+      }
+
+      // 検索結果の一覧をウインドウ内に生成
+      filtered.forEach(item => {
+        const keys = Object.keys(item);
+        const code = item[keys[0]] || '';
+        const name = item[keys[1]] || '';
+        const extra = item[keys[2]] ? `(${item[keys[2]]})` : '';
+
+        const div = document.createElement('div');
+        div.className = 'suggest-item';
+        div.innerHTML = `<span class="code">${code}</span> ${name} <span class="sub">${extra}</span>`;
+
+        // クリックしたら確定処理
+        div.addEventListener('click', () => {
+          selectedCustomerCode.value = code;
+          selectedCustomerName.value = name;
+          customerSearchInput.value = `${code} : ${name}`;
+          
+          // 確定バッジの表示
+          selectedBadge.textContent = `選択中: [${code}] ${name}`;
+          selectedBadge.style.display = 'block';
+
+          suggestWindow.style.display = 'none'; // ウインドウを閉じる
+        });
+
+        suggestWindow.appendChild(div);
+      });
+
+      suggestWindow.style.display = 'block';
+    });
+
+    // フォーカスが外れた際、サジェストを閉じる（クリックイベントを阻害しないよう少し遅延）
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.search-container')) {
+        suggestWindow.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>
