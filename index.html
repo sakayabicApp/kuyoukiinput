@@ -33,7 +33,7 @@
       font-size: 20px;
     }
 
-    /* レイアウト（PC: 横並び / スマホ: 縦並び） */
+    /* レイアウト（PC: 横並び / スマホ: 1行・縦並び） */
     .search-display-grid {
       display: flex;
       flex-direction: row;
@@ -51,7 +51,7 @@
       width: 100%;
     }
 
-    /* スマホ（レスポンシブ）対応: 1列表記 */
+    /* スマホ（768px以下）は縦1列 */
     @media (max-width: 768px) {
       .search-display-grid {
         flex-direction: column;
@@ -74,7 +74,7 @@
       border-radius: 4px;
     }
 
-    /* 共通テーブルスタイル */
+    /* テーブルスタイル */
     table {
       width: 100%;
       border-collapse: collapse;
@@ -161,7 +161,7 @@
       white-space: nowrap;
     }
 
-    /* 送信エリア */
+    /* ボタンエリア */
     .action-area {
       margin-top: 20px;
       text-align: right;
@@ -201,7 +201,7 @@
     .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
     .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
 
-    /* 確認モーダルダイアログ */
+    /* 確認モーダル */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -404,7 +404,7 @@
     let masterContainers = [];
     let masterRoutes = {};
 
-    let currentPayload = null; // 送信用データ一時保持
+    let currentPayload = null;
 
     // 初期ロード
     window.addEventListener('DOMContentLoaded', async () => {
@@ -503,8 +503,8 @@
 
         filtered.forEach(item => {
           const keys = Object.keys(item);
-          const code = item[keys[0]] || '';
-          const name = item[keys[1]] || '';
+          const code = String(item[keys[0]] || '').trim();
+          const name = String(item[keys[1]] || '').trim();
 
           const div = document.createElement('div');
           div.className = 'suggest-item';
@@ -560,13 +560,13 @@
           const name = item[keys[1]] || '';
           
           // BJ列（62列目 = インデックス 61）: 担当者コード
-          const staffCode = item[keys[61]] ? String(item[keys[61]]).trim() : '';
+          const staffCode = item[keys[61]] !== undefined ? String(item[keys[61]]).trim() : '';
           
-          // BQ列（67列目 = インデックス 66）: 出荷店コード
-          const storeCodeFromCustomer = item[keys[66]] ? String(item[keys[66]]).trim() : '';
+          // ★ BQ列（69列目 = インデックス 68）: 出荷店コード ★
+          const storeCodeFromCustomer = item[keys[68]] !== undefined ? String(item[keys[68]]).trim() : '';
 
           // BS列（71列目 = インデックス 70）: ルートコード
-          const routeCode = item[keys[70]] ? String(item[keys[70]]).trim() : '';
+          const routeCode = item[keys[70]] !== undefined ? String(item[keys[70]]).trim() : '';
           const routeName = masterRoutes[routeCode] || (routeCode ? `未登録 (${routeCode})` : '');
 
           const div = document.createElement('div');
@@ -589,14 +589,20 @@
               <td>${staffCode || '-'}</td>
             `;
 
-            // BQ列の出荷店コードから出荷店名を自動検索して更新
+            // ★ BQ列の出荷店コードを元に出荷店マスターから検索して自動入力 ★
             if (storeCodeFromCustomer) {
               const matchedStore = masterStores.find(s => {
                 const sKeys = Object.keys(s);
                 return String(s[sKeys[0]]).trim() === storeCodeFromCustomer;
               });
-              const storeName = matchedStore ? matchedStore[Object.keys(matchedStore)[1]] : '（名称不明）';
-              setStoreSelect(storeCodeFromCustomer, storeName);
+              
+              if (matchedStore) {
+                const storeName = String(matchedStore[Object.keys(matchedStore)[1]] || '').trim();
+                setStoreSelect(storeCodeFromCustomer, storeName);
+              } else {
+                // 出荷店名が見つからなくてもコード自体は反映
+                setStoreSelect(storeCodeFromCustomer, '（店舗名未登録）');
+              }
             }
 
             input.value = '';
@@ -615,9 +621,7 @@
     setupStoreSuggest();
     setupCustomerSuggest();
 
-    // ----------------------------------------------------
-    // 送信確認モーダルの開閉処理
-    // ----------------------------------------------------
+    // モーダル制御・送信処理
     const confirmModal = document.getElementById('confirmModal');
 
     document.getElementById('openConfirmBtn').addEventListener('click', () => {
@@ -633,7 +637,6 @@
         return;
       }
 
-      // 数量入力チェック
       const qtyInputs = document.querySelectorAll('.container-qty');
       const itemsToSubmit = [];
 
@@ -654,7 +657,6 @@
         return;
       }
 
-      // 送信ペイロード構築
       currentPayload = {
         storeCode: storeCode,
         storeName: document.getElementById('selectedStoreName').value,
@@ -667,14 +669,12 @@
         items: itemsToSubmit
       };
 
-      // モーダルのテキストセット
       document.getElementById('modalCustomerStr').textContent = `[${currentPayload.customerCode}] ${currentPayload.customerName}`;
       document.getElementById('modalRouteStr').textContent = currentPayload.routeCode ? `[${currentPayload.routeCode}] ${currentPayload.routeName}` : '未設定';
       document.getElementById('modalStaffStr').textContent = currentPayload.staffCode || '未設定';
       document.getElementById('modalStoreStr').textContent = `[${currentPayload.storeCode}] ${currentPayload.storeName}`;
       document.getElementById('modalNoteStr').textContent = currentPayload.note || '（なし）';
 
-      // 数量一覧セット
       const itemsBody = document.getElementById('modalItemsBody');
       itemsBody.innerHTML = '';
       currentPayload.items.forEach(item => {
@@ -693,14 +693,11 @@
       confirmModal.style.display = 'none';
     });
 
-    // モーダル外クリックで閉じる
     confirmModal.addEventListener('click', (e) => {
       if (e.target === confirmModal) confirmModal.style.display = 'none';
     });
 
-    // ----------------------------------------------------
-    // GASへの最終送信実行処理
-    // ----------------------------------------------------
+    // 送信確定
     document.getElementById('modalSubmitBtn').addEventListener('click', async () => {
       if (!currentPayload) return;
 
@@ -721,7 +718,6 @@
           confirmModal.style.display = 'none';
           showMessage('スプレッドシートへの登録が完了しました！', false);
           
-          // 入力値と一時データのクリア
           document.querySelectorAll('.container-qty').forEach(input => input.value = '');
           document.getElementById('note').value = '';
           currentPayload = null;
