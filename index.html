@@ -15,13 +15,13 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background-color: var(--bg-color);
       max-width: 950px;
-      margin: 20px auto;
-      padding: 0 15px;
+      margin: 15px auto;
+      padding: 0 10px;
       color: #333;
     }
     .container {
       background: var(--card-bg);
-      padding: 24px;
+      padding: 20px;
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
@@ -30,11 +30,13 @@
       color: var(--primary-color);
       border-bottom: 2px solid var(--primary-color);
       padding-bottom: 8px;
+      font-size: 20px;
     }
 
-    /* レイアウト */
+    /* レイアウト（PC: 横並び / スマホ: 縦並び） */
     .search-display-grid {
       display: flex;
+      flex-direction: row;
       gap: 15px;
       margin-bottom: 20px;
       align-items: flex-start;
@@ -42,9 +44,19 @@
     .col-1-3 {
       flex: 1;
       position: relative;
+      width: 100%;
     }
     .col-2-3 {
       flex: 2;
+      width: 100%;
+    }
+
+    /* スマホ（レスポンシブ）対応: 1列表記 */
+    @media (max-width: 768px) {
+      .search-display-grid {
+        flex-direction: column;
+        gap: 10px;
+      }
     }
 
     label {
@@ -66,11 +78,11 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 14px;
+      font-size: 13px;
       text-align: left;
     }
     th, td {
-      padding: 8px 12px;
+      padding: 8px 10px;
       border: 1px solid #e0e0e0;
       vertical-align: middle;
     }
@@ -81,11 +93,11 @@
       white-space: nowrap;
     }
 
-    /* 表示用ミニテーブル (2/3 領域) */
+    /* 表示用ミニテーブル */
     .display-table-container {
       background: #ffffff;
       border-radius: 4px;
-      overflow: hidden;
+      overflow-x: auto;
     }
     .display-table td {
       background-color: #f0f4f9;
@@ -136,12 +148,12 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      width: 130px;
+      width: 120px;
     }
     .qty-cell input {
-      width: 70px;
+      width: 65px;
       text-align: right;
-      padding: 6px 8px;
+      padding: 6px 6px;
     }
     .unit-text {
       font-size: 13px;
@@ -163,6 +175,8 @@
       border: none;
       border-radius: 4px;
       cursor: pointer;
+      width: 100%;
+      max-width: 300px;
       transition: background 0.2s;
     }
     button[type="submit"]:hover { background-color: #003da1; }
@@ -186,11 +200,11 @@
 
     <form id="registerForm">
       
-      <!-- 出荷店エリア (1/3 検索 : 2/3 表形式表示) -->
+      <!-- 出荷店エリア -->
       <label>出荷店選択:</label>
       <div class="search-display-grid">
         <div class="col-1-3">
-          <input type="text" id="storeSearch" placeholder="コード・名で検索" autocomplete="off">
+          <input type="text" id="storeSearch" placeholder="出荷店コード・名称で検索" autocomplete="off">
           <div id="storeSuggest" class="suggest-window"></div>
           <input type="hidden" id="selectedStoreCode" required>
           <input type="hidden" id="selectedStoreName">
@@ -206,7 +220,7 @@
               </thead>
               <tbody>
                 <tr id="storeDisplayRow">
-                  <td colspan="2" class="empty-td">未選択（左の検索窓から選択）</td>
+                  <td colspan="2" class="empty-td">未選択（検索または得意先選択で自動反映）</td>
                 </tr>
               </tbody>
             </table>
@@ -214,29 +228,33 @@
         </div>
       </div>
 
-      <!-- 得意先エリア (1/3 検索 : 2/3 表形式表示) -->
+      <!-- 得意先エリア -->
       <label>得意先選択:</label>
       <div class="search-display-grid">
         <div class="col-1-3">
-          <input type="text" id="customerSearch" placeholder="コード・名・カナ検索" autocomplete="off">
+          <input type="text" id="customerSearch" placeholder="得意先コード・名称・カナ検索" autocomplete="off">
           <div id="customerSuggest" class="suggest-window"></div>
           <input type="hidden" id="selectedCustomerCode" required>
           <input type="hidden" id="selectedCustomerName">
+          <input type="hidden" id="selectedRouteCode">
           <input type="hidden" id="selectedRouteName">
+          <input type="hidden" id="selectedStaffCode">
         </div>
         <div class="col-2-3">
           <div class="display-table-container">
             <table class="display-table">
               <thead>
                 <tr>
-                  <th style="width: 25%;">得意先コード</th>
-                  <th style="width: 45%;">得意先名</th>
-                  <th style="width: 30%;">配送ルート名</th>
+                  <th>得意先コード</th>
+                  <th>得意先名</th>
+                  <th>ルートコード</th>
+                  <th>配送ルート名</th>
+                  <th>担当者コード</th>
                 </tr>
               </thead>
               <tbody>
                 <tr id="customerDisplayRow">
-                  <td colspan="3" class="empty-td">未選択（左の検索窓から選択）</td>
+                  <td colspan="5" class="empty-td">未選択（左の検索窓から選択）</td>
                 </tr>
               </tbody>
             </table>
@@ -271,7 +289,7 @@
         </table>
       </div>
 
-      <!-- 送信ボタン -->
+      <!-- 明示的な送信ボタン -->
       <div class="action-area">
         <button type="submit" id="submitBtn">スプレッドシートへ送信する</button>
       </div>
@@ -287,7 +305,7 @@
     let masterStores = [];
     let masterCustomers = [];
     let masterContainers = [];
-    let masterRoutes = {}; // { ルートコード: ルート名 } の辞書マップ
+    let masterRoutes = {}; // { ルートコード: ルート名 } のマップ
 
     // 初期ロード
     window.addEventListener('DOMContentLoaded', async () => {
@@ -320,7 +338,7 @@
       }
     });
 
-    // 空容器テーブルの描画
+    // 空容器テーブル描画
     function renderContainerTable(containers) {
       const tbody = document.getElementById('containerTableBody');
       tbody.innerHTML = '';
@@ -356,13 +374,17 @@
       });
     }
 
-    // 出荷店サジェスト & テーブル表示セットアップ
+    // 出荷店を選択・表示エリアにセットする関数
+    function setStoreSelect(code, name) {
+      document.getElementById('selectedStoreCode').value = code;
+      document.getElementById('selectedStoreName').value = name;
+      document.getElementById('storeDisplayRow').innerHTML = `<td>${code}</td><td>${name}</td>`;
+    }
+
+    // 出荷店サジェストセットアップ
     function setupStoreSuggest() {
       const input = document.getElementById('storeSearch');
       const suggest = document.getElementById('storeSuggest');
-      const codeHidden = document.getElementById('selectedStoreCode');
-      const nameHidden = document.getElementById('selectedStoreName');
-      const displayRow = document.getElementById('storeDisplayRow');
 
       input.addEventListener('input', () => {
         const keyword = input.value.trim().toLowerCase();
@@ -390,12 +412,7 @@
           div.innerHTML = `<span class="code">${code}</span> ${name}`;
 
           div.addEventListener('click', () => {
-            codeHidden.value = code;
-            nameHidden.value = name;
-
-            // 出荷店テーブル行を更新
-            displayRow.innerHTML = `<td>${code}</td><td>${name}</td>`;
-
+            setStoreSelect(code, name);
             input.value = '';
             suggest.style.display = 'none';
           });
@@ -409,13 +426,15 @@
       });
     }
 
-    // 得意先サジェスト & テーブル表示セットアップ（BS列ルート紐付け対応）
+    // 得意先サジェストセットアップ
     function setupCustomerSuggest() {
       const input = document.getElementById('customerSearch');
       const suggest = document.getElementById('customerSuggest');
       const codeHidden = document.getElementById('selectedCustomerCode');
       const nameHidden = document.getElementById('selectedCustomerName');
-      const routeHidden = document.getElementById('selectedRouteName');
+      const routeCodeHidden = document.getElementById('selectedRouteCode');
+      const routeNameHidden = document.getElementById('selectedRouteName');
+      const staffCodeHidden = document.getElementById('selectedStaffCode');
       const displayRow = document.getElementById('customerDisplayRow');
 
       input.addEventListener('input', () => {
@@ -441,9 +460,15 @@
           const code = item[keys[0]] || '';
           const name = item[keys[1]] || '';
           
-          // 得意先マスター BS列（71列目 = インデックス 70）からルートコードを取得
+          // BJ列（62列目 = インデックス 61）: 担当者コード
+          const staffCode = item[keys[61]] ? String(item[keys[61]]).trim() : '';
+          
+          // BQ列（65列目 = インデックス 64）: 出荷店コード
+          const storeCodeFromCustomer = item[keys[64]] ? String(item[keys[64]]).trim() : '';
+
+          // BS列（71列目 = インデックス 70）: ルートコード
           const routeCode = item[keys[70]] ? String(item[keys[70]]).trim() : '';
-          const routeName = masterRoutes[routeCode] || (routeCode ? `コード: ${routeCode}` : '未設定');
+          const routeName = masterRoutes[routeCode] || (routeCode ? `未登録 (${routeCode})` : '');
 
           const div = document.createElement('div');
           div.className = 'suggest-item';
@@ -452,10 +477,28 @@
           div.addEventListener('click', () => {
             codeHidden.value = code;
             nameHidden.value = name;
-            routeHidden.value = routeName;
+            routeCodeHidden.value = routeCode;
+            routeNameHidden.value = routeName;
+            staffCodeHidden.value = staffCode;
 
-            // 得意先テーブル行を更新
-            displayRow.innerHTML = `<td>${code}</td><td>${name}</td><td>${routeName}</td>`;
+            // 得意先表示テーブルの更新
+            displayRow.innerHTML = `
+              <td>${code}</td>
+              <td>${name}</td>
+              <td>${routeCode || '-'}</td>
+              <td>${routeName || '-'}</td>
+              <td>${staffCode || '-'}</td>
+            `;
+
+            // BQ列の出荷店コードから出荷店名を自動検索して更新
+            if (storeCodeFromCustomer) {
+              const matchedStore = masterStores.find(s => {
+                const sKeys = Object.keys(s);
+                return String(s[sKeys[0]]).trim() === storeCodeFromCustomer;
+              });
+              const storeName = matchedStore ? matchedStore[Object.keys(matchedStore)[1]] : '（名称不明）';
+              setStoreSelect(storeCodeFromCustomer, storeName);
+            }
 
             input.value = '';
             suggest.style.display = 'none';
@@ -474,7 +517,7 @@
     setupCustomerSuggest();
 
     // ----------------------------------------------------
-    // 送信ボタン押下時の処理
+    // ボタン押下時の一括送信処理
     // ----------------------------------------------------
     document.getElementById('registerForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -491,7 +534,7 @@
         return;
       }
 
-      // 数量が入力されている行を抽出
+      // 数量が入力されている空容器を抽出
       const qtyInputs = document.querySelectorAll('.container-qty');
       const itemsToSubmit = [];
 
@@ -517,7 +560,9 @@
         storeName: document.getElementById('selectedStoreName').value,
         customerCode: customerCode,
         customerName: document.getElementById('selectedCustomerName').value,
+        routeCode: document.getElementById('selectedRouteCode').value,
         routeName: document.getElementById('selectedRouteName').value,
+        staffCode: document.getElementById('selectedStaffCode').value,
         note: document.getElementById('note').value,
         items: itemsToSubmit
       };
@@ -536,9 +581,9 @@
         const result = await response.json();
 
         if (result.status === 'success') {
-          showMessage('スプレッドシートへ登録が完了しました！', false);
+          showMessage('スプレッドシートへの登録が完了しました！', false);
           
-          // 数量入力フィールドと備考をクリア
+          // 数量入力欄と備考をクリア
           qtyInputs.forEach(input => input.value = '');
           document.getElementById('note').value = '';
         } else {
