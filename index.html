@@ -783,7 +783,7 @@ setupCustomerSuggest('pdfCustomerSearch', 'pdfCustomerSuggest', 'pdfSelectedCust
       });
     }
 
-    // 得意先サジェストの汎用関数
+// 得意先サジェストの汎用関数
     function setupCustomerSuggest(inputId, suggestId, codeHiddenId, nameHiddenId, displayRowId, isRegister = true) {
       const input = document.getElementById(inputId);
       const suggest = document.getElementById(suggestId);
@@ -823,51 +823,26 @@ setupCustomerSuggest('pdfCustomerSearch', 'pdfCustomerSuggest', 'pdfSelectedCust
           div.className = 'suggest-item';
           div.innerHTML = `<span class="code">${code}</span> ${name}`;
 
-div.addEventListener('click', () => {
-  const keys = Object.keys(item);
-  const code = String(item[keys[0]] || '').trim();
-  const name = String(item[keys[1]] || '').trim();
-  const rCode = String(item[keys[2]] || '').trim();
-  const rName = masterRoutes[rCode] || rCode;
-  const sCode = String(item[keys[3]] || '').trim();
-  const sName = masterStaffs[sCode] || sCode;
-  const storeCode = String(item[keys[4]] || '').trim();
+          div.addEventListener('click', () => {
+            if (codeHidden) codeHidden.value = code;
+            if (nameHidden) nameHidden.value = name;
 
-  if (codeHidden) codeHidden.value = code;
-  if (nameHidden) nameHidden.value = name;
+            if (isRegister) {
+              document.getElementById('selectedRouteCode').value = rCode;
+              document.getElementById('selectedRouteName').value = rName;
+              document.getElementById('selectedStaffCode').value = sCode;
+              document.getElementById('selectedStaffName').value = sName;
 
-  if (isRegister) {
-    document.getElementById('selectedRouteCode').value = rCode;
-    document.getElementById('selectedRouteName').value = rName;
-    document.getElementById('selectedStaffCode').value = sCode;
-    document.getElementById('selectedStaffName').value = sName;
-
-    if (displayRow) {
-      displayRow.innerHTML = `
-        <td>${code}</td>
-        <td>${name}</td>
-        <td>${rCode}</td>
-        <td>${rName}</td>
-        <td>${sCode}</td>
-        <td>${sName}</td>
-      `;
-    }
-
-// 出荷店の自動反映（連動）
-    if (storeCode) {
-      const store = masterStores.find(s => String(s[Object.keys(s)[0]]).trim() === storeCode);
-      const storeName = store ? String(store[Object.keys(store)[1]] || '').trim() : '';
-      setStoreSelect(storeCode, storeName);
-    }
-  } else {
-    if (displayRow) {
-      displayRow.innerHTML = `<td>${code}</td><td>${name}</td>`;
-    }
-  }
-
-  input.value = '';
-  suggest.style.display = 'none';
-});
+              if (displayRow) {
+                displayRow.innerHTML = `
+                  <td>${code}</td>
+                  <td>${name}</td>
+                  <td>${rCode}</td>
+                  <td>${rName}</td>
+                  <td>${sCode}</td>
+                  <td>${sName}</td>
+                `;
+              }
 
               // 出荷店の自動反映（連動）
               if (storeCode) {
@@ -884,6 +859,7 @@ div.addEventListener('click', () => {
             input.value = '';
             suggest.style.display = 'none';
           });
+
           suggest.appendChild(div);
         });
         suggest.style.display = 'block';
