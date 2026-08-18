@@ -157,28 +157,30 @@
       text-align: center;
     }
 
-    /* 数量入力セル内の配置（入力欄を優先して広げる） */
-  .qty-cell {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 0.125rem; /* 間隔を狭めて入力欄のスペースを確保 */
-  }
-/* 数量入力インプットのサイズ調整 */
-  .qty-cell input {
-    width: 100%;
-    max-width: 4.5rem;    /* 幅を広げて数字がしっかり見えるように変更 (約63px) */
-    font-size: 1rem;      /* 16px指定：iOSの自動ズーム防止＆数字を見やすく */
-    padding: 0.25rem 0.125rem; /* 内側の余白を減らしテキスト領域を最大化 */
-    text-align: right;
-    box-sizing: border-box;
-  }
-/* 単位テキスト（「本」や「個」）のサイズ調整 */
-  .unit-text {
-    font-size: 0.7rem;
-    white-space: nowrap;
-    flex-shrink: 0;       /* 単位が潰れないように保護 */
-  }
+/* 数量入力セル（入力幅を完全固定） */
+.qty-cell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end; /* 右寄せ */
+  gap: 0.25rem;
+}
+    
+.qty-cell input {
+  width: 3rem !important;  /* 幅を固定（約56px） */
+  min-width: 3rem !important;
+  max-width: 3rem !important;
+  font-size: 1rem;            /* iOSズーム防止（16px） */
+  padding: 0.25rem;
+  text-align: right;
+  box-sizing: border-box;
+}
+.unit-text {
+  font-size: 0.75rem;
+  color: #555;
+  white-space: nowrap;
+  width: 2.5em;              /* 単位表示域も幅を固定しておくとさらにブレません */
+  text-align: left;
+}
 /* display: none や opacity などの消去指定を強制解除 */
   table:has(#modalItemsBody) thead {
     display: table-header-group !important;
@@ -191,8 +193,7 @@
     padding: 0.375rem 0.25rem;
     font-size: 0.75rem;
     background-color: #f8f9fa;
-  }
-    
+  }  
     
   }
 
@@ -369,6 +370,8 @@ table:has(#modalItemsBody) th:nth-child(2),
           <input type="hidden" id="selectedRouteCode">
           <input type="hidden" id="selectedRouteName">
           <input type="hidden" id="selectedStaffCode">
+          <!-- ★ 担当者名を保持する hidden 要素を追加 -->
+          <input type="hidden" id="selectedStaffName">
         </div>
         <div class="col-2-3">
           <div class="display-table-container">
@@ -380,11 +383,12 @@ table:has(#modalItemsBody) th:nth-child(2),
                   <th>ルートコード</th>
                   <th>配送ルート名</th>
                   <th>担当者コード</th>
+                  <th>担当者</th>
                 </tr>
               </thead>
               <tbody>
                 <tr id="customerDisplayRow">
-                  <td colspan="5" class="empty-td">未選択（左の検索窓から選択）</td>
+                  <td colspan="6" class="empty-td">未選択（左の検索窓から選択）</td>
                 </tr>
               </tbody>
             </table>
@@ -517,6 +521,7 @@ table:has(#modalItemsBody) th:nth-child(2),
     let masterCustomers = [];
     let masterContainers = [];
     let masterRoutes = {};
+    let masterStaffs = {}; // ★ 追加：担当者マスター辞書マッ
 
     let currentPayload = null;
 
@@ -538,6 +543,16 @@ table:has(#modalItemsBody) th:nth-child(2),
               const code = String(row[keys[0]] || '').trim();
               const name = String(row[keys[1]] || '').trim();
               if (code) masterRoutes[code] = name;
+            });
+          }
+
+          // ★ 追加：担当者マスター辞書マップ (A列:コード -> B列:名称)
+          if (result.data.staffs) {
+            result.data.staffs.forEach(row => {
+              const keys = Object.keys(row);
+              const code = String(row[keys[0]] || '').trim();
+              const name = String(row[keys[1]] || '').trim();
+              if (code) masterStaffs[code] = name;
             });
           }
 
@@ -639,7 +654,7 @@ table:has(#modalItemsBody) th:nth-child(2),
       });
     }
 
-    // 得意先サジェストセットアップ
+// 得意先サジェストセットアップ
     function setupCustomerSuggest() {
       const input = document.getElementById('customerSearch');
       const suggest = document.getElementById('customerSuggest');
@@ -648,6 +663,8 @@ table:has(#modalItemsBody) th:nth-child(2),
       const routeCodeHidden = document.getElementById('selectedRouteCode');
       const routeNameHidden = document.getElementById('selectedRouteName');
       const staffCodeHidden = document.getElementById('selectedStaffCode');
+      // ★ 追加：担当者名用 hidden
+      const staffNameHidden = document.getElementById('selectedStaffName');
       const displayRow = document.getElementById('customerDisplayRow');
 
       input.addEventListener('input', () => {
@@ -676,6 +693,9 @@ table:has(#modalItemsBody) th:nth-child(2),
           // BJ列（62列目 = インデックス 61）: 担当者コード
           const staffCode = item[keys[61]] !== undefined ? String(item[keys[61]]).trim() : '';
           
+          // ★ 追加：担当者名の引き当て
+          const staffName = masterStaffs[staffCode] || (staffCode ? `未登録 (${staffCode})` : '');
+
           // ★ BQ列（69列目 = インデックス 68）: 出荷店コード ★
           const storeCodeFromCustomer = item[keys[68]] !== undefined ? String(item[keys[68]]).trim() : '';
 
@@ -693,14 +713,17 @@ table:has(#modalItemsBody) th:nth-child(2),
             routeCodeHidden.value = routeCode;
             routeNameHidden.value = routeName;
             staffCodeHidden.value = staffCode;
+            // ★ 追加：担当者名を hidden に保存
+            if (staffNameHidden) staffNameHidden.value = staffName;
 
-            // 得意先表示テーブルの更新
+            // ★ 得意先表示テーブルの更新（6列表示）
             displayRow.innerHTML = `
               <td>${code}</td>
               <td>${name}</td>
               <td>${routeCode || '-'}</td>
               <td>${routeName || '-'}</td>
               <td>${staffCode || '-'}</td>
+              <td>${staffName || '-'}</td>
             `;
 
             // ★ BQ列の出荷店コードを元に出荷店マスターから検索して自動入力 ★
@@ -714,7 +737,6 @@ table:has(#modalItemsBody) th:nth-child(2),
                 const storeName = String(matchedStore[Object.keys(matchedStore)[1]] || '').trim();
                 setStoreSelect(storeCodeFromCustomer, storeName);
               } else {
-                // 出荷店名が見つからなくてもコード自体は反映
                 setStoreSelect(storeCodeFromCustomer, '（店舗名未登録）');
               }
             }
@@ -771,7 +793,7 @@ table:has(#modalItemsBody) th:nth-child(2),
         return;
       }
 
-      currentPayload = {
+currentPayload = {
         storeCode: storeCode,
         storeName: document.getElementById('selectedStoreName').value,
         customerCode: customerCode,
@@ -779,16 +801,23 @@ table:has(#modalItemsBody) th:nth-child(2),
         routeCode: document.getElementById('selectedRouteCode').value,
         routeName: document.getElementById('selectedRouteName').value,
         staffCode: document.getElementById('selectedStaffCode').value,
+        // ★ 追加：送信データ（payload）に担当者名を追加
+        staffName: document.getElementById('selectedStaffName') ? document.getElementById('selectedStaffName').value : '',
         note: document.getElementById('note').value,
         items: itemsToSubmit
       };
 
       document.getElementById('modalCustomerStr').textContent = `[${currentPayload.customerCode}] ${currentPayload.customerName}`;
       document.getElementById('modalRouteStr').textContent = currentPayload.routeCode ? `[${currentPayload.routeCode}] ${currentPayload.routeName}` : '未設定';
-      document.getElementById('modalStaffStr').textContent = currentPayload.staffCode || '未設定';
+      
+      // ★ 変更：確認モーダルの担当者表示部分に「コード + 名前」をセット
+      document.getElementById('modalStaffStr').textContent = currentPayload.staffCode 
+        ? `[${currentPayload.staffCode}] ${currentPayload.staffName}` 
+        : '未設定';
+
       document.getElementById('modalStoreStr').textContent = `[${currentPayload.storeCode}] ${currentPayload.storeName}`;
       document.getElementById('modalNoteStr').textContent = currentPayload.note || '（なし）';
-
+      
       const itemsBody = document.getElementById('modalItemsBody');
       itemsBody.innerHTML = '';
       currentPayload.items.forEach(item => {
