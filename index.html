@@ -137,11 +137,11 @@
       display: none;
     }
 
-    /* ★ スマホ時（JAN非表示時）の空容器テーブル列幅比率指定 ★ */
-    .table-container th:nth-child(1) { width: 22%; } /* 商品コード */
-    .table-container th:nth-child(3) { width: 44%; } /* 空容器名（広めに確保） */
-    .table-container th:nth-child(4) { width: 16%; } /* 単価 */
-    .table-container th:nth-child(5) { width: 18%; } /* 数量入力 */
+/* テーブルの「数量」列の幅も少し広めに再割り当て */
+  .table-container th:nth-child(1) { width: 22%; } /* 商品コード */
+  .table-container th:nth-child(3) { width: 38%; } /* 空容器名 */
+  .table-container th:nth-child(4) { width: 15%; } /* 単価 */
+  .table-container th:nth-child(5) { width: 25%; } /* 数量入力列を少し拡大 */
 
     /* ヘッダー・セルの自動折り返し & 幅調整 */
     th, td {
@@ -157,14 +157,31 @@
       text-align: center;
     }
 
-    .qty-cell {
-      gap: 0.25rem;
-    }
-    .qty-cell input {
-      width: 100%;
-      max-width: 3.125rem; /* スマホ時50px */
-      padding: 0.25rem;
-    }
+    /* 数量入力セル内の配置（入力欄を優先して広げる） */
+  .qty-cell {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.125rem; /* 間隔を狭めて入力欄のスペースを確保 */
+  }
+/* 数量入力インプットのサイズ調整 */
+  .qty-cell input {
+    width: 100%;
+    max-width: 4.5rem;    /* 幅を広げて数字がしっかり見えるように変更 (約63px) */
+    font-size: 1rem;      /* 16px指定：iOSの自動ズーム防止＆数字を見やすく */
+    padding: 0.25rem 0.125rem; /* 内側の余白を減らしテキスト領域を最大化 */
+    text-align: right;
+    box-sizing: border-box;
+  }
+/* 単位テキスト（「本」や「個」）のサイズ調整 */
+  .unit-text {
+    font-size: 0.7rem;
+    white-space: nowrap;
+    flex-shrink: 0;       /* 単位が潰れないように保護 */
+  }
+
+    
+    
   }
 
   /* サジェストウィンドウ */
@@ -369,11 +386,6 @@
         </div>
       </div>
 
-      <!-- 備考欄 -->
-      <div style="margin-bottom: 20px;">
-        <label for="note">備考 / メモ:</label>
-        <input type="text" id="note" placeholder="備考があれば入力">
-      </div>
 
       <!-- 空容器マスターテーブル -->
       <label>空容器数量入力（入力後、下の送信ボタンで確定）:</label>
@@ -396,10 +408,19 @@
         </table>
       </div>
 
+            <!-- 備考欄 -->
+      <div style="margin-bottom: 20px;">
+        <label for="note">備考 / メモ:</label>
+        <input type="text" id="note" placeholder="備考があれば入力">
+      </div>
+
+
       <!-- 送信確認モーダル呼出ボタン -->
       <div class="action-area">
         <button type="button" id="openConfirmBtn" class="btn-primary">スプレッドシートへ送信する</button>
       </div>
+
+      
     </form>
 
     <div id="message"></div>
