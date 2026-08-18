@@ -738,7 +738,7 @@ setupCustomerSuggest('pdfCustomerSearch', 'pdfCustomerSuggest', 'pdfSelectedCust
       return kana.replace(reg, match => kanaMap[match]).toLowerCase();
     }
 
-    function setupStoreSuggest() {
+function setupStoreSuggest() {
       const input = document.getElementById('storeSearch');
       const suggest = document.getElementById('storeSuggest');
 
@@ -783,15 +783,16 @@ setupCustomerSuggest('pdfCustomerSearch', 'pdfCustomerSuggest', 'pdfSelectedCust
       });
     }
 
-// 得意先サジェストの汎用関数
-    function setupCustomerSuggest(inputId, suggestId, codeHiddenId, nameHiddenId, displayRowId, isRegister = true) {
-      const input = document.getElementById(inputId);
-      const suggest = document.getElementById(suggestId);
-      const codeHidden = document.getElementById(codeHiddenId);
-      const nameHidden = document.getElementById(nameHiddenId);
-      const displayRow = document.getElementById(displayRowId);
-
-      if (!input || !suggest) return;
+    function setupCustomerSuggest() {
+      const input = document.getElementById('customerSearch');
+      const suggest = document.getElementById('customerSuggest');
+      const codeHidden = document.getElementById('selectedCustomerCode');
+      const nameHidden = document.getElementById('selectedCustomerName');
+      const routeCodeHidden = document.getElementById('selectedRouteCode');
+      const routeNameHidden = document.getElementById('selectedRouteName');
+      const staffCodeHidden = document.getElementById('selectedStaffCode');
+      const staffNameHidden = document.getElementById('selectedStaffName');
+      const displayRow = document.getElementById('customerDisplayRow');
 
       input.addEventListener('input', () => {
         const keyword = normalizeToKatakana(input.value.trim());
@@ -811,62 +812,50 @@ setupCustomerSuggest('pdfCustomerSearch', 'pdfCustomerSuggest', 'pdfSelectedCust
 
         filtered.forEach(item => {
           const keys = Object.keys(item);
-          const code = String(item[keys[0]] || '').trim();
-          const name = String(item[keys[1]] || '').trim();
-          const rCode = String(item[keys[2]] || '').trim();
-          const rName = masterRoutes[rCode] || rCode;
-          const sCode = String(item[keys[3]] || '').trim();
-          const sName = masterStaffs[sCode] || sCode;
-          const storeCode = String(item[keys[4]] || '').trim();
+          const code = item[keys[0]] || '';
+          const name = item[keys[1]] || '';
+          const staffCode = item[keys[61]] !== undefined ? String(item[keys[61]]).trim() : '';
+          const staffName = masterStaffs[staffCode] || (staffCode ? `未登録 (${staffCode})` : '');
+          const storeCodeFromCustomer = item[keys[68]] !== undefined ? String(item[keys[68]]).trim() : '';
+          const routeCode = item[keys[70]] !== undefined ? String(item[keys[70]]).trim() : '';
+          const routeName = masterRoutes[routeCode] || (routeCode ? `未登録 (${routeCode})` : '');
 
           const div = document.createElement('div');
           div.className = 'suggest-item';
           div.innerHTML = `<span class="code">${code}</span> ${name}`;
 
           div.addEventListener('click', () => {
-            if (codeHidden) codeHidden.value = code;
-            if (nameHidden) nameHidden.value = name;
+            codeHidden.value = code;
+            nameHidden.value = name;
+            routeCodeHidden.value = routeCode;
+            routeNameHidden.value = routeName;
+            staffCodeHidden.value = staffCode;
+            if (staffNameHidden) staffNameHidden.value = staffName;
 
-            if (isRegister) {
-              document.getElementById('selectedRouteCode').value = rCode;
-              document.getElementById('selectedRouteName').value = rName;
-              document.getElementById('selectedStaffCode').value = sCode;
-              document.getElementById('selectedStaffName').value = sName;
+            displayRow.innerHTML = `
+              <td>${code}</td><td>${name}</td><td>${routeCode || '-'}</td>
+              <td>${routeName || '-'}</td><td>${staffCode || '-'}</td><td>${staffName || '-'}</td>
+            `;
 
-              if (displayRow) {
-                displayRow.innerHTML = `
-                  <td>${code}</td>
-                  <td>${name}</td>
-                  <td>${rCode}</td>
-                  <td>${rName}</td>
-                  <td>${sCode}</td>
-                  <td>${sName}</td>
-                `;
-              }
-
-              // 出荷店の自動反映（連動）
-              if (storeCode) {
-                const store = masterStores.find(s => String(s[Object.keys(s)[0]]).trim() === storeCode);
-                const storeName = store ? String(store[Object.keys(store)[1]] || '').trim() : '';
-                setStoreSelect(storeCode, storeName);
-              }
-            } else {
-              if (displayRow) {
-                displayRow.innerHTML = `<td>${code}</td><td>${name}</td>`;
+            if (storeCodeFromCustomer) {
+              const matchedStore = masterStores.find(s => String(s[Object.keys(s)[0]]).trim() === storeCodeFromCustomer);
+              if (matchedStore) {
+                setStoreSelect(storeCodeFromCustomer, String(matchedStore[Object.keys(matchedStore)[1]] || '').trim());
+              } else {
+                setStoreSelect(storeCodeFromCustomer, '（店舗名未登録）');
               }
             }
 
             input.value = '';
             suggest.style.display = 'none';
           });
-
           suggest.appendChild(div);
         });
         suggest.style.display = 'block';
       });
 
       document.addEventListener('click', (e) => {
-        if (!e.target.closest(`#${inputId}`) && !e.target.closest(`#${suggestId}`)) suggest.style.display = 'none';
+        if (!e.target.closest('#customerSearch') && !e.target.closest('#customerSuggest')) suggest.style.display = 'none';
       });
     }
 
