@@ -14,7 +14,7 @@
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background-color: var(--bg-color);
-      max-width: 900px;
+      max-width: 950px;
       margin: 20px auto;
       padding: 0 15px;
       color: #333;
@@ -31,10 +31,8 @@
       border-bottom: 2px solid var(--primary-color);
       padding-bottom: 8px;
     }
-    
-    /* -----------------------------------
-       1/3 と 2/3 の横並びグリッドレイアウト
-    ----------------------------------- */
+
+    /* レイアウト */
     .search-display-grid {
       display: flex;
       gap: 15px;
@@ -42,11 +40,11 @@
       align-items: flex-start;
     }
     .col-1-3 {
-      flex: 1; /* 横幅 1/3 */
+      flex: 1;
       position: relative;
     }
     .col-2-3 {
-      flex: 2; /* 横幅 2/3 */
+      flex: 2;
     }
 
     label {
@@ -64,27 +62,44 @@
       border-radius: 4px;
     }
 
-    /* 確定情報表示パネル (2/3側) */
-    .info-panel {
-      padding: 10px 14px;
-      background: #f0f4f9;
-      border: 1px solid #d0dbe8;
-      border-radius: 4px;
-      min-height: 20px;
-      font-size: 15px;
-      font-weight: bold;
-      color: #1967d2;
-      display: flex;
-      align-items: center;
+    /* 共通テーブルスタイル */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      text-align: left;
     }
-    .info-panel.empty {
-      color: #888;
-      font-weight: normal;
-      background: #fafafa;
-      border-style: dashed;
+    th, td {
+      padding: 8px 12px;
+      border: 1px solid #e0e0e0;
+      vertical-align: middle;
+    }
+    th {
+      background-color: #f8f9fa;
+      color: #555;
+      font-weight: bold;
+      white-space: nowrap;
     }
 
-    /* サジェストウィンドウ共通 */
+    /* 表示用ミニテーブル (2/3 領域) */
+    .display-table-container {
+      background: #ffffff;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .display-table td {
+      background-color: #f0f4f9;
+      color: #1967d2;
+      font-weight: bold;
+    }
+    .display-table td.empty-td {
+      background-color: #fafafa;
+      color: #888;
+      font-weight: normal;
+      text-align: center;
+    }
+
+    /* サジェストウィンドウ */
     .suggest-window {
       position: absolute;
       top: 100%;
@@ -109,33 +124,13 @@
     .suggest-item:hover { background-color: #e8f0fe; }
     .suggest-item .code { font-weight: bold; color: var(--primary-color); margin-right: 6px; }
 
-    /* -----------------------------------
-       空容器マスターテーブルのスタイル
-    ----------------------------------- */
+    /* 空容器マスターテーブル */
     .table-container {
       overflow-x: auto;
-      margin-top: 20px;
+      margin-top: 10px;
       border: 1px solid #e0e0e0;
       border-radius: 6px;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-      text-align: left;
-    }
-    th, td {
-      padding: 10px 12px;
-      border-bottom: 1px solid #eee;
-      vertical-align: middle;
-    }
-    th {
-      background-color: #f8f9fa;
-      color: #555;
-      font-weight: bold;
-      white-space: nowrap;
-    }
-    tr:hover { background-color: #f9fbfd; }
     .price-col { text-align: right; }
     .qty-cell {
       display: flex;
@@ -154,7 +149,7 @@
       white-space: nowrap;
     }
 
-    /* 送信ボタン */
+    /* 送信エリア */
     .action-area {
       margin-top: 20px;
       text-align: right;
@@ -164,7 +159,7 @@
       color: white;
       font-size: 16px;
       font-weight: bold;
-      padding: 12px 24px;
+      padding: 12px 28px;
       border: none;
       border-radius: 4px;
       cursor: pointer;
@@ -191,8 +186,8 @@
 
     <form id="registerForm">
       
-      <!-- 出荷店エリア (1/3 検索 : 2/3 表示) -->
-      <label>出荷店:</label>
+      <!-- 出荷店エリア (1/3 検索 : 2/3 表形式表示) -->
+      <label>出荷店選択:</label>
       <div class="search-display-grid">
         <div class="col-1-3">
           <input type="text" id="storeSearch" placeholder="コード・名で検索" autocomplete="off">
@@ -201,21 +196,51 @@
           <input type="hidden" id="selectedStoreName">
         </div>
         <div class="col-2-3">
-          <div id="storeDisplay" class="info-panel empty">未選択（左から検索・選択）</div>
+          <div class="display-table-container">
+            <table class="display-table">
+              <thead>
+                <tr>
+                  <th style="width: 35%;">出荷店コード</th>
+                  <th>出荷店名</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr id="storeDisplayRow">
+                  <td colspan="2" class="empty-td">未選択（左の検索窓から選択）</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
-      <!-- 得意先エリア (1/3 検索 : 2/3 表示) -->
-      <label>得意先:</label>
+      <!-- 得意先エリア (1/3 検索 : 2/3 表形式表示) -->
+      <label>得意先選択:</label>
       <div class="search-display-grid">
         <div class="col-1-3">
           <input type="text" id="customerSearch" placeholder="コード・名・カナ検索" autocomplete="off">
           <div id="customerSuggest" class="suggest-window"></div>
           <input type="hidden" id="selectedCustomerCode" required>
           <input type="hidden" id="selectedCustomerName">
+          <input type="hidden" id="selectedRouteName">
         </div>
         <div class="col-2-3">
-          <div id="customerDisplay" class="info-panel empty">未選択（左から検索・選択）</div>
+          <div class="display-table-container">
+            <table class="display-table">
+              <thead>
+                <tr>
+                  <th style="width: 25%;">得意先コード</th>
+                  <th style="width: 45%;">得意先名</th>
+                  <th style="width: 30%;">配送ルート名</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr id="customerDisplayRow">
+                  <td colspan="3" class="empty-td">未選択（左の検索窓から選択）</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -226,7 +251,7 @@
       </div>
 
       <!-- 空容器マスターテーブル -->
-      <label>空容器入力（数量直接入力）:</label>
+      <label>空容器数量入力（入力後、下の送信ボタンで確定）:</label>
       <div class="table-container">
         <table>
           <thead>
@@ -246,8 +271,9 @@
         </table>
       </div>
 
+      <!-- 送信ボタン -->
       <div class="action-area">
-        <button type="submit" id="submitBtn">一括送信する</button>
+        <button type="submit" id="submitBtn">スプレッドシートへ送信する</button>
       </div>
     </form>
 
@@ -256,11 +282,12 @@
 
   <script>
     // ★ご自身の GAS Webアプリ URL を設定してください
-    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbylyTuJ9jLaUISlpeKI5xVGOoeXl8XMh9e4lM_bmNAPTsw4N8LnVt4m2vDOgqMx7kRZlQ/exec';
+    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/YOUR_GAS_DEPLOYMENT_ID/exec';
 
     let masterStores = [];
     let masterCustomers = [];
     let masterContainers = [];
+    let masterRoutes = {}; // { ルートコード: ルート名 } の辞書マップ
 
     // 初期ロード
     window.addEventListener('DOMContentLoaded', async () => {
@@ -273,6 +300,16 @@
           masterCustomers = result.data.customers;
           masterContainers = result.data.containers;
 
+          // ルートマスターを辞書形式に変換 (A列:コード -> B列:名称)
+          if (result.data.routes) {
+            result.data.routes.forEach(row => {
+              const keys = Object.keys(row);
+              const code = String(row[keys[0]] || '').trim();
+              const name = String(row[keys[1]] || '').trim();
+              if (code) masterRoutes[code] = name;
+            });
+          }
+
           renderContainerTable(masterContainers);
         } else {
           showMessage('マスターデータの取得に失敗しました', true);
@@ -283,10 +320,7 @@
       }
     });
 
-    // ----------------------------------------------------
     // 空容器テーブルの描画
-    // A:商品コード, B:JANコード, C:空容器名, D:単価, E:単位
-    // ----------------------------------------------------
     function renderContainerTable(containers) {
       const tbody = document.getElementById('containerTableBody');
       tbody.innerHTML = '';
@@ -296,13 +330,13 @@
         return;
       }
 
-      containers.forEach((item, index) => {
+      containers.forEach(item => {
         const keys = Object.keys(item);
-        const code  = item[keys[0]] || ''; // A列
-        const jan   = item[keys[1]] || ''; // B列
-        const name  = item[keys[2]] || ''; // C列
-        const price = item[keys[3]] !== undefined ? item[keys[3]] : ''; // D列
-        const unit  = item[keys[4]] || '個'; // E列（単位）
+        const code  = item[keys[0]] || ''; 
+        const jan   = item[keys[1]] || ''; 
+        const name  = item[keys[2]] || ''; 
+        const price = item[keys[3]] !== undefined ? item[keys[3]] : ''; 
+        const unit  = item[keys[4]] || '個'; 
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -322,29 +356,22 @@
       });
     }
 
-    // ----------------------------------------------------
-    // 1/3 検索 window & 2/3 表示パネル共通関数
-    // ----------------------------------------------------
-    function setupSuggest(inputId, suggestId, codeHiddenId, nameHiddenId, displayId, getMasterData, searchFields) {
-      const input = document.getElementById(inputId);
-      const suggest = document.getElementById(suggestId);
-      const codeHidden = document.getElementById(codeHiddenId);
-      const nameHidden = document.getElementById(nameHiddenId);
-      const display = document.getElementById(displayId);
+    // 出荷店サジェスト & テーブル表示セットアップ
+    function setupStoreSuggest() {
+      const input = document.getElementById('storeSearch');
+      const suggest = document.getElementById('storeSuggest');
+      const codeHidden = document.getElementById('selectedStoreCode');
+      const nameHidden = document.getElementById('selectedStoreName');
+      const displayRow = document.getElementById('storeDisplayRow');
 
       input.addEventListener('input', () => {
         const keyword = input.value.trim().toLowerCase();
         suggest.innerHTML = '';
+        if (!keyword) { suggest.style.display = 'none'; return; }
 
-        if (!keyword) {
-          suggest.style.display = 'none';
-          return;
-        }
-
-        const master = getMasterData();
-        const filtered = master.filter(item => {
-          const values = Object.values(item).map(v => String(v).toLowerCase());
-          return searchFields.some(idx => values[idx] && values[idx].includes(keyword));
+        const filtered = masterStores.filter(item => {
+          const vals = Object.values(item).map(v => String(v).toLowerCase());
+          return (vals[0] && vals[0].includes(keyword)) || (vals[1] && vals[1].includes(keyword));
         });
 
         if (filtered.length === 0) {
@@ -357,45 +384,97 @@
           const keys = Object.keys(item);
           const code = item[keys[0]] || '';
           const name = item[keys[1]] || '';
-          const extra = item[keys[2]] ? `(${item[keys[2]]})` : '';
 
           const div = document.createElement('div');
           div.className = 'suggest-item';
-          div.innerHTML = `<span class="code">${code}</span> ${name} ${extra}`;
+          div.innerHTML = `<span class="code">${code}</span> ${name}`;
 
           div.addEventListener('click', () => {
-            // 値の確定
             codeHidden.value = code;
             nameHidden.value = name;
 
-            // 右側 2/3 パネルの表示を更新
-            display.textContent = `[${code}] ${name}`;
-            display.classList.remove('empty');
+            // 出荷店テーブル行を更新
+            displayRow.innerHTML = `<td>${code}</td><td>${name}</td>`;
 
-            // 検索窓をクリアしてウインドウを閉じる
             input.value = '';
             suggest.style.display = 'none';
           });
-
           suggest.appendChild(div);
         });
-
         suggest.style.display = 'block';
       });
 
       document.addEventListener('click', (e) => {
-        if (!e.target.closest('#' + inputId) && !e.target.closest('#' + suggestId)) {
-          suggest.style.display = 'none';
-        }
+        if (!e.target.closest('#storeSearch') && !e.target.closest('#storeSuggest')) suggest.style.display = 'none';
       });
     }
 
-    // セットアップ実行
-    setupSuggest('storeSearch', 'storeSuggest', 'selectedStoreCode', 'selectedStoreName', 'storeDisplay', () => masterStores, [0, 1]);
-    setupSuggest('customerSearch', 'customerSuggest', 'selectedCustomerCode', 'selectedCustomerName', 'customerDisplay', () => masterCustomers, [0, 1, 2]);
+    // 得意先サジェスト & テーブル表示セットアップ（BS列ルート紐付け対応）
+    function setupCustomerSuggest() {
+      const input = document.getElementById('customerSearch');
+      const suggest = document.getElementById('customerSuggest');
+      const codeHidden = document.getElementById('selectedCustomerCode');
+      const nameHidden = document.getElementById('selectedCustomerName');
+      const routeHidden = document.getElementById('selectedRouteName');
+      const displayRow = document.getElementById('customerDisplayRow');
+
+      input.addEventListener('input', () => {
+        const keyword = input.value.trim().toLowerCase();
+        suggest.innerHTML = '';
+        if (!keyword) { suggest.style.display = 'none'; return; }
+
+        const filtered = masterCustomers.filter(item => {
+          const vals = Object.values(item).map(v => String(v).toLowerCase());
+          return (vals[0] && vals[0].includes(keyword)) || 
+                 (vals[1] && vals[1].includes(keyword)) || 
+                 (vals[2] && vals[2].includes(keyword));
+        });
+
+        if (filtered.length === 0) {
+          suggest.innerHTML = '<div class="suggest-item" style="color:#999;">該当なし</div>';
+          suggest.style.display = 'block';
+          return;
+        }
+
+        filtered.forEach(item => {
+          const keys = Object.keys(item);
+          const code = item[keys[0]] || '';
+          const name = item[keys[1]] || '';
+          
+          // 得意先マスター BS列（71列目 = インデックス 70）からルートコードを取得
+          const routeCode = item[keys[70]] ? String(item[keys[70]]).trim() : '';
+          const routeName = masterRoutes[routeCode] || (routeCode ? `コード: ${routeCode}` : '未設定');
+
+          const div = document.createElement('div');
+          div.className = 'suggest-item';
+          div.innerHTML = `<span class="code">${code}</span> ${name}`;
+
+          div.addEventListener('click', () => {
+            codeHidden.value = code;
+            nameHidden.value = name;
+            routeHidden.value = routeName;
+
+            // 得意先テーブル行を更新
+            displayRow.innerHTML = `<td>${code}</td><td>${name}</td><td>${routeName}</td>`;
+
+            input.value = '';
+            suggest.style.display = 'none';
+          });
+          suggest.appendChild(div);
+        });
+        suggest.style.display = 'block';
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('#customerSearch') && !e.target.closest('#customerSuggest')) suggest.style.display = 'none';
+      });
+    }
+
+    setupStoreSuggest();
+    setupCustomerSuggest();
 
     // ----------------------------------------------------
-    // 送信処理（数量が1以上の空容器を一括送信）
+    // 送信ボタン押下時の処理
     // ----------------------------------------------------
     document.getElementById('registerForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -412,7 +491,7 @@
         return;
       }
 
-      // テーブルから数量が入っている行を抽出
+      // 数量が入力されている行を抽出
       const qtyInputs = document.querySelectorAll('.container-qty');
       const itemsToSubmit = [];
 
@@ -438,8 +517,9 @@
         storeName: document.getElementById('selectedStoreName').value,
         customerCode: customerCode,
         customerName: document.getElementById('selectedCustomerName').value,
+        routeName: document.getElementById('selectedRouteName').value,
         note: document.getElementById('note').value,
-        items: itemsToSubmit // 配列で送信
+        items: itemsToSubmit
       };
 
       const submitBtn = document.getElementById('submitBtn');
@@ -456,9 +536,9 @@
         const result = await response.json();
 
         if (result.status === 'success') {
-          showMessage('スプレッドシートへ一括書き込みました！', false);
+          showMessage('スプレッドシートへ登録が完了しました！', false);
           
-          // 数量入力フィールドをリセット
+          // 数量入力フィールドと備考をクリア
           qtyInputs.forEach(input => input.value = '');
           document.getElementById('note').value = '';
         } else {
@@ -468,7 +548,7 @@
         showMessage('送信エラーが発生しました。', true);
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = '一括送信する';
+        submitBtn.textContent = 'スプレッドシートへ送信する';
       }
     });
 
