@@ -648,9 +648,12 @@
         const result = await response.json();
 
         if (result.status === 'success' && result.pdfUrl) {
-          // ブラウザの別タブでPDFを開く
-          window.open(result.pdfUrl, '_blank');
-        } else {
+  // 新規タブでプレビュー表示（ダウンロードダイアログを挟まない設定）
+  const newTab = window.open(result.pdfUrl, '_blank');
+  if (!newTab) {
+    alert('ポップアップがブロックされました。ブラウザのポップアップ許可設定をご確認ください。');
+  }
+} else {
           alert(result.message || 'PDFの生成に失敗しました。');
         }
       } catch (err) {
