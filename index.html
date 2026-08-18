@@ -871,7 +871,7 @@ function setupStoreSuggest() {
       });
     }
 
-    // 確認モーダル & データ送信
+// 確認モーダル & データ送信
     const confirmModal = document.getElementById('confirmModal');
 
     document.getElementById('openConfirmBtn').addEventListener('click', () => {
@@ -880,12 +880,15 @@ function setupStoreSuggest() {
       const storeCode = document.getElementById('selectedStoreCode').value;
       const customerCode = document.getElementById('selectedCustomerCode').value;
 
-      if (!slipDate) { alert('伝票日付を入力してください。'); return; }
+      if (!slipDateFormatted) { alert('伝票日付を入力してください。'); return; }
       if (!currentUserName) { alert('ログインしてください。'); checkLogin(); return; }
       if (!customerCode) { alert('得意先を選択してください。'); return; }
       if (!storeCode) { alert('出荷店を選択してください。'); return; }
 
-const itemsToSubmit = Array.from(document.querySelectorAll('.container-qty'))
+      // ★ここで登録日時（yyyy/mm/dd HH:mm）を生成します
+      const registDateFormatted = getNowDateTimeString();
+
+      const itemsToSubmit = Array.from(document.querySelectorAll('.container-qty'))
         .filter(input => parseInt(input.value, 10) > 0)
         .map(input => {
           const code = input.dataset.code;
@@ -908,7 +911,7 @@ const itemsToSubmit = Array.from(document.querySelectorAll('.container-qty'))
         return;
       }
 
-currentPayload = {
+      currentPayload = {
         slipDate: slipDateFormatted, // yyyy/mm/dd
         registDate: registDateFormatted, // yyyy/mm/dd HH:mm
         registrantName: currentUserName, // 登録者
