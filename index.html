@@ -372,7 +372,7 @@
     <div id="pageReport" class="page-section hidden">
       <div class="report-card">
         <h3 style="margin-top:0; color: var(--primary-color); font-size: 1.1rem; margin-bottom: 1rem;">
-          空容器回収一覧表の発行
+          空容器回収一覧発行
         </h3>
         
         <div class="form-group-row">
@@ -630,7 +630,7 @@
 
       const pdfBtn = document.getElementById('generatePdfBtn');
       pdfBtn.disabled = true;
-      pdfBtn.textContent = 'PDF作成中...';
+      pdfBtn.textContent = '回収一覧作成中...';
 
       try {
         const response = await fetch(GAS_WEB_APP_URL, {
@@ -661,7 +661,7 @@
         alert('通信エラーが発生しました。');
       } finally {
         pdfBtn.disabled = false;
-        pdfBtn.textContent = 'PDFを発行して表示 (別タブ)';
+        pdfBtn.textContent = '空容器回収一覧発行';
       }
     }
 
