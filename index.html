@@ -21,28 +21,35 @@
     background-color: var(--bg-color);
     max-width: 950px;
     margin: 0.9375rem auto; /* 15px */
-    padding: 0 0.625rem;    /* 10px */
+    padding: 0 0.625rem; /* 10px */
     color: #333;
   }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
   .container {
     background: var(--card-bg);
-    padding: 1.25rem;       /* 20px */
-    border-radius: 0.5rem;  /* 8px */
+    padding: 1.25rem; /* 20px */
+    border-radius: 0.5rem; /* 8px */
     box-shadow: 0 0.125rem 0.5rem rgba(0,0,0,0.1);
   }
+
   h2 {
     margin-top: 0;
     color: var(--primary-color);
     border-bottom: 2px solid var(--primary-color);
     padding-bottom: 0.5rem; /* 8px */
-    font-size: 1.25rem;     /* 20px */
+    font-size: 1.25rem; /* 20px */
   }
 
-  /* レイアウト（PC: 横並び / スマホ: 1行・縦並び） */
+  /* レイアウト（PC: 横並び / スマホ: 縦並び） */
   .search-display-grid {
     display: flex;
     flex-direction: row;
-    gap: 0.9375rem;         /* 15px */
+    gap: 0.9375rem; /* 15px */
     margin-bottom: 1.25rem; /* 20px */
     align-items: flex-start;
   }
@@ -60,12 +67,12 @@
     display: block;
     font-weight: bold;
     margin-bottom: 0.375rem; /* 6px */
-    font-size: 0.875rem;     /* 14px */
+    font-size: 0.875rem; /* 14px */
   }
   input[type="text"], input[type="number"] {
     width: 100%;
     padding: 0.625rem 0.75rem; /* 10px 12px */
-    font-size: 0.9375rem;       /* 15px */
+    font-size: 0.9375rem; /* 15px */
     box-sizing: border-box;
     border: 1px solid var(--border-color);
     border-radius: 0.25rem;
@@ -82,8 +89,8 @@
     padding: 0.5rem 0.625rem; /* 8px 10px */
     border: 1px solid #e0e0e0;
     vertical-align: middle;
-    word-break: break-all;     /* 長い文字列も折り返し */
-    white-space: normal;      /* 自動折り返しを許可 */
+    word-break: break-all;
+    white-space: normal;
   }
   th {
     background-color: #f8f9fa;
@@ -91,7 +98,7 @@
     font-weight: bold;
   }
 
-  /* ★ 空容器マスターテーブルの列幅比率固定（PC表示時） ★ */
+  /* 空容器マスターテーブルの列幅比率固定 */
   .table-container table {
     table-layout: fixed;
     width: 100%;
@@ -122,34 +129,25 @@
 
   /* スマホ（767px以下）向けのレスポンシブ調整 */
   @media (max-width: 767px) {
-    html {
-      font-size: 14px; /* 全体のrem基準を少し縮小 */
-    }
+    html { font-size: 14px; }
+    .search-display-grid { flex-direction: column; gap: 0.625rem; }
 
-    .search-display-grid {
-      flex-direction: column;
-      gap: 0.625rem;
-    }
-
-    /* 空容器マスターのJANコード列（2列目）を非表示 */
+    /* JANコード列を非表示 */
     #containerTableBody tr td:nth-child(2),
     .table-container th:nth-child(2) {
       display: none;
     }
 
-/* テーブルの「数量」列の幅も少し広めに再割り当て */
-  .table-container th:nth-child(1) { width: 22%; } /* 商品コード */
-  .table-container th:nth-child(3) { width: 38%; } /* 空容器名 */
-  .table-container th:nth-child(4) { width: 15%; } /* 単価 */
-  .table-container th:nth-child(5) { width: 25%; } /* 数量入力列を少し拡大 */
+    .table-container th:nth-child(1) { width: 22%; }
+    .table-container th:nth-child(3) { width: 38%; }
+    .table-container th:nth-child(4) { width: 15%; }
+    .table-container th:nth-child(5) { width: 25%; }
 
-    /* ヘッダー・セルの自動折り返し & 幅調整 */
     th, td {
       padding: 0.375rem 0.25rem;
-      font-size: 0.75rem;  /* 12px相当 */
+      font-size: 0.75rem;
     }
 
-    /* ★ 得意先テーブルのコード数値列は1行に収めて見やすく固定 ★ */
     .display-table td:nth-child(1),
     .display-table td:nth-child(3),
     .display-table td:nth-child(5) {
@@ -157,44 +155,35 @@
       text-align: center;
     }
 
-/* 数量入力セル（入力幅を完全固定） */
-.qty-cell {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end; /* 右寄せ */
-  gap: 0.25rem;
-}
+    .qty-cell input {
+      width: 3rem !important;
+      min-width: 3rem !important;
+      max-width: 3rem !important;
+      font-size: 1rem;
+      padding: 0.25rem;
+      text-align: right;
+      box-sizing: border-box;
+    }
+    .unit-text {
+      font-size: 0.75rem;
+      color: #555;
+      white-space: nowrap;
+      width: 2.5em;
+      text-align: left;
+    }
+
+    table:has(#modalItemsBody) thead {
+      display: table-header-group !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
     
-.qty-cell input {
-  width: 3rem !important;  /* 幅を固定（約56px） */
-  min-width: 3rem !important;
-  max-width: 3rem !important;
-  font-size: 1rem;            /* iOSズーム防止（16px） */
-  padding: 0.25rem;
-  text-align: right;
-  box-sizing: border-box;
-}
-.unit-text {
-  font-size: 0.75rem;
-  color: #555;
-  white-space: nowrap;
-  width: 2.5em;              /* 単位表示域も幅を固定しておくとさらにブレません */
-  text-align: left;
-}
-/* display: none や opacity などの消去指定を強制解除 */
-  table:has(#modalItemsBody) thead {
-    display: table-header-group !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-  }
-  
-  table:has(#modalItemsBody) th {
-    display: table-cell !important;
-    padding: 0.375rem 0.25rem;
-    font-size: 0.75rem;
-    background-color: #f8f9fa;
-  }  
-    
+    table:has(#modalItemsBody) th {
+      display: table-cell !important;
+      padding: 0.375rem 0.25rem;
+      font-size: 0.75rem;
+      background-color: #f8f9fa;
+    }  
   }
 
   /* サジェストウィンドウ */
@@ -218,7 +207,6 @@
     cursor: pointer;
     border-bottom: 1px solid #eee;
     font-size: 0.8125rem;
-    /* ★ モバイルでのタップレスポンス向上＆誤作動防止 ★ */
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
   }
@@ -290,35 +278,32 @@
   .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
   .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
 
-/* 確認モーダル */
+  /* 確認モーダル */
+  #modalItemsBody, 
+  table:has(#modalItemsBody) {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+  }
 
-  /* モーダル用テーブルのレイアウト固定と列幅比率指定 */
-#modalItemsBody, 
-table:has(#modalItemsBody) {
-  width: 100%;
-  table-layout: fixed; /* 指定した幅比率を厳密に適用 */
-  border-collapse: collapse;
-}
+  table:has(#modalItemsBody) th:nth-child(1),
+  #modalItemsBody td:nth-child(1) {
+    width: 25%;
+    word-break: break-all;
+  }
 
-/* 列幅の指定（3列構成：商品コード: 25%, 空容器名: 50%, 数量: 25%） */
-table:has(#modalItemsBody) th:nth-child(1),
-#modalItemsBody td:nth-child(1) {
-  width: 25%;
-  word-break: break-all;
-}
+  table:has(#modalItemsBody) th:nth-child(2),
+  #modalItemsBody td:nth-child(2) {
+    width: 50%;
+    word-break: break-all;
+  }
 
-table:has(#modalItemsBody) th:nth-child(2),
-#modalItemsBody td:nth-child(2) {
-  width: 50%;
-  word-break: break-all; /* 長い空容器名での枠崩れ防止 */
-}
-
-table:has(#modalItemsBody) th:nth-child(3),
-#modalItemsBody td:nth-child(3) {
-  width: 25%;
-  text-align: right;
-  white-space: nowrap; /* 「10 ケース」などが途中で改行されるのを防止 */
-}
+  table:has(#modalItemsBody) th:nth-child(3),
+  #modalItemsBody td:nth-child(3) {
+    width: 25%;
+    text-align: right;
+    white-space: nowrap;
+  }
 
   .modal-overlay {
     position: fixed;
@@ -360,13 +345,33 @@ table:has(#modalItemsBody) th:nth-child(3),
 </style>
 </head>
 <body>
+  <div id="loadingOverlay" style="
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    font-family: sans-serif;
+  ">
+    <div class="spinner" style="
+      width: 50px; height: 50px;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #007bff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    "></div>
+    <p style="font-size: 1.2rem; font-weight: bold; color: #333; margin: 0;">起動中です...</p>
+    <p style="font-size: 0.9rem; color: #666; margin-top: 8px;">マスターデータを読み込んでいます</p>
+  </div>
 
   <div class="container">
     <h2>空容器登録</h2>
 
     <form id="registerForm">
-      
-      <!-- 1. 得意先エリア（上部配置） -->
       <label>得意先選択:</label>
       <div class="search-display-grid">
         <div class="col-1-3">
@@ -377,7 +382,6 @@ table:has(#modalItemsBody) th:nth-child(3),
           <input type="hidden" id="selectedRouteCode">
           <input type="hidden" id="selectedRouteName">
           <input type="hidden" id="selectedStaffCode">
-          <!-- ★ 担当者名を保持する hidden 要素を追加 -->
           <input type="hidden" id="selectedStaffName">
         </div>
         <div class="col-2-3">
@@ -403,7 +407,6 @@ table:has(#modalItemsBody) th:nth-child(3),
         </div>
       </div>
 
-      <!-- 2. 出荷店エリア（下部配置） -->
       <label>出荷店選択:</label>
       <div class="search-display-grid">
         <div class="col-1-3">
@@ -431,8 +434,6 @@ table:has(#modalItemsBody) th:nth-child(3),
         </div>
       </div>
 
-
-      <!-- 空容器マスターテーブル -->
       <label>空容器数量入力（入力後、下の送信ボタンで確定）:</label>
       <div class="table-container">
         <table>
@@ -453,25 +454,19 @@ table:has(#modalItemsBody) th:nth-child(3),
         </table>
       </div>
 
-            <!-- 備考欄 -->
-      <div style="margin-bottom: 20px;">
+      <div style="margin-bottom: 20px; margin-top: 15px;">
         <label for="note">備考 / メモ:</label>
         <input type="text" id="note" placeholder="備考があれば入力">
       </div>
 
-
-      <!-- 送信確認モーダル呼出ボタン -->
       <div class="action-area">
         <button type="button" id="openConfirmBtn" class="btn-primary">データ送信</button>
       </div>
-
-      
     </form>
 
     <div id="message"></div>
   </div>
 
-  <!-- 確認モーダルダイアログ -->
   <div id="confirmModal" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-header">送信内容の確認</div>
@@ -505,6 +500,7 @@ table:has(#modalItemsBody) th:nth-child(3),
         <table>
           <thead>
             <tr>
+              <th>商品コード</th>
               <th>空容器名</th>
               <th style="text-align: right; width: 100px;">数量</th>
             </tr>
@@ -521,27 +517,35 @@ table:has(#modalItemsBody) th:nth-child(3),
   </div>
 
   <script>
-    // ★ご自身の GAS Webアプリ URL を設定してください
     const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbylyTuJ9jLaUISlpeKI5xVGOoeXl8XMh9e4lM_bmNAPTsw4N8LnVt4m2vDOgqMx7kRZlQ/exec';
 
     let masterStores = [];
     let masterCustomers = [];
     let masterContainers = [];
     let masterRoutes = {};
-    let masterStaffs = {}; // ★ 追加：担当者マスター辞書マッ
+    let masterStaffs = {};
 
     let currentPayload = null;
 
     // 初期ロード
-    window.addEventListener('DOMContentLoaded', async () => {
+    window.addEventListener('DOMContentLoaded', () => {
+      loadMasterData();
+      setupStoreSuggest();
+      setupCustomerSuggest();
+    });
+
+    /**
+     * マスターデータの読み込み処理
+     */
+    async function loadMasterData() {
       try {
         const response = await fetch(GAS_WEB_APP_URL);
         const result = await response.json();
-
+        
         if (result.status === 'success') {
-          masterStores = result.data.stores;
-          masterCustomers = result.data.customers;
-          masterContainers = result.data.containers;
+          masterStores = result.data.stores || [];
+          masterCustomers = result.data.customers || [];
+          masterContainers = result.data.containers || [];
 
           // ルートマスター辞書マップ (A列:コード -> B列:名称)
           if (result.data.routes) {
@@ -553,7 +557,7 @@ table:has(#modalItemsBody) th:nth-child(3),
             });
           }
 
-          // ★ 追加：担当者マスター辞書マップ (A列:コード -> B列:名称)
+          // 担当者マスター辞書マップ (A列:コード -> B列:名称)
           if (result.data.staffs) {
             result.data.staffs.forEach(row => {
               const keys = Object.keys(row);
@@ -564,14 +568,27 @@ table:has(#modalItemsBody) th:nth-child(3),
           }
 
           renderContainerTable(masterContainers);
+
+          // ★ 読み込み完了後、ローディング画面を非表示にする
+          const loadingOverlay = document.getElementById('loadingOverlay');
+          if (loadingOverlay) {
+            loadingOverlay.style.display = 'none';
+          }
         } else {
-          showMessage('マスターデータの取得に失敗しました', true);
+          showLoadingError('マスターデータの取得に失敗しました');
         }
       } catch (err) {
         console.error('マスター取得エラー:', err);
-        showMessage('通信エラーが発生しました。GASのURL・設定を確認してください。', true);
+        showLoadingError('通信エラーが発生しました。GASのURL・設定を確認してください。');
       }
-    });
+    }
+
+    function showLoadingError(msg) {
+      const loadingOverlay = document.getElementById('loadingOverlay');
+      if (loadingOverlay) {
+        loadingOverlay.innerHTML = `<p style="color:red; font-weight:bold; padding:20px; text-align:center;">${msg}<br><br>ページを再読み込みしてください。</p>`;
+      }
+    }
 
     // 空容器テーブル描画
     function renderContainerTable(containers) {
@@ -616,19 +633,58 @@ table:has(#modalItemsBody) th:nth-child(3),
       document.getElementById('storeDisplayRow').innerHTML = `<td>${code}</td><td>${name}</td>`;
     }
 
+    /**
+     * 文字列を全角カタカナに統一する関数（ひらがな・半角カナ・英数小文字化）
+     */
+    function normalizeToKatakana(str) {
+      if (!str) return '';
+      // 1. ひらがな -> 全角カタカナ 変換
+      let kana = str.replace(/[\u3041-\u3096]/g, match => {
+        return String.fromCharCode(match.charCodeAt(0) + 0x60);
+      });
+      // 2. 半角カナ -> 全角カタカナ 変換マップ
+      const kanaMap = {
+        'ｶﾞ': 'ガ', 'ｷﾞ': 'ギ', 'ｸﾞ': 'グ', 'ｹﾞ': 'ゲ', 'ｺﾞ': 'ゴ',
+        'ｻﾞ': 'ザ', 'ｼﾞ': 'ジ', 'ｽﾞ': 'ズ', 'ｾﾞ': 'ゼ', 'ｿﾞ': 'ゾ',
+        'ﾀﾞ': 'ダ', 'ﾁﾞ': 'ヂ', 'ﾂﾞ': 'ヅ', 'ﾃﾞ': 'デ', 'ﾄﾞ': 'ド',
+        'ﾊﾞ': 'バ', 'ﾋﾞ': 'ビ', 'ﾌﾞ': 'ブ', 'ﾍﾞ': 'ベ', 'ﾎﾞ': 'ボ',
+        'ﾊﾟ': 'パ', 'ﾋﾟ': 'ピ', 'ﾌﾟ': 'プ', 'ﾍﾟ': 'ペ', 'ﾎﾟ': 'ポ',
+        'ｳﾞ': 'ヴ', 'ﾜﾞ': 'ヷ', 'ヰﾞ': 'ヸ', 'ヱﾞ': 'ヹ', 'ｦﾞ': 'ヺ',
+        'ｱ': 'ア', 'ｲ': 'イ', 'ｳ': 'ウ', 'ｴ': 'エ', 'ｵ': 'オ',
+        'ｶ': 'カ', 'ｷ': 'キ', 'ｸ': 'ク', 'ｹ': 'ケ', 'ｺ': 'コ',
+        'ｻ': 'サ', 'ｼ': 'シ', 'ｽ': 'ス', 'ｾ': 'セ', 'ｿ': 'ソ',
+        'ﾀ': 'タ', 'ﾁ': 'チ', 'ﾂ': 'ツ', 'ﾃ': 'テ', 'ﾄ': 'ト',
+        'ﾅ': 'ナ', 'ﾆ': 'ニ', 'ﾇ': 'ヌ', 'ﾈ': 'ネ', 'ﾉ': 'ノ',
+        'ﾊ': 'ハ', 'ﾋ': 'ヒ', 'ﾌ': 'フ', 'ﾍ': 'ヘ', 'ﾎ': 'ホ',
+        'ﾏ': 'マ', 'ﾐ': 'ミ', 'ﾑ': 'ム', 'ﾒ': 'メ', 'ﾓ': 'モ',
+        'ﾔ': 'ヤ', 'ﾕ': 'ユ', 'ﾖ': 'ヨ',
+        'ﾗ': 'ラ', 'ﾘ': 'リ', 'ﾙ': 'ル', 'ﾚ': 'レ', 'ﾛ': 'ロ',
+        'ﾜ': 'ワ', 'ｦ': 'ヲ', 'ﾝ': 'ン',
+        'ｧ': 'ァ', 'ｨ': 'ィ', 'ｩ': 'ゥ', 'ｪ': 'ェ', 'ｫ': 'ォ',
+        'ｯ': 'ッ', 'ｬ': 'ャ', 'ｭ': 'ュ', 'ｮ': 'ョ',
+        'ｰ': 'ー', '｡': '。', '｢': '「', '｣': '」', '､': '、', '･': '・'
+      };
+      const reg = new RegExp(Object.keys(kanaMap).join('|'), 'g');
+      kana = kana.replace(reg, match => kanaMap[match]);
+
+      return kana.toLowerCase();
+    }
+
     // 出荷店サジェストセットアップ
     function setupStoreSuggest() {
       const input = document.getElementById('storeSearch');
       const suggest = document.getElementById('storeSuggest');
 
       input.addEventListener('input', () => {
-        const keyword = input.value.trim().toLowerCase();
+        const keyword = normalizeToKatakana(input.value.trim());
         suggest.innerHTML = '';
         if (!keyword) { suggest.style.display = 'none'; return; }
 
         const filtered = masterStores.filter(item => {
-          const vals = Object.values(item).map(v => String(v).toLowerCase());
-          return (vals[0] && vals[0].includes(keyword)) || (vals[1] && vals[1].includes(keyword));
+          const keys = Object.keys(item);
+          const code = normalizeToKatakana(String(item[keys[0]] || ''));
+          const name = normalizeToKatakana(String(item[keys[1]] || ''));
+          return code.includes(keyword) || name.includes(keyword);
         });
 
         if (filtered.length === 0) {
@@ -645,7 +701,6 @@ table:has(#modalItemsBody) th:nth-child(3),
           const div = document.createElement('div');
           div.className = 'suggest-item';
           div.innerHTML = `<span class="code">${code}</span> ${name}`;
-
           div.addEventListener('click', () => {
             setStoreSelect(code, name);
             input.value = '';
@@ -661,7 +716,7 @@ table:has(#modalItemsBody) th:nth-child(3),
       });
     }
 
-// 得意先サジェストセットアップ
+    // 得意先サジェストセットアップ（あいまい検索統合版）
     function setupCustomerSuggest() {
       const input = document.getElementById('customerSearch');
       const suggest = document.getElementById('customerSuggest');
@@ -670,20 +725,17 @@ table:has(#modalItemsBody) th:nth-child(3),
       const routeCodeHidden = document.getElementById('selectedRouteCode');
       const routeNameHidden = document.getElementById('selectedRouteName');
       const staffCodeHidden = document.getElementById('selectedStaffCode');
-      // ★ 追加：担当者名用 hidden
       const staffNameHidden = document.getElementById('selectedStaffName');
       const displayRow = document.getElementById('customerDisplayRow');
 
       input.addEventListener('input', () => {
-        const keyword = input.value.trim().toLowerCase();
+        const keyword = normalizeToKatakana(input.value.trim());
         suggest.innerHTML = '';
         if (!keyword) { suggest.style.display = 'none'; return; }
 
         const filtered = masterCustomers.filter(item => {
-          const vals = Object.values(item).map(v => String(v).toLowerCase());
-          return (vals[0] && vals[0].includes(keyword)) || 
-                 (vals[1] && vals[1].includes(keyword)) || 
-                 (vals[2] && vals[2].includes(keyword));
+          const vals = Object.values(item).map(v => normalizeToKatakana(String(v)));
+          return vals.some(v => v.includes(keyword));
         });
 
         if (filtered.length === 0) {
@@ -699,11 +751,9 @@ table:has(#modalItemsBody) th:nth-child(3),
           
           // BJ列（62列目 = インデックス 61）: 担当者コード
           const staffCode = item[keys[61]] !== undefined ? String(item[keys[61]]).trim() : '';
-          
-          // ★ 追加：担当者名の引き当て
           const staffName = masterStaffs[staffCode] || (staffCode ? `未登録 (${staffCode})` : '');
 
-          // ★ BQ列（69列目 = インデックス 68）: 出荷店コード ★
+          // BQ列（69列目 = インデックス 68）: 出荷店コード
           const storeCodeFromCustomer = item[keys[68]] !== undefined ? String(item[keys[68]]).trim() : '';
 
           // BS列（71列目 = インデックス 70）: ルートコード
@@ -720,10 +770,9 @@ table:has(#modalItemsBody) th:nth-child(3),
             routeCodeHidden.value = routeCode;
             routeNameHidden.value = routeName;
             staffCodeHidden.value = staffCode;
-            // ★ 追加：担当者名を hidden に保存
             if (staffNameHidden) staffNameHidden.value = staffName;
 
-            // ★ 得意先表示テーブルの更新（6列表示）
+            // 得意先表示テーブルの更新
             displayRow.innerHTML = `
               <td>${code}</td>
               <td>${name}</td>
@@ -733,7 +782,7 @@ table:has(#modalItemsBody) th:nth-child(3),
               <td>${staffName || '-'}</td>
             `;
 
-            // ★ BQ列の出荷店コードを元に出荷店マスターから検索して自動入力 ★
+            // 出荷店コードの自動割り当て
             if (storeCodeFromCustomer) {
               const matchedStore = masterStores.find(s => {
                 const sKeys = Object.keys(s);
@@ -761,10 +810,7 @@ table:has(#modalItemsBody) th:nth-child(3),
       });
     }
 
-    setupStoreSuggest();
-    setupCustomerSuggest();
-
-// モーダル制御・送信処理
+    // モーダル制御・送信処理
     const confirmModal = document.getElementById('confirmModal');
 
     document.getElementById('openConfirmBtn').addEventListener('click', () => {
@@ -785,7 +831,6 @@ table:has(#modalItemsBody) th:nth-child(3),
         .filter(input => parseInt(input.value, 10) > 0)
         .map(input => {
           const code = input.dataset.code;
-          // A列(keys[0])が商品コード
           const item = masterContainers.find(c => String(c[Object.keys(c)[0]]).trim() === code);
           const keys = item ? Object.keys(item) : [];
           
@@ -805,15 +850,15 @@ table:has(#modalItemsBody) th:nth-child(3),
 
       // currentPayload の生成
       currentPayload = {
-        storeCode: storeCode,                                                      // C列
-        storeName: document.getElementById('selectedStoreName').value,             // D列
-        customerCode: customerCode,                                                // E列
-        customerName: document.getElementById('selectedCustomerName').value,       // F列
-        routeCode: document.getElementById('selectedRouteCode').value,             // G列
-        routeName: document.getElementById('selectedRouteName').value,             // H列
-        staffCode: document.getElementById('selectedStaffCode').value,             // I列
-        staffName: document.getElementById('selectedStaffName') ? document.getElementById('selectedStaffName').value : '', // J列
-        note: document.getElementById('note').value,                               // P列
+        storeCode: storeCode,
+        storeName: document.getElementById('selectedStoreName').value,
+        customerCode: customerCode,
+        customerName: document.getElementById('selectedCustomerName').value,
+        routeCode: document.getElementById('selectedRouteCode').value,
+        routeName: document.getElementById('selectedRouteName').value,
+        staffCode: document.getElementById('selectedStaffCode').value,
+        staffName: document.getElementById('selectedStaffName') ? document.getElementById('selectedStaffName').value : '',
+        note: document.getElementById('note').value,
         items: itemsToSubmit
       };
 
@@ -853,7 +898,8 @@ table:has(#modalItemsBody) th:nth-child(3),
     confirmModal.addEventListener('click', (e) => {
       if (e.target === confirmModal) confirmModal.style.display = 'none';
     });
-// 送信確定
+
+    // 送信確定
     document.getElementById('modalSubmitBtn').addEventListener('click', async () => {
       if (!currentPayload) return;
 
@@ -874,17 +920,14 @@ table:has(#modalItemsBody) th:nth-child(3),
         const result = await response.json();
 
         if (result.status === 'success') {
-          // ボタンの見た目変更
           submitBtn.textContent = '✓ 送信完了';
           submitBtn.style.backgroundColor = '#28a745';
           submitBtn.style.borderColor = '#28a745';
 
           // ★ 送信完了後の全クリア処理
-          // 1. 数量入力欄 & 備考のクリア
           document.querySelectorAll('.container-qty').forEach(input => input.value = '');
           document.getElementById('note').value = '';
 
-          // 2. 得意先エリアのクリア
           document.getElementById('customerSearch').value = '';
           document.getElementById('selectedCustomerCode').value = '';
           document.getElementById('selectedCustomerName').value = '';
@@ -895,18 +938,16 @@ table:has(#modalItemsBody) th:nth-child(3),
           
           const displayRow = document.getElementById('customerDisplayRow');
           if (displayRow) {
-            displayRow.innerHTML = '<td colspan="6" style="text-align:center; color:#999;">得意先を選択してください</td>';
+            displayRow.innerHTML = '<td colspan="6" style="text-align:center; color:#999;">未選択（左の検索窓から選択）</td>';
           }
 
-          // 3. 出荷店エリアのクリア
+          document.getElementById('storeSearch').value = '';
           document.getElementById('selectedStoreCode').value = '';
           document.getElementById('selectedStoreName').value = '';
-          const storeSelect = document.getElementById('storeSelect'); // ※セレクトボックス要素IDに合わせて調整
-          if (storeSelect) storeSelect.value = '';
+          document.getElementById('storeDisplayRow').innerHTML = '<td colspan="2" class="empty-td">未選択（得意先選択で自動反映・変更可）</td>';
 
           currentPayload = null;
 
-          // 1.2秒後にモーダルを閉じる
           setTimeout(() => {
             confirmModal.style.display = 'none';
             
@@ -916,7 +957,6 @@ table:has(#modalItemsBody) th:nth-child(3),
             submitBtn.style.backgroundColor = '';
             submitBtn.style.borderColor = '';
           }, 1200);
-
         } else {
           alert('保存失敗: ' + result.message);
           submitBtn.disabled = false;
@@ -932,7 +972,6 @@ table:has(#modalItemsBody) th:nth-child(3),
       }
     });
 
-    
     function showMessage(msg, isError) {
       const msgDiv = document.getElementById('message');
       msgDiv.textContent = msg;
