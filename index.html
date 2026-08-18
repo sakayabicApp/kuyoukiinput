@@ -290,29 +290,36 @@
   .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
   .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
 
-  /* 確認モーダル */
+/* 確認モーダル */
 
   /* モーダル用テーブルのレイアウト固定と列幅比率指定 */
 #modalItemsBody, 
 table:has(#modalItemsBody) {
   width: 100%;
-  table-layout: fixed; /* 指定した幅（2/3 : 1/3）を厳密に適用 */
+  table-layout: fixed; /* 指定した幅比率を厳密に適用 */
   border-collapse: collapse;
 }
 
-/* 列幅の指定（空容器名: 2/3, 数量: 1/3） */
+/* 列幅の指定（3列構成：商品コード: 25%, 空容器名: 50%, 数量: 25%） */
 table:has(#modalItemsBody) th:nth-child(1),
 #modalItemsBody td:nth-child(1) {
-  width: 66.66%;
-  word-break: break-all; /* 長い名称での枠崩れ防止 */
+  width: 25%;
+  word-break: break-all;
 }
-  
+
 table:has(#modalItemsBody) th:nth-child(2),
 #modalItemsBody td:nth-child(2) {
-  width: 33.33%;
+  width: 50%;
+  word-break: break-all; /* 長い空容器名での枠崩れ防止 */
+}
+
+table:has(#modalItemsBody) th:nth-child(3),
+#modalItemsBody td:nth-child(3) {
+  width: 25%;
   text-align: right;
-  white-space: nowrap; /* 「100 ケース」などが途中で改行されるのを防止 */
-}  
+  white-space: nowrap; /* 「10 ケース」などが途中で改行されるのを防止 */
+}
+
   .modal-overlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
