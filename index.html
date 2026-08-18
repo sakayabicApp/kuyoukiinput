@@ -455,7 +455,7 @@ table:has(#modalItemsBody) th:nth-child(2),
 
       <!-- 送信確認モーダル呼出ボタン -->
       <div class="action-area">
-        <button type="button" id="openConfirmBtn" class="btn-primary">スプレッドシートへ送信する</button>
+        <button type="button" id="openConfirmBtn" class="btn-primary">データ送信</button>
       </div>
 
       
@@ -840,12 +840,16 @@ currentPayload = {
       if (e.target === confirmModal) confirmModal.style.display = 'none';
     });
 
-    // 送信確定
+// 送信確定
     document.getElementById('modalSubmitBtn').addEventListener('click', async () => {
       if (!currentPayload) return;
 
       const submitBtn = document.getElementById('modalSubmitBtn');
+      // キャンセルボタンも連打防止で非有効化（IDが modalCancelBtn の場合）
+      const cancelBtn = document.getElementById('modalCancelBtn');
+      
       submitBtn.disabled = true;
+      if (cancelBtn) cancelBtn.disabled = true;
       submitBtn.textContent = '送信中...';
 
       try {
@@ -858,23 +862,42 @@ currentPayload = {
         const result = await response.json();
 
         if (result.status === 'success') {
-          confirmModal.style.display = 'none';
-          showMessage('スプレッドシートへの登録が完了しました！', false);
-          
+          // ★ ボタンの表示とスタイルを「送信完了」に変更
+          submitBtn.textContent = '✓ 送信完了';
+          submitBtn.style.backgroundColor = '#28a745'; // 緑色に変更
+          submitBtn.style.borderColor = '#28a745';
+
+          // 入力フォームのクリア
           document.querySelectorAll('.container-qty').forEach(input => input.value = '');
           document.getElementById('note').value = '';
           currentPayload = null;
+
+          // ★ 1.2秒後にモーダルを閉じてボタンを元の状態に戻す
+          setTimeout(() => {
+            confirmModal.style.display = 'none';
+            
+            // ボタン状態のリセット
+            submitBtn.disabled = false;
+            if (cancelBtn) cancelBtn.disabled = false;
+            submitBtn.textContent = '送信確定';
+            submitBtn.style.backgroundColor = '';
+            submitBtn.style.borderColor = '';
+          }, 1200);
+
         } else {
           alert('保存失敗: ' + result.message);
+          submitBtn.disabled = false;
+          if (cancelBtn) cancelBtn.disabled = false;
+          submitBtn.textContent = '送信確定';
         }
       } catch (err) {
+        console.error('送信エラー:', err);
         alert('送信エラーが発生しました。');
-      } finally {
         submitBtn.disabled = false;
+        if (cancelBtn) cancelBtn.disabled = false;
         submitBtn.textContent = '送信確定';
       }
     });
-
     function showMessage(msg, isError) {
       const msgDiv = document.getElementById('message');
       msgDiv.textContent = msg;
