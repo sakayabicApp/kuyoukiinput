@@ -166,7 +166,7 @@
       margin-top: 20px;
       text-align: right;
     }
-    button[type="submit"] {
+    button.btn-primary {
       background-color: var(--primary-color);
       color: white;
       font-size: 16px;
@@ -179,8 +179,17 @@
       max-width: 300px;
       transition: background 0.2s;
     }
-    button[type="submit"]:hover { background-color: #003da1; }
-    button[type="submit"]:disabled { background-color: #ccc; cursor: not-allowed; }
+    button.btn-primary:hover { background-color: #003da1; }
+    button.btn-secondary {
+      background-color: #6c757d;
+      color: white;
+      font-size: 15px;
+      font-weight: bold;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
 
     #message {
       margin-top: 15px;
@@ -191,6 +200,45 @@
     }
     .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
     .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+    /* 確認モーダルダイアログ */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      padding: 15px;
+    }
+    .modal-content {
+      background: #ffffff;
+      width: 100%;
+      max-width: 550px;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      font-size: 18px;
+      font-weight: bold;
+      color: var(--primary-color);
+      margin-bottom: 12px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 8px;
+    }
+    .confirm-table {
+      margin-bottom: 15px;
+    }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
@@ -200,35 +248,7 @@
 
     <form id="registerForm">
       
-      <!-- 出荷店エリア -->
-      <label>出荷店選択:</label>
-      <div class="search-display-grid">
-        <div class="col-1-3">
-          <input type="text" id="storeSearch" placeholder="出荷店コード・名称で検索" autocomplete="off">
-          <div id="storeSuggest" class="suggest-window"></div>
-          <input type="hidden" id="selectedStoreCode" required>
-          <input type="hidden" id="selectedStoreName">
-        </div>
-        <div class="col-2-3">
-          <div class="display-table-container">
-            <table class="display-table">
-              <thead>
-                <tr>
-                  <th style="width: 35%;">出荷店コード</th>
-                  <th>出荷店名</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr id="storeDisplayRow">
-                  <td colspan="2" class="empty-td">未選択（検索または得意先選択で自動反映）</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- 得意先エリア -->
+      <!-- 1. 得意先エリア（上部配置） -->
       <label>得意先選択:</label>
       <div class="search-display-grid">
         <div class="col-1-3">
@@ -255,6 +275,34 @@
               <tbody>
                 <tr id="customerDisplayRow">
                   <td colspan="5" class="empty-td">未選択（左の検索窓から選択）</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. 出荷店エリア（下部配置） -->
+      <label>出荷店選択:</label>
+      <div class="search-display-grid">
+        <div class="col-1-3">
+          <input type="text" id="storeSearch" placeholder="出荷店コード・名称で検索" autocomplete="off">
+          <div id="storeSuggest" class="suggest-window"></div>
+          <input type="hidden" id="selectedStoreCode" required>
+          <input type="hidden" id="selectedStoreName">
+        </div>
+        <div class="col-2-3">
+          <div class="display-table-container">
+            <table class="display-table">
+              <thead>
+                <tr>
+                  <th style="width: 35%;">出荷店コード</th>
+                  <th>出荷店名</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr id="storeDisplayRow">
+                  <td colspan="2" class="empty-td">未選択（得意先選択で自動反映・変更可）</td>
                 </tr>
               </tbody>
             </table>
@@ -289,13 +337,62 @@
         </table>
       </div>
 
-      <!-- 明示的な送信ボタン -->
+      <!-- 送信確認モーダル呼出ボタン -->
       <div class="action-area">
-        <button type="submit" id="submitBtn">スプレッドシートへ送信する</button>
+        <button type="button" id="openConfirmBtn" class="btn-primary">スプレッドシートへ送信する</button>
       </div>
     </form>
 
     <div id="message"></div>
+  </div>
+
+  <!-- 確認モーダルダイアログ -->
+  <div id="confirmModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">送信内容の確認</div>
+      <p style="font-size: 14px; margin-bottom: 10px;">以下の内容で送信します。よろしいですか？</p>
+      
+      <table class="confirm-table">
+        <tr>
+          <th style="width: 30%;">得意先</th>
+          <td id="modalCustomerStr"></td>
+        </tr>
+        <tr>
+          <th>配送ルート</th>
+          <td id="modalRouteStr"></td>
+        </tr>
+        <tr>
+          <th>担当者コード</th>
+          <td id="modalStaffStr"></td>
+        </tr>
+        <tr>
+          <th>出荷店</th>
+          <td id="modalStoreStr"></td>
+        </tr>
+        <tr>
+          <th>備考</th>
+          <td id="modalNoteStr"></td>
+        </tr>
+      </table>
+
+      <label>登録する空容器一覧:</label>
+      <div class="table-container" style="max-height: 180px; overflow-y: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>空容器名</th>
+              <th style="text-align: right; width: 100px;">数量</th>
+            </tr>
+          </thead>
+          <tbody id="modalItemsBody"></tbody>
+        </table>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" id="modalCancelBtn" class="btn-secondary">キャンセル</button>
+        <button type="button" id="modalSubmitBtn" class="btn-primary" style="width: auto;">送信確定</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -305,7 +402,9 @@
     let masterStores = [];
     let masterCustomers = [];
     let masterContainers = [];
-    let masterRoutes = {}; // { ルートコード: ルート名 } のマップ
+    let masterRoutes = {};
+
+    let currentPayload = null; // 送信用データ一時保持
 
     // 初期ロード
     window.addEventListener('DOMContentLoaded', async () => {
@@ -318,7 +417,7 @@
           masterCustomers = result.data.customers;
           masterContainers = result.data.containers;
 
-          // ルートマスターを辞書形式に変換 (A列:コード -> B列:名称)
+          // ルートマスター辞書マップ (A列:コード -> B列:名称)
           if (result.data.routes) {
             result.data.routes.forEach(row => {
               const keys = Object.keys(row);
@@ -463,8 +562,8 @@
           // BJ列（62列目 = インデックス 61）: 担当者コード
           const staffCode = item[keys[61]] ? String(item[keys[61]]).trim() : '';
           
-          // BQ列（65列目 = インデックス 64）: 出荷店コード
-          const storeCodeFromCustomer = item[keys[64]] ? String(item[keys[64]]).trim() : '';
+          // BQ列（67列目 = インデックス 66）: 出荷店コード
+          const storeCodeFromCustomer = item[keys[66]] ? String(item[keys[66]]).trim() : '';
 
           // BS列（71列目 = インデックス 70）: ルートコード
           const routeCode = item[keys[70]] ? String(item[keys[70]]).trim() : '';
@@ -517,24 +616,24 @@
     setupCustomerSuggest();
 
     // ----------------------------------------------------
-    // ボタン押下時の一括送信処理
+    // 送信確認モーダルの開閉処理
     // ----------------------------------------------------
-    document.getElementById('registerForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
+    const confirmModal = document.getElementById('confirmModal');
 
+    document.getElementById('openConfirmBtn').addEventListener('click', () => {
       const storeCode = document.getElementById('selectedStoreCode').value;
       const customerCode = document.getElementById('selectedCustomerCode').value;
 
-      if (!storeCode) {
-        alert('出荷店を選択してください。');
-        return;
-      }
       if (!customerCode) {
         alert('得意先を選択してください。');
         return;
       }
+      if (!storeCode) {
+        alert('出荷店を選択してください。');
+        return;
+      }
 
-      // 数量が入力されている空容器を抽出
+      // 数量入力チェック
       const qtyInputs = document.querySelectorAll('.container-qty');
       const itemsToSubmit = [];
 
@@ -555,7 +654,8 @@
         return;
       }
 
-      const payload = {
+      // 送信ペイロード構築
+      currentPayload = {
         storeCode: storeCode,
         storeName: document.getElementById('selectedStoreName').value,
         customerCode: customerCode,
@@ -567,7 +667,44 @@
         items: itemsToSubmit
       };
 
-      const submitBtn = document.getElementById('submitBtn');
+      // モーダルのテキストセット
+      document.getElementById('modalCustomerStr').textContent = `[${currentPayload.customerCode}] ${currentPayload.customerName}`;
+      document.getElementById('modalRouteStr').textContent = currentPayload.routeCode ? `[${currentPayload.routeCode}] ${currentPayload.routeName}` : '未設定';
+      document.getElementById('modalStaffStr').textContent = currentPayload.staffCode || '未設定';
+      document.getElementById('modalStoreStr').textContent = `[${currentPayload.storeCode}] ${currentPayload.storeName}`;
+      document.getElementById('modalNoteStr').textContent = currentPayload.note || '（なし）';
+
+      // 数量一覧セット
+      const itemsBody = document.getElementById('modalItemsBody');
+      itemsBody.innerHTML = '';
+      currentPayload.items.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${item.containerName}</td>
+          <td style="text-align: right; font-weight: bold;">${item.quantity} ${item.unit}</td>
+        `;
+        itemsBody.appendChild(tr);
+      });
+
+      confirmModal.style.display = 'flex';
+    });
+
+    document.getElementById('modalCancelBtn').addEventListener('click', () => {
+      confirmModal.style.display = 'none';
+    });
+
+    // モーダル外クリックで閉じる
+    confirmModal.addEventListener('click', (e) => {
+      if (e.target === confirmModal) confirmModal.style.display = 'none';
+    });
+
+    // ----------------------------------------------------
+    // GASへの最終送信実行処理
+    // ----------------------------------------------------
+    document.getElementById('modalSubmitBtn').addEventListener('click', async () => {
+      if (!currentPayload) return;
+
+      const submitBtn = document.getElementById('modalSubmitBtn');
       submitBtn.disabled = true;
       submitBtn.textContent = '送信中...';
 
@@ -575,25 +712,27 @@
         const response = await fetch(GAS_WEB_APP_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(currentPayload)
         });
 
         const result = await response.json();
 
         if (result.status === 'success') {
+          confirmModal.style.display = 'none';
           showMessage('スプレッドシートへの登録が完了しました！', false);
           
-          // 数量入力欄と備考をクリア
-          qtyInputs.forEach(input => input.value = '');
+          // 入力値と一時データのクリア
+          document.querySelectorAll('.container-qty').forEach(input => input.value = '');
           document.getElementById('note').value = '';
+          currentPayload = null;
         } else {
-          showMessage('保存失敗: ' + result.message, true);
+          alert('保存失敗: ' + result.message);
         }
       } catch (err) {
-        showMessage('送信エラーが発生しました。', true);
+        alert('送信エラーが発生しました。');
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'スプレッドシートへ送信する';
+        submitBtn.textContent = '送信確定';
       }
     });
 
