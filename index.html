@@ -179,7 +179,19 @@
     white-space: nowrap;
     flex-shrink: 0;       /* 単位が潰れないように保護 */
   }
-
+/* display: none や opacity などの消去指定を強制解除 */
+  table:has(#modalItemsBody) thead {
+    display: table-header-group !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  
+  table:has(#modalItemsBody) th {
+    display: table-cell !important;
+    padding: 0.375rem 0.25rem;
+    font-size: 0.75rem;
+    background-color: #f8f9fa;
+  }
     
     
   }
@@ -278,6 +290,28 @@
   .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
 
   /* 確認モーダル */
+
+  /* モーダル用テーブルのレイアウト固定と列幅比率指定 */
+#modalItemsBody, 
+table:has(#modalItemsBody) {
+  width: 100%;
+  table-layout: fixed; /* 指定した幅（2/3 : 1/3）を厳密に適用 */
+  border-collapse: collapse;
+}
+
+/* 列幅の指定（空容器名: 2/3, 数量: 1/3） */
+table:has(#modalItemsBody) th:nth-child(1),
+#modalItemsBody td:nth-child(1) {
+  width: 66.66%;
+  word-break: break-all; /* 長い名称での枠崩れ防止 */
+}
+  
+table:has(#modalItemsBody) th:nth-child(2),
+#modalItemsBody td:nth-child(2) {
+  width: 33.33%;
+  text-align: right;
+  white-space: nowrap; /* 「100 ケース」などが途中で改行されるのを防止 */
+}  
   .modal-overlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
