@@ -757,7 +757,7 @@ table:has(#modalItemsBody) th:nth-child(2),
     setupStoreSuggest();
     setupCustomerSuggest();
 
-    // モーダル制御・送信処理
+// モーダル制御・送信処理
     const confirmModal = document.getElementById('confirmModal');
 
     document.getElementById('openConfirmBtn').addEventListener('click', () => {
@@ -773,83 +773,84 @@ table:has(#modalItemsBody) th:nth-child(2),
         return;
       }
 
-      const qtyInputs = document.querySelectorAll('.container-qty');
-
-// itemsToSubmit の生成（容器コードと名称、JANを分離）
-const itemsToSubmit = Array.from(document.querySelectorAll('.container-qty'))
-  .filter(input => parseInt(input.value, 10) > 0)
-  .map(input => {
-    const code = input.dataset.code;
-    const item = masterContainers.find(c => String(c[Object.keys(c)[0]]).trim() === code);
-    const keys = item ? Object.keys(item) : [];
-    
-    return {
-      containerCode: code,                                    // K列
-      janCode: item ? (item[keys[2]] || '') : '',             // L列 (JANコード列インデックスに合わせて調整)
-      containerName: item ? (item[keys[1]] || '') : '',       // M列
-      quantity: parseInt(input.value, 10),                     // N列
-      unit: input.dataset.unit || '個'                        // O列
-    };
-  });
+      // itemsToSubmit の生成（数量が1以上の容器のみ抽出）
+      const itemsToSubmit = Array.from(document.querySelectorAll('.container-qty'))
+        .filter(input => parseInt(input.value, 10) > 0)
+        .map(input => {
+          const code = input.dataset.code;
+          // A列(keys[0])が商品コード
+          const item = masterContainers.find(c => String(c[Object.keys(c)[0]]).trim() === code);
+          const keys = item ? Object.keys(item) : [];
+          
+          return {
+            containerCode: code,                                    // K列: 商品コード (A列 / keys[0])
+            janCode: item ? (item[keys[1]] || '') : '',             // L列: JANコード (B列 / keys[1])
+            containerName: item ? (item[keys[2]] || '') : '',       // M列: 空容器名 (C列 / keys[2])
+            quantity: parseInt(input.value, 10),                    // N列: 数量
+            unit: input.dataset.unit || '個'                        // O列: 単位
+          };
+        });
 
       if (itemsToSubmit.length === 0) {
         alert('1つ以上の空容器の数量を入力してください。');
         return;
       }
 
-// currentPayload の生成
-currentPayload = {
-  storeCode: document.getElementById('selectedStoreCode').value,   // C列
-  storeName: document.getElementById('selectedStoreName').value,   // D列
-  customerCode: document.getElementById('selectedCustomerCode').value, // E列
-  customerName: document.getElementById('selectedCustomerName').value, // F列
-  routeCode: document.getElementById('selectedRouteCode').value,   // G列
-  routeName: document.getElementById('selectedRouteName').value,   // H列
-  staffCode: document.getElementById('selectedStaffCode').value,   // I列
-  staffName: document.getElementById('selectedStaffName').value,   // J列
-  note: document.getElementById('note').value,                     // P列
-  items: itemsToSubmit
-};
+      // currentPayload の生成
+      currentPayload = {
+        storeCode: storeCode,                                                      // C列
+        storeName: document.getElementById('selectedStoreName').value,             // D列
+        customerCode: customerCode,                                                // E列
+        customerName: document.getElementById('selectedCustomerName').value,       // F列
+        routeCode: document.getElementById('selectedRouteCode').value,             // G列
+        routeName: document.getElementById('selectedRouteName').value,             // H列
+        staffCode: document.getElementById('selectedStaffCode').value,             // I列
+        staffName: document.getElementById('selectedStaffName') ? document.getElementById('selectedStaffName').value : '', // J列
+        note: document.getElementById('note').value,                               // P列
+        items: itemsToSubmit
+      };
 
+      // モーダル内のヘッダー表示設定
       document.getElementById('modalCustomerStr').textContent = `[${currentPayload.customerCode}] ${currentPayload.customerName}`;
       document.getElementById('modalRouteStr').textContent = currentPayload.routeCode ? `[${currentPayload.routeCode}] ${currentPayload.routeName}` : '未設定';
-      
-      // ★ 変更：確認モーダルの担当者表示部分に「コード + 名前」をセット
       document.getElementById('modalStaffStr').textContent = currentPayload.staffCode 
         ? `[${currentPayload.staffCode}] ${currentPayload.staffName}` 
         : '未設定';
-
       document.getElementById('modalStoreStr').textContent = `[${currentPayload.storeCode}] ${currentPayload.storeName}`;
       document.getElementById('modalNoteStr').textContent = currentPayload.note || '（なし）';
-      
+
+      // モーダル内の表（商品コード、空容器名、数量）
       const itemsBody = document.getElementById('modalItemsBody');
-      itemsBody.innerHTML = '';
-      currentPayload.items.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${item.containerName}</td>
-          <td style="text-align: right; font-weight: bold;">${item.quantity} ${item.unit}</td>
-        `;
-        itemsBody.appendChild(tr);
-      });
+      if (itemsBody) {
+        itemsBody.innerHTML = '';
+        currentPayload.items.forEach(item => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${item.containerCode}</td>
+            <td>${item.containerName}</td>
+            <td style="text-align: right; font-weight: bold;">${item.quantity} ${item.unit}</td>
+          `;
+          itemsBody.appendChild(tr);
+        });
+      }
 
       confirmModal.style.display = 'flex';
     });
 
+    // モーダル閉じる（キャンセル）
     document.getElementById('modalCancelBtn').addEventListener('click', () => {
       confirmModal.style.display = 'none';
     });
 
+    // 背景クリックで閉じる
     confirmModal.addEventListener('click', (e) => {
       if (e.target === confirmModal) confirmModal.style.display = 'none';
     });
-
 // 送信確定
     document.getElementById('modalSubmitBtn').addEventListener('click', async () => {
       if (!currentPayload) return;
 
       const submitBtn = document.getElementById('modalSubmitBtn');
-      // キャンセルボタンも連打防止で非有効化（IDが modalCancelBtn の場合）
       const cancelBtn = document.getElementById('modalCancelBtn');
       
       submitBtn.disabled = true;
@@ -866,21 +867,42 @@ currentPayload = {
         const result = await response.json();
 
         if (result.status === 'success') {
-          // ★ ボタンの表示とスタイルを「送信完了」に変更
+          // ボタンの見た目変更
           submitBtn.textContent = '✓ 送信完了';
-          submitBtn.style.backgroundColor = '#28a745'; // 緑色に変更
+          submitBtn.style.backgroundColor = '#28a745';
           submitBtn.style.borderColor = '#28a745';
 
-          // 入力フォームのクリア
+          // ★ 送信完了後の全クリア処理
+          // 1. 数量入力欄 & 備考のクリア
           document.querySelectorAll('.container-qty').forEach(input => input.value = '');
           document.getElementById('note').value = '';
+
+          // 2. 得意先エリアのクリア
+          document.getElementById('customerSearch').value = '';
+          document.getElementById('selectedCustomerCode').value = '';
+          document.getElementById('selectedCustomerName').value = '';
+          document.getElementById('selectedRouteCode').value = '';
+          document.getElementById('selectedRouteName').value = '';
+          document.getElementById('selectedStaffCode').value = '';
+          if (document.getElementById('selectedStaffName')) document.getElementById('selectedStaffName').value = '';
+          
+          const displayRow = document.getElementById('customerDisplayRow');
+          if (displayRow) {
+            displayRow.innerHTML = '<td colspan="6" style="text-align:center; color:#999;">得意先を選択してください</td>';
+          }
+
+          // 3. 出荷店エリアのクリア
+          document.getElementById('selectedStoreCode').value = '';
+          document.getElementById('selectedStoreName').value = '';
+          const storeSelect = document.getElementById('storeSelect'); // ※セレクトボックス要素IDに合わせて調整
+          if (storeSelect) storeSelect.value = '';
+
           currentPayload = null;
 
-          // ★ 1.2秒後にモーダルを閉じてボタンを元の状態に戻す
+          // 1.2秒後にモーダルを閉じる
           setTimeout(() => {
             confirmModal.style.display = 'none';
             
-            // ボタン状態のリセット
             submitBtn.disabled = false;
             if (cancelBtn) cancelBtn.disabled = false;
             submitBtn.textContent = '送信確定';
@@ -902,6 +924,8 @@ currentPayload = {
         submitBtn.textContent = '送信確定';
       }
     });
+
+    
     function showMessage(msg, isError) {
       const msgDiv = document.getElementById('message');
       msgDiv.textContent = msg;
