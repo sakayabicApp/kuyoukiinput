@@ -774,38 +774,42 @@ table:has(#modalItemsBody) th:nth-child(2),
       }
 
       const qtyInputs = document.querySelectorAll('.container-qty');
-      const itemsToSubmit = [];
 
-      qtyInputs.forEach(input => {
-        const qty = parseInt(input.value, 10);
-        if (qty > 0) {
-          itemsToSubmit.push({
-            containerCode: input.dataset.code,
-            containerName: input.dataset.name,
-            quantity: qty,
-            unit: input.dataset.unit
-          });
-        }
-      });
+// itemsToSubmit の生成（容器コードと名称、JANを分離）
+const itemsToSubmit = Array.from(document.querySelectorAll('.container-qty'))
+  .filter(input => parseInt(input.value, 10) > 0)
+  .map(input => {
+    const code = input.dataset.code;
+    const item = masterContainers.find(c => String(c[Object.keys(c)[0]]).trim() === code);
+    const keys = item ? Object.keys(item) : [];
+    
+    return {
+      containerCode: code,                                    // K列
+      janCode: item ? (item[keys[2]] || '') : '',             // L列 (JANコード列インデックスに合わせて調整)
+      containerName: item ? (item[keys[1]] || '') : '',       // M列
+      quantity: parseInt(input.value, 10),                     // N列
+      unit: input.dataset.unit || '個'                        // O列
+    };
+  });
 
       if (itemsToSubmit.length === 0) {
         alert('1つ以上の空容器の数量を入力してください。');
         return;
       }
 
+// currentPayload の生成
 currentPayload = {
-        storeCode: storeCode,
-        storeName: document.getElementById('selectedStoreName').value,
-        customerCode: customerCode,
-        customerName: document.getElementById('selectedCustomerName').value,
-        routeCode: document.getElementById('selectedRouteCode').value,
-        routeName: document.getElementById('selectedRouteName').value,
-        staffCode: document.getElementById('selectedStaffCode').value,
-        // ★ 追加：送信データ（payload）に担当者名を追加
-        staffName: document.getElementById('selectedStaffName') ? document.getElementById('selectedStaffName').value : '',
-        note: document.getElementById('note').value,
-        items: itemsToSubmit
-      };
+  storeCode: document.getElementById('selectedStoreCode').value,   // C列
+  storeName: document.getElementById('selectedStoreName').value,   // D列
+  customerCode: document.getElementById('selectedCustomerCode').value, // E列
+  customerName: document.getElementById('selectedCustomerName').value, // F列
+  routeCode: document.getElementById('selectedRouteCode').value,   // G列
+  routeName: document.getElementById('selectedRouteName').value,   // H列
+  staffCode: document.getElementById('selectedStaffCode').value,   // I列
+  staffName: document.getElementById('selectedStaffName').value,   // J列
+  note: document.getElementById('note').value,                     // P列
+  items: itemsToSubmit
+};
 
       document.getElementById('modalCustomerStr').textContent = `[${currentPayload.customerCode}] ${currentPayload.customerName}`;
       document.getElementById('modalRouteStr').textContent = currentPayload.routeCode ? `[${currentPayload.routeCode}] ${currentPayload.routeName}` : '未設定';
