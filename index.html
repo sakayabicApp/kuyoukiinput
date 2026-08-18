@@ -174,11 +174,70 @@
   .modal-header { font-size: 1.125rem; font-weight: bold; color: var(--primary-color); margin-bottom: 0.75rem; border-bottom: 1px solid #eee; padding-bottom: 0.5rem; }
   .confirm-table { margin-bottom: 0.9375rem; }
   .modal-actions { display: flex; justify-content: flex-end; gap: 0.625rem; margin-top: 1.25rem; }
+
+/* ナビゲーションメニュー */
+.nav-menu {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.nav-tab {
+  padding: 0.5rem 1.25rem;
+  font-size: 0.9375rem;
+  font-weight: bold;
+  border: none;
+  background: #e0e6ed;
+  color: #555;
+  border-radius: 0.375rem 0.375rem 0 0;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.nav-tab:hover {
+  background: #d0d7de;
+}
+
+.nav-tab.active {
+  background: var(--primary-color);
+  color: #ffffff;
+}
+
+/* ページエリアの表示切替 */
+.page-section {
+  display: block;
+}
+
+.page-section.hidden {
+  display: none !important;
+}
+
+/* 帳票発行画面のスタイル */
+.report-card {
+  background: #fafafa;
+  border: 1px solid #e0e0e0;
+  border-radius: 0.375rem;
+  padding: 1.25rem;
+  margin-top: 0.5rem;
+}
+
+.form-group-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.form-group-item {
+  flex: 1;
+  min-width: 220px;
+}
+  
 </style>
 </head>
 <body>
 
-  <div id="loadingOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999;">
+<div id="loadingOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999;">
     <div class="spinner" style="width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #007bff; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;"></div>
     <p style="font-size: 1.2rem; font-weight: bold; color: #333; margin: 0;">起動中です...</p>
     <p style="font-size: 0.9rem; color: #666; margin-top: 8px;">マスターデータを読み込んでいます</p>
@@ -201,136 +260,148 @@
       </form>
     </div>
   </div>
-
+  
   <div class="container">
-    <div class="header-area">
-      <h2>空容器登録</h2>
-      <div id="userBadge" class="user-badge" style="display: none;">
-        <span>登録者: <strong id="currentUserName">-</strong></span>
-        <button type="button" class="btn-logout" onclick="logout()">ログアウト</button>
-      </div>
-    </div>
-
-    <form id="registerForm">
-      <div class="search-display-grid">
-        <div style="flex: 1;">
-          <label for="slipDate">伝票日付:</label>
-          <input type="date" id="slipDate" required>
+    <div class="header-area" style="flex-direction: column; align-items: stretch; border-bottom: none; margin-bottom: 0;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2>空容器回収管理システム</h2>
+        <div id="userBadge" class="user-badge" style="display: none;">
+          <span>登録者: <strong id="currentUserName">-</strong></span>
+          <button type="button" class="btn-logout" onclick="logout()">ログアウト</button>
         </div>
       </div>
 
-      <label>得意先選択:</label>
-      <div class="search-display-grid">
-        <div class="col-1-3">
-          <input type="text" id="customerSearch" placeholder="得意先コード・名称・カナ検索" autocomplete="off">
-          <div id="customerSuggest" class="suggest-window"></div>
-          <input type="hidden" id="selectedCustomerCode" required>
-          <input type="hidden" id="selectedCustomerName">
-          <input type="hidden" id="selectedRouteCode">
-          <input type="hidden" id="selectedRouteName">
-          <input type="hidden" id="selectedStaffCode">
-          <input type="hidden" id="selectedStaffName">
-        </div>
-        <div class="col-2-3">
-          <div class="display-table-container">
-            <table class="display-table">
-              <thead>
-                <tr>
-                  <th>得意先コード</th><th>得意先名</th><th>ルートコード</th><th>配送ルート名</th><th>担当者コード</th><th>担当者</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr id="customerDisplayRow">
-                  <td colspan="6" class="empty-td">未選択（左の検索窓から選択）</td>
-                </tr>
-              </tbody>
-            </table>
+      <div class="nav-menu">
+        <button type="button" id="tabRegister" class="nav-tab active" onclick="switchPage('register')">
+          回収データ登録
+        </button>
+        <button type="button" id="tabReport" class="nav-tab" onclick="switchPage('report')">
+          帳票発行 (PDF)
+        </button>
+      </div>
+    </div> <div style="border-top: 2px solid var(--primary-color); margin-bottom: 1.25rem;"></div>
+
+    <div id="pageRegister" class="page-section">
+      <form id="registerForm">
+        <div class="search-display-grid">
+          <div style="flex: 1;">
+            <label for="slipDate">伝票日付:</label>
+            <input type="date" id="slipDate" required>
           </div>
         </div>
-      </div>
 
-      <label>出荷店選択:</label>
-      <div class="search-display-grid">
-        <div class="col-1-3">
-          <input type="text" id="storeSearch" placeholder="出荷店コード・名称で検索" autocomplete="off">
-          <div id="storeSuggest" class="suggest-window"></div>
-          <input type="hidden" id="selectedStoreCode" required>
-          <input type="hidden" id="selectedStoreName">
-        </div>
-        <div class="col-2-3">
-          <div class="display-table-container">
-            <table class="display-table">
-              <thead>
-                <tr><th style="width: 35%;">出荷店コード</th><th>出荷店名</th></tr>
-              </thead>
-              <tbody>
-                <tr id="storeDisplayRow">
-                  <td colspan="2" class="empty-td">未選択（得意先選択で自動反映・変更可）</td>
-                </tr>
-              </tbody>
-            </table>
+        <label>得意先選択:</label>
+        <div class="search-display-grid">
+          <div class="col-1-3">
+            <input type="text" id="customerSearch" placeholder="得意先コード・名称・カナ検索" autocomplete="off">
+            <div id="customerSuggest" class="suggest-window"></div>
+            <input type="hidden" id="selectedCustomerCode" required>
+            <input type="hidden" id="selectedCustomerName">
+            <input type="hidden" id="selectedRouteCode">
+            <input type="hidden" id="selectedRouteName">
+            <input type="hidden" id="selectedStaffCode">
+            <input type="hidden" id="selectedStaffName">
+          </div>
+          <div class="col-2-3">
+            <div class="display-table-container">
+              <table class="display-table">
+                <thead>
+                  <tr>
+                    <th>得意先コード</th><th>得意先名</th><th>ルートコード</th><th>配送ルート名</th><th>担当者コード</th><th>担当者</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr id="customerDisplayRow">
+                    <td colspan="6" class="empty-td">未選択（左の検索窓から選択）</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
-      </div>
 
-      <label>空容器数量入力（入力後、下の送信ボタンで確定）:</label>
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>商品コード</th><th>JANコード</th><th>空容器名</th><th class="price-col">単価</th><th style="text-align: center;">数量入力</th>
-            </tr>
-          </thead>
-          <tbody id="containerTableBody">
-            <tr><td colspan="5" style="text-align:center; color:#888;">マスターデータを読み込んでいます...</td></tr>
-          </tbody>
-        </table>
-      </div>
+        <label>出荷店選択:</label>
+        <div class="search-display-grid">
+          <div class="col-1-3">
+            <input type="text" id="storeSearch" placeholder="出荷店コード・名称で検索" autocomplete="off">
+            <div id="storeSuggest" class="suggest-window"></div>
+            <input type="hidden" id="selectedStoreCode" required>
+            <input type="hidden" id="selectedStoreName">
+          </div>
+          <div class="col-2-3">
+            <div class="display-table-container">
+              <table class="display-table">
+                <thead>
+                  <tr><th style="width: 35%;">出荷店コード</th><th>出荷店名</th></tr>
+                </thead>
+                <tbody>
+                  <tr id="storeDisplayRow">
+                    <td colspan="2" class="empty-td">未選択（得意先選択で自動反映・変更可）</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
 
-      <div style="margin-bottom: 20px; margin-top: 15px;">
-        <label for="note">備考 / メモ:</label>
-        <input type="text" id="note" placeholder="備考があれば入力">
-      </div>
+        <label>空容器数量入力（入力後、下の送信ボタンで確定）:</label>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>商品コード</th><th>JANコード</th><th>空容器名</th><th class="price-col">単価</th><th style="text-align: center;">数量入力</th>
+              </tr>
+            </thead>
+            <tbody id="containerTableBody">
+              <tr><td colspan="5" style="text-align:center; color:#888;">マスターデータを読み込んでいます...</td></tr>
+            </tbody>
+          </table>
+        </div>
 
-      <div class="action-area">
-        <button type="button" id="openConfirmBtn" class="btn-primary">データ送信</button>
-      </div>
-    </form>
+        <div style="margin-bottom: 20px; margin-top: 15px;">
+          <label for="note">備考 / メモ:</label>
+          <input type="text" id="note" placeholder="備考があれば入力">
+        </div>
 
-    <div id="message"></div>
-  </div>
+        <div class="action-area">
+          <button type="button" id="openConfirmBtn" class="btn-primary">データ送信</button>
+        </div>
+      </form>
+    </div>
 
-  <div id="confirmModal" class="modal-overlay">
-    <div class="modal-content">
-      <div class="modal-header">送信内容の確認</div>
-      <p style="font-size: 14px; margin-bottom: 10px;">以下の内容で送信します。よろしいですか？</p>
-      
-      <table class="confirm-table">
-        <tr><th style="width: 30%;">伝票日付</th><td id="modalSlipDateStr"></td></tr>
-        <tr><th>登録者名</th><td id="modalRegistrantStr"></td></tr>
-        <tr><th>得意先</th><td id="modalCustomerStr"></td></tr>
-        <tr><th>配送ルート</th><td id="modalRouteStr"></td></tr>
-        <tr><th>担当者</th><td id="modalStaffStr"></td></tr>
-        <tr><th>出荷店</th><td id="modalStoreStr"></td></tr>
-        <tr><th>備考</th><td id="modalNoteStr"></td></tr>
-      </table>
+    <div id="pageReport" class="page-section hidden">
+      <div class="report-card">
+        <h3 style="margin-top:0; color: var(--primary-color); font-size: 1.1rem; margin-bottom: 1rem;">
+          空容器回収一覧表の発行
+        </h3>
+        
+        <div class="form-group-row">
+          <div class="form-group-item">
+            <label for="pdfStartDate">対象期間 <span style="color:red;">*</span></label>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <input type="date" id="pdfStartDate" required>
+              <span>〜</span>
+              <input type="date" id="pdfEndDate" required>
+            </div>
+          </div>
 
-      <label>登録する空容器一覧:</label>
-      <div class="table-container" style="max-height: 180px; overflow-y: auto;">
-        <table>
-          <thead>
-            <tr><th>商品コード</th><th>空容器名</th><th style="text-align: right; width: 100px;">数量</th></tr>
-          </thead>
-          <tbody id="modalItemsBody"></tbody>
-        </table>
-      </div>
+          <div class="form-group-item">
+            <label for="pdfRouteSelect">ルート選択</label>
+            <select id="pdfRouteSelect" style="width: 100%; padding: 0.625rem; border: 1px solid var(--border-color); border-radius: 0.25rem;">
+              <option value="">すべてのルート</option>
+            </select>
+          </div>
+        </div>
 
-      <div class="modal-actions">
-        <button type="button" id="modalCancelBtn" class="btn-secondary">キャンセル</button>
-        <button type="button" id="modalSubmitBtn" class="btn-primary" style="width: auto;">送信確定</button>
+        <div style="text-align: right; margin-top: 1.5rem;">
+          <button type="button" id="generatePdfBtn" class="btn-primary" style="max-width: 250px;" onclick="generateReportPdf()">
+            PDFを発行して表示 (別タブ)
+          </button>
+        </div>
       </div>
     </div>
-  </div>
+  </div> ```
+
 
   <script>
     const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbylyTuJ9jLaUISlpeKI5xVGOoeXl8XMh9e4lM_bmNAPTsw4N8LnVt4m2vDOgqMx7kRZlQ/exec';
@@ -497,7 +568,101 @@
         tbody.appendChild(tr);
       });
     }
+// 画面切り替え（タブ選択）
+    function switchPage(page) {
+      const regPage = document.getElementById('pageRegister');
+      const rptPage = document.getElementById('pageReport');
+      const tabReg = document.getElementById('tabRegister');
+      const tabRpt = document.getElementById('tabReport');
 
+      if (page === 'register') {
+        regPage.classList.remove('hidden');
+        rptPage.classList.add('hidden');
+        tabReg.classList.add('active');
+        tabRpt.classList.remove('active');
+      } else if (page === 'report') {
+        regPage.classList.add('hidden');
+        rptPage.classList.remove('hidden');
+        tabReg.classList.remove('active');
+        tabRpt.classList.add('active');
+
+        // 帳票画面の日付初期化（当月1日〜本日）
+        initReportForm();
+      }
+    }
+
+    // 帳票用ルート選択肢のロード＆日付セット
+    function initReportForm() {
+      const startEl = document.getElementById('pdfStartDate');
+      const endEl = document.getElementById('pdfEndDate');
+      
+      if (!startEl.value || !endEl.value) {
+        const now = new Date();
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+        startEl.value = firstDay.toISOString().split('T')[0];
+        endEl.value = now.toISOString().split('T')[0];
+      }
+
+      // ルートセレクトボックスの自動生成（マスターデータから）
+      const routeSelect = document.getElementById('pdfRouteSelect');
+      if (routeSelect.options.length <= 1 && Object.keys(masterRoutes).length > 0) {
+        Object.keys(masterRoutes).forEach(code => {
+          const opt = document.createElement('option');
+          opt.value = code;
+          opt.textContent = `[${code}] ${masterRoutes[code]}`;
+          routeSelect.appendChild(opt);
+        });
+      }
+    }
+
+    // PDF発行リクエスト処理
+    async function generateReportPdf() {
+      const startDate = document.getElementById('pdfStartDate').value;
+      const endDate = document.getElementById('pdfEndDate').value;
+      const routeSelect = document.getElementById('pdfRouteSelect');
+      const routeCode = routeSelect.value;
+      const routeName = routeSelect.options[routeSelect.selectedIndex].text;
+
+      if (!startDate || !endDate) {
+        alert('対象期間を入力してください。');
+        return;
+      }
+
+      const pdfBtn = document.getElementById('generatePdfBtn');
+      pdfBtn.disabled = true;
+      pdfBtn.textContent = 'PDF作成中...';
+
+      try {
+        const response = await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({
+            action: 'generatePdf',
+            startDate: startDate,
+            endDate: endDate,
+            routeCode: routeCode,
+            routeName: routeCode ? routeName : 'すべて'
+          })
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'success' && result.pdfUrl) {
+          // ブラウザの別タブでPDFを開く
+          window.open(result.pdfUrl, '_blank');
+        } else {
+          alert(result.message || 'PDFの生成に失敗しました。');
+        }
+      } catch (err) {
+        console.error('PDF作成通信エラー:', err);
+        alert('通信エラーが発生しました。');
+      } finally {
+        pdfBtn.disabled = false;
+        pdfBtn.textContent = 'PDFを発行して表示 (別タブ)';
+      }
+    }
+
+    
     function setStoreSelect(code, name) {
       document.getElementById('selectedStoreCode').value = code;
       document.getElementById('selectedStoreName').value = name;
@@ -566,6 +731,8 @@
       });
     }
 
+
+    
     function setupCustomerSuggest() {
       const input = document.getElementById('customerSearch');
       const suggest = document.getElementById('customerSuggest');
