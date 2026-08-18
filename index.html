@@ -369,38 +369,59 @@
       </form>
     </div>
 
-    <div id="pageReport" class="page-section hidden">
-      <div class="report-card">
-        <h3 style="margin-top:0; color: var(--primary-color); font-size: 1.1rem; margin-bottom: 1rem;">
-          空容器回収一覧発行
-        </h3>
-        
-        <div class="form-group-row">
-          <div class="form-group-item">
-            <label for="pdfStartDate">対象期間 <span style="color:red;">*</span></label>
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-              <input type="date" id="pdfStartDate" required>
-              <span>〜</span>
-              <input type="date" id="pdfEndDate" required>
-            </div>
-          </div>
-
-          <div class="form-group-item">
-            <label for="pdfRouteSelect">ルート選択</label>
-            <select id="pdfRouteSelect" style="width: 100%; padding: 0.625rem; border: 1px solid var(--border-color); border-radius: 0.25rem;">
-              <option value="">すべてのルート</option>
-            </select>
-          </div>
-        </div>
-
-        <div style="text-align: right; margin-top: 1.5rem;">
-          <button type="button" id="generatePdfBtn" class="btn-primary" style="max-width: 250px;" onclick="generateReportPdf()">
-            PDF発行
-          </button>
+ <div id="pageReport" class="page-section hidden">
+  <div class="report-card">
+    <h3 style="margin-top:0; color: var(--primary-color); font-size: 1.1rem; margin-bottom: 1rem;">
+      空容器回収一覧発行
+    </h3>
+    
+    <!-- 1行目：対象期間 -->
+    <div class="form-group-row" style="margin-bottom: 1rem;">
+      <div class="form-group-item">
+        <label for="pdfStartDate">対象期間 <span style="color:red;">*</span></label>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <input type="date" id="pdfStartDate" required style="padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 0.25rem;">
+          <span>〜</span>
+          <input type="date" id="pdfEndDate" required style="padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 0.25rem;">
         </div>
       </div>
+
+      <!-- ルート選択 -->
+      <div class="form-group-item">
+        <label for="pdfRouteSelect">ルート選択</label>
+        <select id="pdfRouteSelect" style="width: 100%; padding: 0.625rem; border: 1px solid var(--border-color); border-radius: 0.25rem;">
+          <option value="">すべてのルート</option>
+        </select>
+      </div>
     </div>
-  </div> ```
+
+    <!-- 2行目：得意先検索 & 選択 -->
+    <div class="form-group-row" style="margin-bottom: 1rem;">
+      <div class="form-group-item" style="flex: 1;">
+        <label for="pdfCustomerSearchInput">得意先検索</label>
+        <input type="text" id="pdfCustomerSearchInput" placeholder="得意先名やコードで検索..." style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 0.25rem; margin-bottom: 0.3rem;">
+        <select id="pdfCustomerSelect" style="width: 100%; padding: 0.625rem; border: 1px solid var(--border-color); border-radius: 0.25rem;">
+          <option value="">すべての得意先</option>
+        </select>
+      </div>
+
+      <!-- 登録者選択 -->
+      <div class="form-group-item" style="flex: 1;">
+        <label for="pdfUserSelect">登録者選択</label>
+        <select id="pdfUserSelect" style="width: 100%; padding: 0.625rem; border: 1px solid var(--border-color); border-radius: 0.25rem;">
+          <option value="">すべての登録者</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="text-align: right; margin-top: 1.5rem;">
+      <button type="button" id="generatePdfBtn" class="btn-primary" style="max-width: 250px;" onclick="generateReportPdf()">
+        PDF発行
+      </button>
+    </div>
+  </div>
+</div>
+  </div>
 
 
   <script>
@@ -591,79 +612,165 @@
       }
     }
 
-    // 帳票用ルート選択肢のロード＆日付セット
-    function initReportForm() {
-      const startEl = document.getElementById('pdfStartDate');
-      const endEl = document.getElementById('pdfEndDate');
-      
-      if (!startEl.value || !endEl.value) {
-        const now = new Date();
-        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-        startEl.value = firstDay.toISOString().split('T')[0];
-        endEl.value = now.toISOString().split('T')[0];
-      }
+// 帳票画面の初期化（日付デフォルト：本日〜本日、マスター読み込み）
+function initReportForm() {
+  const startEl = document.getElementById('pdfStartDate');
+  const endEl = document.getElementById('pdfEndDate');
+  
+  // 日付の初期化（常に「本日〜本日」にするため条件判定をシンプル化）
+  const todayStr = getTodayString();
+  if (startEl) startEl.value = todayStr;
+  if (endEl) endEl.value = todayStr;
 
-      // ルートセレクトボックスの自動生成（マスターデータから）
-      const routeSelect = document.getElementById('pdfRouteSelect');
-      if (routeSelect.options.length <= 1 && Object.keys(masterRoutes).length > 0) {
-        Object.keys(masterRoutes).forEach(code => {
-          const opt = document.createElement('option');
-          opt.value = code;
-          opt.textContent = `[${code}] ${masterRoutes[code]}`;
-          routeSelect.appendChild(opt);
-        });
-      }
-    }
-
-    // PDF発行リクエスト処理
-    async function generateReportPdf() {
-      const startDate = document.getElementById('pdfStartDate').value;
-      const endDate = document.getElementById('pdfEndDate').value;
-      const routeSelect = document.getElementById('pdfRouteSelect');
-      const routeCode = routeSelect.value;
-      const routeName = routeSelect.options[routeSelect.selectedIndex].text;
-
-      if (!startDate || !endDate) {
-        alert('対象期間を入力してください。');
-        return;
-      }
-
-      const pdfBtn = document.getElementById('generatePdfBtn');
-      pdfBtn.disabled = true;
-      pdfBtn.textContent = '回収一覧作成中...';
-
-      try {
-        const response = await fetch(GAS_WEB_APP_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify({
-            action: 'generatePdf',
-            startDate: startDate,
-            endDate: endDate,
-            routeCode: routeCode,
-            routeName: routeCode ? routeName : 'すべて'
-          })
-        });
-
-        const result = await response.json();
-
-        if (result.status === 'success' && result.pdfUrl) {
-  // 新規タブでプレビュー表示（ダウンロードダイアログを挟まない設定）
-  const newTab = window.open(result.pdfUrl, '_blank');
-  if (!newTab) {
-    alert('ポップアップがブロックされました。ブラウザのポップアップ許可設定をご確認ください。');
+  // 1. ルートセレクトボックスの生成
+  const routeSelect = document.getElementById('pdfRouteSelect');
+  if (routeSelect && routeSelect.options.length <= 1 && typeof masterRoutes !== 'undefined' && Object.keys(masterRoutes).length > 0) {
+    Object.keys(masterRoutes).forEach(code => {
+      const opt = document.createElement('option');
+      opt.value = code;
+      opt.textContent = `[${code}] ${masterRoutes[code]}`;
+      routeSelect.appendChild(opt);
+    });
   }
-} else {
-          alert(result.message || 'PDFの生成に失敗しました。');
-        }
-      } catch (err) {
-        console.error('PDF作成通信エラー:', err);
-        alert('通信エラーが発生しました。');
-      } finally {
-        pdfBtn.disabled = false;
-        pdfBtn.textContent = '空容器回収一覧発行';
-      }
+
+  // 2. 得意先セレクトボックスの初期生成 ＆ インクリメンタル検索イベント登録
+  initCustomerSearch();
+
+  // 3. 登録者セレクトボックスの生成
+  initUserSelect();
+}
+
+// 今日の日付文字列（YYYY-MM-DD）を取得（時差ズレ回避）
+function getTodayString() {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+// 得意先検索・プルダウン初期化
+function initCustomerSearch() {
+  const customerSelect = document.getElementById('pdfCustomerSelect');
+  const searchInput = document.getElementById('pdfCustomerSearchInput');
+
+  if (!customerSelect) return;
+
+  // マスターが存在する場合の描画処理
+  if (typeof masterCustomers !== 'undefined' && Array.isArray(masterCustomers)) {
+    renderCustomerOptions(masterCustomers);
+
+    // インクリメンタル検索機能のイベント付与（重複防止処理付き）
+    if (searchInput && !searchInput.dataset.hasListener) {
+      searchInput.addEventListener('input', (e) => {
+        const keyword = e.target.value.toLowerCase().trim();
+        const filtered = masterCustomers.filter(c => 
+          String(c.得意先コード || c.customerCode || '').toLowerCase().includes(keyword) ||
+          String(c.得意先名 || c.customerName || '').toLowerCase().includes(keyword)
+        );
+        renderCustomerOptions(filtered);
+      });
+      searchInput.dataset.hasListener = 'true';
     }
+  }
+}
+
+// 得意先プルダウンの描画
+function renderCustomerOptions(customers) {
+  const customerSelect = document.getElementById('pdfCustomerSelect');
+  if (!customerSelect) return;
+
+  customerSelect.innerHTML = '<option value="">すべての得意先</option>';
+  customers.forEach(c => {
+    const code = c.得意先コード || c.customerCode || '';
+    const name = c.得意先名 || c.customerName || '';
+    if (code || name) {
+      const opt = document.createElement('option');
+      opt.value = code;
+      opt.textContent = `[${code}] ${name}`;
+      customerSelect.appendChild(opt);
+    }
+  });
+}
+
+// 登録者プルダウン初期化
+function initUserSelect() {
+  const userSelect = document.getElementById('pdfUserSelect');
+  if (!userSelect || userSelect.options.length > 1) return;
+
+  // masterStaffs または masterUsers から取得
+  const userList = (typeof masterStaffs !== 'undefined' && Array.isArray(masterStaffs)) ? masterStaffs :
+                   (typeof masterUsers !== 'undefined' && Array.isArray(masterUsers)) ? masterUsers : [];
+
+  userList.forEach(u => {
+    const name = u.担当者名 || u.ユーザー名 || u.userName || u.staffName || '';
+    if (name) {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      userSelect.appendChild(opt);
+    }
+  });
+}
+
+// PDF発行リクエスト処理
+async function generateReportPdf() {
+  const startDate = document.getElementById('pdfStartDate').value;
+  const endDate = document.getElementById('pdfEndDate').value;
+  
+  const routeSelect = document.getElementById('pdfRouteSelect');
+  const routeCode = routeSelect ? routeSelect.value : '';
+  const routeName = (routeSelect && routeSelect.selectedIndex >= 0) ? routeSelect.options[routeSelect.selectedIndex].text : '';
+
+  const customerSelect = document.getElementById('pdfCustomerSelect');
+  const customerCode = customerSelect ? customerSelect.value : '';
+
+  const userSelect = document.getElementById('pdfUserSelect');
+  const userName = userSelect ? userSelect.value : '';
+
+  if (!startDate || !endDate) {
+    alert('対象期間を入力してください。');
+    return;
+  }
+
+  const pdfBtn = document.getElementById('generatePdfBtn');
+  pdfBtn.disabled = true;
+  pdfBtn.textContent = '回収一覧作成中...';
+
+  try {
+    const response = await fetch(GAS_WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        action: 'generatePdf',
+        startDate: startDate,
+        endDate: endDate,
+        routeCode: routeCode,
+        routeName: routeCode ? routeName : 'すべて',
+        customerCode: customerCode, // ★追加：得意先コード
+        userName: userName          // ★追加：登録者名
+      })
+    });
+
+    const result = await response.json();
+
+    if (result.status === 'success' && result.pdfUrl) {
+      // 新規タブでプレビュー表示（ダウンロードダイアログを挟まない設定）
+      const newTab = window.open(result.pdfUrl, '_blank');
+      if (!newTab) {
+        alert('ポップアップがブロックされました。ブラウザのポップアップ許可設定をご確認ください。');
+      }
+    } else {
+      alert(result.message || 'PDFの生成に失敗しました。');
+    }
+  } catch (err) {
+    console.error('PDF作成通信エラー:', err);
+    alert('通信エラーが発生しました。');
+  } finally {
+    pdfBtn.disabled = false;
+    pdfBtn.textContent = '空容器回収一覧発行';
+  }
+}
 
     
     function setStoreSelect(code, name) {
