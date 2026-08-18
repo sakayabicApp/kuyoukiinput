@@ -51,11 +51,34 @@
       width: 100%;
     }
 
-    /* スマホ（768px以下）は縦1列 */
+    /* スマホ（768px以下）向けのレスポンシブ調整 */
     @media (max-width: 768px) {
       .search-display-grid {
         flex-direction: column;
         gap: 10px;
+      }
+
+      /* ★ 空容器マスターのJANコード列（2列目）を非表示 ★ */
+      #containerTableBody tr td:nth-child(2),
+      .table-container th:nth-child(2) {
+        display: none;
+      }
+
+      /* ★ 得意先表示テーブルの自動折り返し・収まり設定 ★ */
+      .display-table th, 
+      .display-table td {
+        white-space: normal;      /* 折り返しを許可 */
+        word-break: break-all;     /* 長い英数字も途中で折返し */
+        padding: 6px 4px;          /* 余白を少し詰める */
+        font-size: 11px;           /* フォントサイズを小さく調整 */
+      }
+
+      /* モバイルでの数量入力欄の調整 */
+      .qty-cell {
+        width: 90px;
+      }
+      .qty-cell input {
+        width: 50px;
       }
     }
 
