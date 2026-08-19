@@ -363,13 +363,46 @@
           <input type="text" id="note" placeholder="備考があれば入力">
         </div>
 
-        <div class="modal-actions">
-        <button type="button" id="modalCancelBtn" class="btn-secondary">キャンセル</button>
-        <button type="button" id="modalSubmitBtn" class="btn-primary" style="width: auto;">送信確定</button>
-      </div>
+<!-- 確認画面を開くボタンを追加 -->
+        <div class="action-area" style="margin-top: 20px;">
+          <button type="button" id="openConfirmBtn" class="btn-primary">入力内容を確認する</button>
+        </div>
       </form>
     </div>
 
+    <!-- 欠落していた確認モーダルのHTMLを追加 -->
+    <div id="confirmModal" class="modal-overlay">
+      <div class="modal-content">
+        <div class="modal-header">登録内容の確認</div>
+        
+        <table class="confirm-table" style="width: 100%; margin-bottom: 15px; font-size: 0.85rem;">
+          <tr><th style="width: 30%;">伝票日付</th><td id="modalSlipDateStr"></td></tr>
+          <tr><th>登録者</th><td id="modalRegistrantStr"></td></tr>
+          <tr><th>得意先</th><td id="modalCustomerStr"></td></tr>
+          <tr><th>ルート</th><td id="modalRouteStr"></td></tr>
+          <tr><th>担当者</th><td id="modalStaffStr"></td></tr>
+          <tr><th>出荷店</th><td id="modalStoreStr"></td></tr>
+          <tr><th>備考</th><td id="modalNoteStr"></td></tr>
+        </table>
+
+        <div style="font-weight: bold; margin-bottom: 5px; font-size: 0.9rem;">【回収容器】</div>
+        <div style="max-height: 150px; overflow-y: auto; border: 1px solid #eee; margin-bottom: 15px;">
+          <table style="width: 100%; font-size: 0.85rem;">
+            <thead>
+              <tr style="background: #f0f0f0;">
+                <th>コード</th><th>空容器名</th><th style="text-align: right;">数量</th>
+              </tr>
+            </thead>
+            <tbody id="modalItemsBody"></tbody>
+          </table>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" id="modalCancelBtn" class="btn-secondary">キャンセル</button>
+          <button type="button" id="modalSubmitBtn" class="btn-primary" style="width: auto;">送信確定</button>
+        </div>
+      </div>
+    </div>
  <div id="pageReport" class="page-section hidden">
   <div class="report-card">
     <h3 style="margin-top:0; color: var(--primary-color); font-size: 1.1rem; margin-bottom: 1rem;">
