@@ -521,7 +521,7 @@
       });
     }
 
-    function setupCustomerSuggest() {
+function setupCustomerSuggest() {
       const input = document.getElementById('customerSearch');
       const suggest = document.getElementById('customerSuggest');
       const codeHidden = document.getElementById('selectedCustomerCode');
@@ -532,64 +532,93 @@
       const staffNameHidden = document.getElementById('selectedStaffName');
       const displayRow = document.getElementById('customerDisplayRow');
 
+      let timeoutId = null;
+
       input.addEventListener('input', () => {
+        clearTimeout(timeoutId);
         const keyword = normalizeToKatakana(input.value.trim());
         suggest.innerHTML = '';
         if (!keyword) { suggest.style.display = 'none'; return; }
 
-        const filtered = masterCustomers.filter(item => {
-          const vals = Object.values(item).map(v => normalizeToKatakana(String(v)));
-          return vals.some(v => v.includes(keyword));
-        });
+        // リスト描画用の内部処理（元のDOM生成・クリック連動ロジックをそのまま保持）
+        const renderList = (items) => {
+          suggest.innerHTML = '';
+          if (!items || items.length === 0) {
+            suggest.innerHTML = '<div class="suggest-item" style="color:#999;">該当なし</div>';
+            suggest.style.display = 'block';
+            return;
+          }
 
-        if (filtered.length === 0) {
-          suggest.innerHTML = '<div class="suggest-item" style="color:#999;">該当なし</div>';
+          items.forEach(item => {
+            const keys = Object.keys(item);
+            const code = item[keys[0]] || '';
+            const name = item[keys[1]] || '';
+            const staffCode = item[keys[61]] !== undefined ? String(item[keys[61]]).trim() : '';
+            const staffName = masterStaffs[staffCode] || (staffCode ? `未登録 (${staffCode})` : '');
+            const storeCodeFromCustomer = item[keys[68]] !== undefined ? String(item[keys[68]]).trim() : '';
+            const routeCode = item[keys[70]] !== undefined ? String(item[keys[70]]).trim() : '';
+            const routeName = masterRoutes[routeCode] || (routeCode ? `未登録 (${routeCode})` : '');
+
+            const div = document.createElement('div');
+            div.className = 'suggest-item';
+            div.innerHTML = `<span class="code">${code}</span> ${name}`;
+
+            div.addEventListener('click', () => {
+              codeHidden.value = code;
+              nameHidden.value = name;
+              routeCodeHidden.value = routeCode;
+              routeNameHidden.value = routeName;
+              staffCodeHidden.value = staffCode;
+              if (staffNameHidden) staffNameHidden.value = staffName;
+
+              displayRow.innerHTML = `
+                <td>${code}</td><td>${name}</td><td>${routeCode || '-'}</td>
+                <td>${routeName || '-'}</td><td>${staffCode || '-'}</td><td>${staffName || '-'}</td>
+              `;
+
+              if (storeCodeFromCustomer) {
+                const matchedStore = masterStores.find(s => String(s[Object.keys(s)[0]]).trim() === storeCodeFromCustomer);
+                if (matchedStore) {
+                  setStoreSelect(storeCodeFromCustomer, String(matchedStore[Object.keys(matchedStore)[1]] || '').trim());
+                } else {
+                  setStoreSelect(storeCodeFromCustomer, '（店舗名未登録）');
+                }
+              }
+
+              input.value = '';
+              suggest.style.display = 'none';
+            });
+            suggest.appendChild(div);
+          });
           suggest.style.display = 'block';
+        };
+
+        // パターンA: 既に masterCustomers がメモリ上に存在する場合はローカル高速検索
+        if (typeof masterCustomers !== 'undefined' && masterCustomers && masterCustomers.length > 0) {
+          const filtered = masterCustomers.filter(item => {
+            const vals = Object.values(item).map(v => normalizeToKatakana(String(v)));
+            return vals.some(v => v.includes(keyword));
+          });
+          renderList(filtered);
           return;
         }
 
-        filtered.forEach(item => {
-          const keys = Object.keys(item);
-          const code = item[keys[0]] || '';
-          const name = item[keys[1]] || '';
-          const staffCode = item[keys[61]] !== undefined ? String(item[keys[61]]).trim() : '';
-          const staffName = masterStaffs[staffCode] || (staffCode ? `未登録 (${staffCode})` : '');
-          const storeCodeFromCustomer = item[keys[68]] !== undefined ? String(item[keys[68]]).trim() : '';
-          const routeCode = item[keys[70]] !== undefined ? String(item[keys[70]]).trim() : '';
-          const routeName = masterRoutes[routeCode] || (routeCode ? `未登録 (${routeCode})` : '');
-
-          const div = document.createElement('div');
-          div.className = 'suggest-item';
-          div.innerHTML = `<span class="code">${code}</span> ${name}`;
-
-          div.addEventListener('click', () => {
-            codeHidden.value = code;
-            nameHidden.value = name;
-            routeCodeHidden.value = routeCode;
-            routeNameHidden.value = routeName;
-            staffCodeHidden.value = staffCode;
-            if (staffNameHidden) staffNameHidden.value = staffName;
-
-            displayRow.innerHTML = `
-              <td>${code}</td><td>${name}</td><td>${routeCode || '-'}</td>
-              <td>${routeName || '-'}</td><td>${staffCode || '-'}</td><td>${staffName || '-'}</td>
-            `;
-
-            if (storeCodeFromCustomer) {
-              const matchedStore = masterStores.find(s => String(s[Object.keys(s)[0]]).trim() === storeCodeFromCustomer);
-              if (matchedStore) {
-                setStoreSelect(storeCodeFromCustomer, String(matchedStore[Object.keys(matchedStore)[1]] || '').trim());
-              } else {
-                setStoreSelect(storeCodeFromCustomer, '（店舗名未登録）');
-              }
+        // パターンB: masterCustomers が未取得（初期通信の軽量化時）の場合はGASへ非同期検索リクエスト
+        timeoutId = setTimeout(async () => {
+          try {
+            const response = await fetch(GAS_WEB_APP_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain' },
+              body: JSON.stringify({ action: 'searchCustomers', keyword: keyword })
+            });
+            const result = await response.json();
+            if (result.status === 'success') {
+              renderList(result.data);
             }
-
-            input.value = '';
-            suggest.style.display = 'none';
-          });
-          suggest.appendChild(div);
-        });
-        suggest.style.display = 'block';
+          } catch (err) {
+            console.error('得意先検索エラー:', err);
+          }
+        }, 300);
       });
 
       document.addEventListener('click', (e) => {
