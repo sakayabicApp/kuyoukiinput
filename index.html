@@ -541,48 +541,58 @@
       document.getElementById('loginModal').style.display = 'flex';
     }
 
-    // マスターデータ読み込み
-    async function loadMasterData() {
-      try {
-        const response = await fetch(GAS_WEB_APP_URL);
-        const result = await response.json();
-        
-        if (result.status === 'success') {
-          masterStores = result.data.stores || [];
-          masterCustomers = result.data.customers || [];
-          masterContainers = result.data.containers || [];
-
-          if (result.data.routes) {
-            result.data.routes.forEach(row => {
-              const keys = Object.keys(row);
-              const code = String(row[keys[0]] || '').trim();
-              const name = String(row[keys[1]] || '').trim();
-              if (code) masterRoutes[code] = name;
-            });
-          }
-
-          if (result.data.staffs) {
-            result.data.staffs.forEach(row => {
-              const keys = Object.keys(row);
-              const code = String(row[keys[0]] || '').trim();
-              const name = String(row[keys[1]] || '').trim();
-              if (code) masterStaffs[code] = name;
-            });
-          }
-
-          renderContainerTable(masterContainers);
-
-          const loadingOverlay = document.getElementById('loadingOverlay');
-          if (loadingOverlay) loadingOverlay.style.display = 'none';
-        } else {
-          showLoadingError('マスターデータの取得に失敗しました');
-        }
-      } catch (err) {
-        console.error('マスター取得エラー:', err);
-        showLoadingError('通信エラーが発生しました。GASのURL・設定を確認してください。');
+// マスターデータ読み込み（CORS・リダイレクト対応版）
+async function loadMasterData() {
+  try {
+    const response = await fetch(GAS_WEB_APP_URL, {
+      method: 'GET',
+      redirect: 'follow', // ★GASのリダイレクトを自動追従する設定
+      headers: {
+        'Content-Type': 'text/plain'
       }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
+    const result = await response.json();
+    
+    if (result.status === 'success') {
+      masterStores = result.data.stores || [];
+      masterCustomers = result.data.customers || [];
+      masterContainers = result.data.containers || [];
+
+      if (result.data.routes) {
+        result.data.routes.forEach(row => {
+          const keys = Object.keys(row);
+          const code = String(row[keys[0]] || '').trim();
+          const name = String(row[keys[1]] || '').trim();
+          if (code) masterRoutes[code] = name;
+        });
+      }
+
+      if (result.data.staffs) {
+        result.data.staffs.forEach(row => {
+          const keys = Object.keys(row);
+          const code = String(row[keys[0]] || '').trim();
+          const name = String(row[keys[1]] || '').trim();
+          if (code) masterStaffs[code] = name;
+        });
+      }
+
+      renderContainerTable(masterContainers);
+
+      const loadingOverlay = document.getElementById('loadingOverlay');
+      if (loadingOverlay) loadingOverlay.style.display = 'none';
+    } else {
+      showLoadingError('マスターデータの取得に失敗しました: ' + (result.message || ''));
+    }
+  } catch (err) {
+    console.error('マスター取得エラー:', err);
+    showLoadingError('通信エラーが発生しました。ブラウザのキャッシュをクリアして再読み込みしてください。');
+  }
+}
     function showLoadingError(msg) {
       const loadingOverlay = document.getElementById('loadingOverlay');
       if (loadingOverlay) {
