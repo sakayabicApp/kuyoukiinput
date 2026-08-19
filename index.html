@@ -33,7 +33,6 @@
     padding: 1.25rem;
     border-radius: 0.5rem;
     box-shadow: 0 0.125rem 0.5rem rgba(0,0,0,0.1);
-    margin-bottom: 1.25rem;
   }
 
   .header-area {
@@ -89,14 +88,13 @@
     margin-bottom: 0.375rem;
     font-size: 0.875rem;
   }
-  input[type="text"], input[type="number"], input[type="date"], input[type="password"], select {
+  input[type="text"], input[type="number"], input[type="date"], input[type="password"] {
     width: 100%;
     padding: 0.625rem 0.75rem;
     font-size: 0.9375rem;
     box-sizing: border-box;
     border: 1px solid var(--border-color);
     border-radius: 0.25rem;
-    background-color: #fff;
   }
 
   table {
@@ -158,14 +156,6 @@
     width: 100%; max-width: 18.75rem; transition: background 0.2s;
   }
   button.btn-primary:hover { background-color: #003da1; }
-  
-  button.btn-pdf {
-    background-color: #28a745; color: white; font-size: 1rem; font-weight: bold;
-    padding: 0.75rem 1.75rem; border: none; border-radius: 0.25rem; cursor: pointer;
-    width: 100%; max-width: 18.75rem; transition: background 0.2s;
-  }
-  button.btn-pdf:hover { background-color: #218838; }
-
   button.btn-secondary {
     background-color: #6c757d; color: white; font-size: 0.9375rem; font-weight: bold;
     padding: 0.625rem 1.25rem; border: none; border-radius: 0.25rem; cursor: pointer;
@@ -188,7 +178,7 @@
 </head>
 <body>
 
- <div id="loadingOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999;">
+<div id="loadingOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999;">
     <div class="spinner" style="width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #007bff; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;"></div>
     <p style="font-size: 1.2rem; font-weight: bold; color: #333; margin: 0;">起動中です...</p>
     <p style="font-size: 0.9rem; color: #666; margin-top: 8px;">マスターデータを読み込んでいます</p>
@@ -319,7 +309,22 @@
         </div>
       </form>
     </div>
-
+<!-- 送信確認モーダル -->
+  <div id="confirmModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">送信内容の確認</div>
+      <p style="font-size: 14px; margin-bottom: 10px;">以下の内容で送信します。よろしいですか？</p>
+      
+      <table class="confirm-table">
+        <tr><th style="width: 30%;">伝票日付</th><td id="modalSlipDateStr"></td></tr>
+        <tr><th>登録者名</th><td id="modalRegistrantStr"></td></tr>
+        <tr><th>得意先</th><td id="modalCustomerStr"></td></tr>
+        <tr><th>配送ルート</th><td id="modalRouteStr"></td></tr>
+        <tr><th>担当者</th><td id="modalStaffStr"></td></tr>
+        <tr><th>出荷店</th><td id="modalStoreStr"></td></tr>
+        <tr><th>備考</th><td id="modalNoteStr"></td></tr>
+      </table>
+      
     <div id="pageReport" class="page-section hidden">
       <div class="report-card">
         <h3 style="margin-top:0; color: var(--primary-color); font-size: 1.1rem; margin-bottom: 1rem;">
@@ -351,42 +356,7 @@
         </div>
       </div>
     </div>
-  </div>
-
-  <!-- 送信確認モーダル -->
-  <div id="confirmModal" class="modal-overlay">
-    <div class="modal-content">
-      <div class="modal-header">送信内容の確認</div>
-      <p style="font-size: 14px; margin-bottom: 10px;">以下の内容で送信します。よろしいですか？</p>
-      
-      <table class="confirm-table">
-        <tr><th style="width: 30%;">伝票日付</th><td id="modalSlipDateStr"></td></tr>
-        <tr><th>登録者名</th><td id="modalRegistrantStr"></td></tr>
-        <tr><th>得意先</th><td id="modalCustomerStr"></td></tr>
-        <tr><th>配送ルート</th><td id="modalRouteStr"></td></tr>
-        <tr><th>担当者</th><td id="modalStaffStr"></td></tr>
-        <tr><th>出荷店</th><td id="modalStoreStr"></td></tr>
-        <tr><th>備考</th><td id="modalNoteStr"></td></tr>
-      </table>
-
-      <label>登録する空容器一覧:</label>
-      <div class="table-container" style="max-height: 180px; overflow-y: auto;">
-        <table>
-          <thead>
-            <tr><th>商品コード</th><th>空容器名</th><th style="text-align: right; width: 100px;">数量</th></tr>
-          </thead>
-          <tbody id="modalItemsBody"></tbody>
-        </table>
-      </div>
-
-      <div class="modal-actions">
-        <button type="button" id="modalCancelBtn" class="btn-secondary">キャンセル</button>
-        <button type="button" id="modalSubmitBtn" class="btn-primary" style="width: auto;">送信確定</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 【追加】PDFプレビュー確認モーダル -->
+<!-- 【追加】PDFプレビュー確認モーダル -->
   <div id="pdfModal" class="modal-overlay">
     <div class="modal-content" style="max-width: 420px; text-align: center;">
       <div class="modal-header">帳票PDFの準備完了</div>
@@ -399,7 +369,9 @@
       </div>
     </div>
   </div>
-
+      
+      
+  </div>
   <script>
     const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbylyTuJ9jLaUISlpeKI5xVGOoeXl8XMh9e4lM_bmNAPTsw4N8LnVt4m2vDOgqMx7kRZlQ/exec';
 
@@ -414,11 +386,9 @@
 
     // 初期ロード
     window.addEventListener('DOMContentLoaded', () => {
-      // 伝票日付・PDF日付のデフォルト（本日）
+      // 伝票日付のデフォルト（本日）
       const today = new Date().toISOString().split('T')[0];
       document.getElementById('slipDate').value = today;
-      document.getElementById('pdfStartDate').value = today;
-      document.getElementById('pdfEndDate').value = today;
 
       checkLogin();
       loadMasterData();
@@ -515,7 +485,6 @@
           }
 
           renderContainerTable(masterContainers);
-          populatePdfFilters(); // PDF用セレクトボックスの構築
 
           const loadingOverlay = document.getElementById('loadingOverlay');
           if (loadingOverlay) loadingOverlay.style.display = 'none';
@@ -526,32 +495,6 @@
         console.error('マスター取得エラー:', err);
         showLoadingError('通信エラーが発生しました。GASのURL・設定を確認してください。');
       }
-    }
-
-    // 【追加】PDFフィルター用プルダウンの生成
-    function populatePdfFilters() {
-      // ルートセレクト
-      const routeSelect = document.getElementById('pdfRouteSelect');
-      Object.keys(masterRoutes).forEach(code => {
-        const opt = document.createElement('option');
-        opt.value = code;
-        opt.textContent = `[${code}] ${masterRoutes[code]}`;
-        routeSelect.appendChild(opt);
-      });
-
-      // 得意先セレクト
-      const customerSelect = document.getElementById('pdfCustomerSelect');
-      masterCustomers.forEach(item => {
-        const keys = Object.keys(item);
-        const code = String(item[keys[0]] || '').trim();
-        const name = String(item[keys[1]] || '').trim();
-        if (code) {
-          const opt = document.createElement('option');
-          opt.value = code;
-          opt.textContent = `[${code}] ${name}`;
-          customerSelect.appendChild(opt);
-        }
-      });
     }
 
     function showLoadingError(msg) {
@@ -739,60 +682,6 @@
       });
     }
 
-    // 【追加】PDF生成リクエスト処理
-    const pdfModal = document.getElementById('pdfModal');
-    
-    document.getElementById('openPdfModalBtn').addEventListener('click', async () => {
-      const startDate = document.getElementById('pdfStartDate').value;
-      const endDate = document.getElementById('pdfEndDate').value;
-      const routeCode = document.getElementById('pdfRouteSelect').value;
-      const customerCode = document.getElementById('pdfCustomerSelect').value;
-
-      if (!startDate || !endDate) {
-        alert('開始日と終了日を指定してください。');
-        return;
-      }
-
-      const routeName = routeCode ? (masterRoutes[routeCode] || '') : 'すべて';
-      const btn = document.getElementById('openPdfModalBtn');
-      btn.disabled = true;
-      btn.textContent = 'PDF作成中...';
-
-      try {
-        const response = await fetch(GAS_WEB_APP_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify({
-            action: 'generatePdf',
-            startDate: startDate,
-            endDate: endDate,
-            routeCode: routeCode,
-            routeName: routeName,
-            customerCode: customerCode,
-            userName: currentUserName
-          })
-        });
-
-        const result = await response.json();
-
-        if (result.status === 'success' && result.pdfUrl) {
-          document.getElementById('pdfDownloadLink').href = result.pdfUrl;
-          pdfModal.style.display = 'flex';
-        } else {
-          alert('PDF生成失敗: ' + (result.message || 'データが見つかりませんでした。'));
-        }
-      } catch (err) {
-        console.error('PDF生成通信エラー:', err);
-        alert('通信エラーが発生しました。');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'PDFプレビュー作成';
-      }
-    });
-
-    document.getElementById('pdfModalCloseBtn').addEventListener('click', () => { pdfModal.style.display = 'none'; });
-    pdfModal.addEventListener('click', (e) => { if (e.target === pdfModal) pdfModal.style.display = 'none'; });
-
     // 確認モーダル & データ送信
     const confirmModal = document.getElementById('confirmModal');
 
@@ -827,7 +716,6 @@
       }
 
       currentPayload = {
-        action: 'register', // 明示的にregisterアクションを指定
         slipDate: slipDate,
         registrantName: currentUserName,
         storeCode: storeCode,
