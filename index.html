@@ -12,16 +12,14 @@
     --border-color: #ccc;
   }
   
-  html {
-    font-size: 16px; /* 1rem = 16px */
-  }
+  html { font-size: 16px; }
 
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background-color: var(--bg-color);
     max-width: 950px;
-    margin: 0.9375rem auto; /* 15px */
-    padding: 0 0.625rem; /* 10px */
+    margin: 0.9375rem auto;
+    padding: 0 0.625rem;
     color: #333;
   }
 
@@ -32,489 +30,400 @@
 
   .container {
     background: var(--card-bg);
-    padding: 1.25rem; /* 20px */
-    border-radius: 0.5rem; /* 8px */
+    padding: 1.25rem;
+    border-radius: 0.5rem;
     box-shadow: 0 0.125rem 0.5rem rgba(0,0,0,0.1);
   }
 
-  h2 {
-    margin-top: 0;
-    color: var(--primary-color);
+  .header-area {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     border-bottom: 2px solid var(--primary-color);
-    padding-bottom: 0.5rem; /* 8px */
-    font-size: 1.25rem; /* 20px */
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
   }
 
-  /* レイアウト（PC: 横並び / スマホ: 縦並び） */
+  h2 {
+    margin: 0;
+    color: var(--primary-color);
+    font-size: 1.25rem;
+  }
+
+  .user-badge {
+    font-size: 0.875rem;
+    background: #e8f0fe;
+    color: var(--primary-color);
+    padding: 0.375rem 0.75rem;
+    border-radius: 1rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .btn-logout {
+    background: none;
+    border: none;
+    color: #d93025;
+    cursor: pointer;
+    font-size: 0.75rem;
+    text-decoration: underline;
+    padding: 0;
+  }
+
   .search-display-grid {
     display: flex;
     flex-direction: row;
-    gap: 0.9375rem; /* 15px */
-    margin-bottom: 1.25rem; /* 20px */
+    gap: 0.9375rem;
+    margin-bottom: 1.25rem;
     align-items: flex-start;
   }
-  .col-1-3 {
-    flex: 1;
-    position: relative;
-    width: 100%;
-  }
-  .col-2-3 {
-    flex: 2;
-    width: 100%;
-  }
+  .col-1-3 { flex: 1; position: relative; width: 100%; }
+  .col-2-3 { flex: 2; width: 100%; }
 
   label {
     display: block;
     font-weight: bold;
-    margin-bottom: 0.375rem; /* 6px */
-    font-size: 0.875rem; /* 14px */
+    margin-bottom: 0.375rem;
+    font-size: 0.875rem;
   }
-  input[type="text"], input[type="number"] {
+  input[type="text"], input[type="number"], input[type="date"], input[type="password"] {
     width: 100%;
-    padding: 0.625rem 0.75rem; /* 10px 12px */
-    font-size: 0.9375rem; /* 15px */
+    padding: 0.625rem 0.75rem;
+    font-size: 0.9375rem;
     box-sizing: border-box;
     border: 1px solid var(--border-color);
     border-radius: 0.25rem;
   }
 
-  /* テーブル基本スタイル */
   table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.8125rem; /* 13px */
+    font-size: 0.8125rem;
     text-align: left;
   }
   th, td {
-    padding: 0.5rem 0.625rem; /* 8px 10px */
+    padding: 0.5rem 0.625rem;
     border: 1px solid #e0e0e0;
     vertical-align: middle;
     word-break: break-all;
-    white-space: normal;
   }
-  th {
-    background-color: #f8f9fa;
-    color: #555;
-    font-weight: bold;
-  }
+  th { background-color: #f8f9fa; color: #555; font-weight: bold; }
 
-  /* 空容器マスターテーブルの列幅比率固定 */
-  .table-container table {
-    table-layout: fixed;
-    width: 100%;
-  }
-  .table-container th:nth-child(1) { width: 18%; } /* 商品コード */
-  .table-container th:nth-child(2) { width: 22%; } /* JANコード */
-  .table-container th:nth-child(3) { width: 33%; } /* 空容器名 */
-  .table-container th:nth-child(4) { width: 13%; } /* 単価 */
-  .table-container th:nth-child(5) { width: 14%; } /* 数量入力 */
+  .table-container table { table-layout: fixed; width: 100%; }
+  .table-container th:nth-child(1) { width: 18%; }
+  .table-container th:nth-child(2) { width: 22%; }
+  .table-container th:nth-child(3) { width: 33%; }
+  .table-container th:nth-child(4) { width: 13%; }
+  .table-container th:nth-child(5) { width: 14%; }
 
-  /* 表示用ミニテーブル */
-  .display-table-container {
-    background: #ffffff;
-    border-radius: 0.25rem;
-    overflow-x: auto;
-  }
-  .display-table td {
-    background-color: #f0f4f9;
-    color: #1967d2;
-    font-weight: bold;
-  }
-  .display-table td.empty-td {
-    background-color: #fafafa;
-    color: #888;
-    font-weight: normal;
-    text-align: center;
-  }
+  .display-table-container { background: #ffffff; border-radius: 0.25rem; overflow-x: auto; }
+  .display-table td { background-color: #f0f4f9; color: #1967d2; font-weight: bold; }
+  .display-table td.empty-td { background-color: #fafafa; color: #888; font-weight: normal; text-align: center; }
 
-  /* スマホ（767px以下）向けのレスポンシブ調整 */
   @media (max-width: 767px) {
     html { font-size: 14px; }
     .search-display-grid { flex-direction: column; gap: 0.625rem; }
-
-    /* JANコード列を非表示 */
-    #containerTableBody tr td:nth-child(2),
-    .table-container th:nth-child(2) {
-      display: none;
-    }
-
+    #containerTableBody tr td:nth-child(2), .table-container th:nth-child(2) { display: none; }
     .table-container th:nth-child(1) { width: 22%; }
     .table-container th:nth-child(3) { width: 38%; }
     .table-container th:nth-child(4) { width: 15%; }
     .table-container th:nth-child(5) { width: 25%; }
-
-    th, td {
-      padding: 0.375rem 0.25rem;
-      font-size: 0.75rem;
-    }
-
-    .display-table td:nth-child(1),
-    .display-table td:nth-child(3),
-    .display-table td:nth-child(5) {
-      white-space: nowrap;
-      text-align: center;
-    }
-
-    .qty-cell input {
-      width: 3rem !important;
-      min-width: 3rem !important;
-      max-width: 3rem !important;
-      font-size: 1rem;
-      padding: 0.25rem;
-      text-align: right;
-      box-sizing: border-box;
-    }
-    .unit-text {
-      font-size: 0.75rem;
-      color: #555;
-      white-space: nowrap;
-      width: 2.5em;
-      text-align: left;
-    }
-
-    table:has(#modalItemsBody) thead {
-      display: table-header-group !important;
-      visibility: visible !important;
-      opacity: 1 !important;
-    }
-    
-    table:has(#modalItemsBody) th {
-      display: table-cell !important;
-      padding: 0.375rem 0.25rem;
-      font-size: 0.75rem;
-      background-color: #f8f9fa;
-    }  
   }
 
-  /* サジェストウィンドウ */
   .suggest-window {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    max-height: 13.75rem;
-    overflow-y: auto;
-    background: #ffffff;
-    border: 1px solid var(--primary-color);
-    border-top: none;
-    border-radius: 0 0 0.375rem 0.375rem;
-    box-shadow: 0 0.25rem 0.625rem rgba(0,0,0,0.15);
-    z-index: 1000;
-    display: none;
+    position: absolute; top: 100%; left: 0; right: 0;
+    max-height: 13.75rem; overflow-y: auto; background: #ffffff;
+    border: 1px solid var(--primary-color); border-top: none;
+    border-radius: 0 0 0.375rem 0.375rem; box-shadow: 0 0.25rem 0.625rem rgba(0,0,0,0.15);
+    z-index: 1000; display: none;
   }
-  .suggest-item {
-    padding: 0.625rem 0.75rem;
-    cursor: pointer;
-    border-bottom: 1px solid #eee;
-    font-size: 0.8125rem;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-  }
+  .suggest-item { padding: 0.625rem 0.75rem; cursor: pointer; border-bottom: 1px solid #eee; font-size: 0.8125rem; }
   .suggest-item:hover { background-color: #e8f0fe; }
   .suggest-item .code { font-weight: bold; color: var(--primary-color); margin-right: 0.375rem; }
 
-  /* 空容器マスターテーブル */
-  .table-container {
-    overflow-x: auto;
-    margin-top: 0.625rem;
-    border: 1px solid #e0e0e0;
-    border-radius: 0.375rem;
-  }
+  .table-container { overflow-x: auto; margin-top: 0.625rem; border: 1px solid #e0e0e0; border-radius: 0.375rem; }
   .price-col { text-align: right; }
-  .qty-cell {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-  }
-  .qty-cell input {
-    padding: 0.375rem;
-    text-align: right;
-  }
-  .unit-text {
-    font-size: 0.75rem;
-    color: #555;
-    white-space: nowrap;
-  }
+  .qty-cell { display: flex; align-items: center; gap: 0.375rem; }
+  .qty-cell input { padding: 0.375rem; text-align: right; }
+  .unit-text { font-size: 0.75rem; color: #555; white-space: nowrap; }
 
-  /* ボタンエリア */
-  .action-area {
-    margin-top: 1.25rem;
-    text-align: right;
-  }
+  .action-area { margin-top: 1.25rem; text-align: right; }
   button.btn-primary {
-    background-color: var(--primary-color);
-    color: white;
-    font-size: 1rem;
-    font-weight: bold;
-    padding: 0.75rem 1.75rem;
-    border: none;
-    border-radius: 0.25rem;
-    cursor: pointer;
-    width: 100%;
-    max-width: 18.75rem;
-    transition: background 0.2s;
-    touch-action: manipulation;
+    background-color: var(--primary-color); color: white; font-size: 1rem; font-weight: bold;
+    padding: 0.75rem 1.75rem; border: none; border-radius: 0.25rem; cursor: pointer;
+    width: 100%; max-width: 18.75rem; transition: background 0.2s;
   }
   button.btn-primary:hover { background-color: #003da1; }
   button.btn-secondary {
-    background-color: #6c757d;
-    color: white;
-    font-size: 0.9375rem;
-    font-weight: bold;
-    padding: 0.625rem 1.25rem;
-    border: none;
-    border-radius: 0.25rem;
-    cursor: pointer;
-    touch-action: manipulation;
-  }
-
-  #message {
-    margin-top: 0.9375rem;
-    padding: 0.75rem;
-    border-radius: 0.25rem;
-    display: none;
-    font-weight: bold;
-  }
-  .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-  .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-
-  /* 確認モーダル */
-  #modalItemsBody, 
-  table:has(#modalItemsBody) {
-    width: 100%;
-    table-layout: fixed;
-    border-collapse: collapse;
-  }
-
-  table:has(#modalItemsBody) th:nth-child(1),
-  #modalItemsBody td:nth-child(1) {
-    width: 25%;
-    word-break: break-all;
-  }
-
-  table:has(#modalItemsBody) th:nth-child(2),
-  #modalItemsBody td:nth-child(2) {
-    width: 50%;
-    word-break: break-all;
-  }
-
-  table:has(#modalItemsBody) th:nth-child(3),
-  #modalItemsBody td:nth-child(3) {
-    width: 25%;
-    text-align: right;
-    white-space: nowrap;
+    background-color: #6c757d; color: white; font-size: 0.9375rem; font-weight: bold;
+    padding: 0.625rem 1.25rem; border: none; border-radius: 0.25rem; cursor: pointer;
   }
 
   .modal-overlay {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.5);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
-    padding: 0.9375rem;
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5); display: none;
+    justify-content: center; align-items: center; z-index: 2000; padding: 0.9375rem;
   }
   .modal-content {
-    background: #ffffff;
-    width: 100%;
-    max-width: 34.375rem;
-    border-radius: 0.5rem;
-    padding: 1.25rem;
-    box-shadow: 0 0.25rem 0.9375rem rgba(0,0,0,0.2);
-    max-height: 85vh;
-    overflow-y: auto;
+    background: #ffffff; width: 100%; max-width: 34.375rem;
+    border-radius: 0.5rem; padding: 1.25rem; box-shadow: 0 0.25rem 0.9375rem rgba(0,0,0,0.2);
+    max-height: 85vh; overflow-y: auto;
   }
-  .modal-header {
-    font-size: 1.125rem;
-    font-weight: bold;
-    color: var(--primary-color);
-    margin-bottom: 0.75rem;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 0.5rem;
-  }
-  .confirm-table {
-    margin-bottom: 0.9375rem;
-  }
-  .modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.625rem;
-    margin-top: 1.25rem;
-  }
+  .modal-header { font-size: 1.125rem; font-weight: bold; color: var(--primary-color); margin-bottom: 0.75rem; border-bottom: 1px solid #eee; padding-bottom: 0.5rem; }
+  .confirm-table { margin-bottom: 0.9375rem; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 0.625rem; margin-top: 1.25rem; }
+
+/* ナビゲーションメニュー */
+.nav-menu {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.nav-tab {
+  padding: 0.5rem 1.25rem;
+  font-size: 0.9375rem;
+  font-weight: bold;
+  border: none;
+  background: #e0e6ed;
+  color: #555;
+  border-radius: 0.375rem 0.375rem 0 0;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.nav-tab:hover {
+  background: #d0d7de;
+}
+
+.nav-tab.active {
+  background: var(--primary-color);
+  color: #ffffff;
+}
+
+/* ページエリアの表示切替 */
+.page-section {
+  display: block;
+}
+
+.page-section.hidden {
+  display: none !important;
+}
+
+/* 帳票発行画面のスタイル */
+.report-card {
+  background: #fafafa;
+  border: 1px solid #e0e0e0;
+  border-radius: 0.375rem;
+  padding: 1.25rem;
+  margin-top: 0.5rem;
+}
+
+.form-group-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.form-group-item {
+  flex: 1;
+  min-width: 220px;
+}
+  
 </style>
 </head>
 <body>
-  <div id="loadingOverlay" style="
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: #ffffff;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-    font-family: sans-serif;
-  ">
-    <div class="spinner" style="
-      width: 50px; height: 50px;
-      border: 5px solid #f3f3f3;
-      border-top: 5px solid #007bff;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-bottom: 20px;
-    "></div>
+
+<div id="loadingOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999;">
+    <div class="spinner" style="width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #007bff; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;"></div>
     <p style="font-size: 1.2rem; font-weight: bold; color: #333; margin: 0;">起動中です...</p>
     <p style="font-size: 0.9rem; color: #666; margin-top: 8px;">マスターデータを読み込んでいます</p>
   </div>
 
-  <div class="container">
-    <h2>空容器登録</h2>
-
-    <form id="registerForm">
-      <label>得意先選択:</label>
-      <div class="search-display-grid">
-        <div class="col-1-3">
-          <input type="text" id="customerSearch" placeholder="得意先コード・名称・カナ検索" autocomplete="off">
-          <div id="customerSuggest" class="suggest-window"></div>
-          <input type="hidden" id="selectedCustomerCode" required>
-          <input type="hidden" id="selectedCustomerName">
-          <input type="hidden" id="selectedRouteCode">
-          <input type="hidden" id="selectedRouteName">
-          <input type="hidden" id="selectedStaffCode">
-          <input type="hidden" id="selectedStaffName">
+  <div id="loginModal" class="modal-overlay" style="display: flex; z-index: 3000;">
+    <div class="modal-content" style="max-width: 360px;">
+      <div class="modal-header" style="text-align: center;">ログイン</div>
+      <form id="loginForm">
+        <div style="margin-bottom: 12px;">
+          <label for="loginUserId">ユーザーID:</label>
+          <input type="text" id="loginUserId" placeholder="ユーザーIDを入力" required autocomplete="username">
         </div>
-        <div class="col-2-3">
-          <div class="display-table-container">
-            <table class="display-table">
-              <thead>
-                <tr>
-                  <th>得意先コード</th>
-                  <th>得意先名</th>
-                  <th>ルートコード</th>
-                  <th>配送ルート名</th>
-                  <th>担当者コード</th>
-                  <th>担当者</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr id="customerDisplayRow">
-                  <td colspan="6" class="empty-td">未選択（左の検索窓から選択）</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+        <div style="margin-bottom: 20px;">
+          <label for="loginPassword">パスワード:</label>
+          <input type="password" id="loginPassword" placeholder="パスワードを入力" required autocomplete="current-password">
         </div>
-      </div>
-
-      <label>出荷店選択:</label>
-      <div class="search-display-grid">
-        <div class="col-1-3">
-          <input type="text" id="storeSearch" placeholder="出荷店コード・名称で検索" autocomplete="off">
-          <div id="storeSuggest" class="suggest-window"></div>
-          <input type="hidden" id="selectedStoreCode" required>
-          <input type="hidden" id="selectedStoreName">
-        </div>
-        <div class="col-2-3">
-          <div class="display-table-container">
-            <table class="display-table">
-              <thead>
-                <tr>
-                  <th style="width: 35%;">出荷店コード</th>
-                  <th>出荷店名</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr id="storeDisplayRow">
-                  <td colspan="2" class="empty-td">未選択（得意先選択で自動反映・変更可）</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <label>空容器数量入力（入力後、下の送信ボタンで確定）:</label>
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>商品コード</th>
-              <th>JANコード</th>
-              <th>空容器名</th>
-              <th class="price-col">単価</th>
-              <th style="text-align: center;">数量入力</th>
-            </tr>
-          </thead>
-          <tbody id="containerTableBody">
-            <tr>
-              <td colspan="5" style="text-align:center; color:#888;">マスターデータを読み込んでいます...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div style="margin-bottom: 20px; margin-top: 15px;">
-        <label for="note">備考 / メモ:</label>
-        <input type="text" id="note" placeholder="備考があれば入力">
-      </div>
-
-      <div class="action-area">
-        <button type="button" id="openConfirmBtn" class="btn-primary">データ送信</button>
-      </div>
-    </form>
-
-    <div id="message"></div>
+        <div id="loginError" style="color: red; font-size: 13px; margin-bottom: 12px; display: none; text-align: center;"></div>
+        <button type="submit" id="loginBtn" class="btn-primary" style="width: 100%; max-width: none;">ログイン</button>
+      </form>
+    </div>
   </div>
-
-  <div id="confirmModal" class="modal-overlay">
-    <div class="modal-content">
-      <div class="modal-header">送信内容の確認</div>
-      <p style="font-size: 14px; margin-bottom: 10px;">以下の内容で送信します。よろしいですか？</p>
-      
-      <table class="confirm-table">
-        <tr>
-          <th style="width: 30%;">得意先</th>
-          <td id="modalCustomerStr"></td>
-        </tr>
-        <tr>
-          <th>配送ルート</th>
-          <td id="modalRouteStr"></td>
-        </tr>
-        <tr>
-          <th>担当者コード</th>
-          <td id="modalStaffStr"></td>
-        </tr>
-        <tr>
-          <th>出荷店</th>
-          <td id="modalStoreStr"></td>
-        </tr>
-        <tr>
-          <th>備考</th>
-          <td id="modalNoteStr"></td>
-        </tr>
-      </table>
-
-      <label>登録する空容器一覧:</label>
-      <div class="table-container" style="max-height: 180px; overflow-y: auto;">
-        <table>
-          <thead>
-            <tr>
-              <th>商品コード</th>
-              <th>空容器名</th>
-              <th style="text-align: right; width: 100px;">数量</th>
-            </tr>
-          </thead>
-          <tbody id="modalItemsBody"></tbody>
-        </table>
+  
+  <div class="container">
+    <div class="header-area" style="flex-direction: column; align-items: stretch; border-bottom: none; margin-bottom: 0;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2>空容器回収管理システム</h2>
+        <div id="userBadge" class="user-badge" style="display: none;">
+          <span>登録者: <strong id="currentUserName">-</strong></span>
+          <button type="button" class="btn-logout" onclick="logout()">ログアウト</button>
+        </div>
       </div>
 
-      <div class="modal-actions">
+      <div class="nav-menu">
+        <button type="button" id="tabRegister" class="nav-tab active" onclick="switchPage('register')">
+          空容器登録
+        </button>
+        <button type="button" id="tabReport" class="nav-tab" onclick="switchPage('report')">
+          帳票発行
+        </button>
+      </div>
+    </div> <div style="border-top: 2px solid var(--primary-color); margin-bottom: 1.25rem;"></div>
+
+    <div id="pageRegister" class="page-section">
+      <form id="registerForm">
+        <div class="search-display-grid">
+          <div style="flex: 1;">
+            <label for="slipDate">伝票日付:</label>
+            <input type="date" id="slipDate" required>
+          </div>
+        </div>
+
+        <label>得意先選択:</label>
+        <div class="search-display-grid">
+          <div class="col-1-3">
+            <input type="text" id="customerSearch" placeholder="得意先コード・名称・カナ検索" autocomplete="off">
+            <div id="customerSuggest" class="suggest-window"></div>
+            <input type="hidden" id="selectedCustomerCode" required>
+            <input type="hidden" id="selectedCustomerName">
+            <input type="hidden" id="selectedRouteCode">
+            <input type="hidden" id="selectedRouteName">
+            <input type="hidden" id="selectedStaffCode">
+            <input type="hidden" id="selectedStaffName">
+          </div>
+          <div class="col-2-3">
+            <div class="display-table-container">
+              <table class="display-table">
+                <thead>
+                  <tr>
+                    <th>得意先コード</th><th>得意先名</th><th>ルートコード</th><th>配送ルート名</th><th>担当者コード</th><th>担当者</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr id="customerDisplayRow">
+                    <td colspan="6" class="empty-td">未選択（左の検索窓から選択）</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <label>出荷店選択:</label>
+        <div class="search-display-grid">
+          <div class="col-1-3">
+            <input type="text" id="storeSearch" placeholder="出荷店コード・名称で検索" autocomplete="off">
+            <div id="storeSuggest" class="suggest-window"></div>
+            <input type="hidden" id="selectedStoreCode" required>
+            <input type="hidden" id="selectedStoreName">
+          </div>
+          <div class="col-2-3">
+            <div class="display-table-container">
+              <table class="display-table">
+                <thead>
+                  <tr><th style="width: 35%;">出荷店コード</th><th>出荷店名</th></tr>
+                </thead>
+                <tbody>
+                  <tr id="storeDisplayRow">
+                    <td colspan="2" class="empty-td">未選択（得意先選択で自動反映・変更可）</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <label>空容器数量入力（入力後、下の送信ボタンで確定）:</label>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>商品コード</th><th>JANコード</th><th>空容器名</th><th class="price-col">単価</th><th style="text-align: center;">数量入力</th>
+              </tr>
+            </thead>
+            <tbody id="containerTableBody">
+              <tr><td colspan="5" style="text-align:center; color:#888;">マスターデータを読み込んでいます...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div style="margin-bottom: 20px; margin-top: 15px;">
+          <label for="note">備考 / メモ:</label>
+          <input type="text" id="note" placeholder="備考があれば入力">
+        </div>
+
+        <div class="modal-actions">
         <button type="button" id="modalCancelBtn" class="btn-secondary">キャンセル</button>
         <button type="button" id="modalSubmitBtn" class="btn-primary" style="width: auto;">送信確定</button>
       </div>
+      </form>
+    </div>
+
+ <div id="pageReport" class="page-section hidden">
+  <div class="report-card">
+    <h3 style="margin-top:0; color: var(--primary-color); font-size: 1.1rem; margin-bottom: 1rem;">
+      空容器回収一覧発行
+    </h3>
+    
+    <!-- 1行目：対象期間 -->
+    <div class="form-group-row" style="margin-bottom: 1rem;">
+      <div class="form-group-item">
+        <label for="pdfStartDate">対象期間 <span style="color:red;">*</span></label>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <input type="date" id="pdfStartDate" required style="padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 0.25rem;">
+          <span>〜</span>
+          <input type="date" id="pdfEndDate" required style="padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 0.25rem;">
+        </div>
+      </div>
+
+      <!-- ルート選択 -->
+      <div class="form-group-item">
+        <label for="pdfRouteSelect">ルート選択</label>
+        <select id="pdfRouteSelect" style="width: 100%; padding: 0.625rem; border: 1px solid var(--border-color); border-radius: 0.25rem;">
+          <option value="">すべてのルート</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 2行目：得意先検索 & 選択 -->
+    <div class="form-group-row" style="margin-bottom: 1rem;">
+      <div class="form-group-item" style="flex: 1;">
+        <label for="pdfCustomerSearchInput">得意先検索</label>
+        <input type="text" id="pdfCustomerSearchInput" placeholder="得意先名やコードで検索..." style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 0.25rem; margin-bottom: 0.3rem;">
+        <select id="pdfCustomerSelect" style="width: 100%; padding: 0.625rem; border: 1px solid var(--border-color); border-radius: 0.25rem;">
+          <option value="">すべての得意先</option>
+        </select>
+      </div>
+
+      <!-- 登録者選択 -->
+      <div class="form-group-item" style="flex: 1;">
+        <label for="pdfUserSelect">登録者選択</label>
+        <select id="pdfUserSelect" style="width: 100%; padding: 0.625rem; border: 1px solid var(--border-color); border-radius: 0.25rem;">
+          <option value="">すべての登録者</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="text-align: right; margin-top: 1.5rem;">
+      <button type="button" id="generatePdfBtn" class="btn-primary" style="max-width: 250px;" onclick="generateReportPdf()">
+        PDF発行
+      </button>
     </div>
   </div>
+</div>
+  </div>
+
 
   <script>
     const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzjWpqkJqnxebX0VHV6VZjHxjC7FHNUspSX6RKu52ogTANgBY4BHT99dVJkCvEBHCHk3w/exec';
@@ -525,18 +434,81 @@
     let masterRoutes = {};
     let masterStaffs = {};
 
+    let currentUserName = '';
     let currentPayload = null;
 
     // 初期ロード
     window.addEventListener('DOMContentLoaded', () => {
+      // 伝票日付のデフォルト（本日）
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('slipDate').value = today;
+
+      checkLogin();
       loadMasterData();
       setupStoreSuggest();
       setupCustomerSuggest();
     });
 
-    /**
-     * マスターデータの読み込み処理
-     */
+    // ログイン状態チェック
+    function checkLogin() {
+      const savedUser = localStorage.getItem('containerAppUserName');
+      if (savedUser) {
+        currentUserName = savedUser;
+        document.getElementById('currentUserName').textContent = currentUserName;
+        document.getElementById('userBadge').style.display = 'flex';
+        document.getElementById('loginModal').style.display = 'none';
+      } else {
+        document.getElementById('loginModal').style.display = 'flex';
+      }
+    }
+
+    // ログイン処理
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const userId = document.getElementById('loginUserId').value;
+      const password = document.getElementById('loginPassword').value;
+      const errorDiv = document.getElementById('loginError');
+      const loginBtn = document.getElementById('loginBtn');
+
+      errorDiv.style.display = 'none';
+      loginBtn.disabled = true;
+      loginBtn.textContent = '認証中...';
+
+      try {
+        const response = await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({ action: 'login', userId: userId, password: password })
+        });
+        const result = await response.json();
+
+        if (result.status === 'success') {
+          currentUserName = result.userName;
+          localStorage.setItem('containerAppUserName', currentUserName);
+          checkLogin();
+        } else {
+          errorDiv.textContent = result.message || 'ログインエラー';
+          errorDiv.style.display = 'block';
+        }
+      } catch (err) {
+        console.error('ログイン通信エラー:', err);
+        errorDiv.textContent = '通信エラーが発生しました。';
+        errorDiv.style.display = 'block';
+      } finally {
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'ログイン';
+      }
+    });
+
+    // ログアウト処理
+    function logout() {
+      localStorage.removeItem('containerAppUserName');
+      currentUserName = '';
+      document.getElementById('userBadge').style.display = 'none';
+      document.getElementById('loginModal').style.display = 'flex';
+    }
+
+    // マスターデータ読み込み
     async function loadMasterData() {
       try {
         const response = await fetch(GAS_WEB_APP_URL);
@@ -547,7 +519,6 @@
           masterCustomers = result.data.customers || [];
           masterContainers = result.data.containers || [];
 
-          // ルートマスター辞書マップ (A列:コード -> B列:名称)
           if (result.data.routes) {
             result.data.routes.forEach(row => {
               const keys = Object.keys(row);
@@ -557,7 +528,6 @@
             });
           }
 
-          // 担当者マスター辞書マップ (A列:コード -> B列:名称)
           if (result.data.staffs) {
             result.data.staffs.forEach(row => {
               const keys = Object.keys(row);
@@ -569,11 +539,8 @@
 
           renderContainerTable(masterContainers);
 
-          // ★ 読み込み完了後、ローディング画面を非表示にする
           const loadingOverlay = document.getElementById('loadingOverlay');
-          if (loadingOverlay) {
-            loadingOverlay.style.display = 'none';
-          }
+          if (loadingOverlay) loadingOverlay.style.display = 'none';
         } else {
           showLoadingError('マスターデータの取得に失敗しました');
         }
@@ -590,11 +557,9 @@
       }
     }
 
-    // 空容器テーブル描画
     function renderContainerTable(containers) {
       const tbody = document.getElementById('containerTableBody');
       tbody.innerHTML = '';
-
       if (!containers || containers.length === 0) {
         tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">データがありません</td></tr>';
         return;
@@ -625,52 +590,213 @@
         tbody.appendChild(tr);
       });
     }
+// 画面切り替え（タブ選択）
+    function switchPage(page) {
+      const regPage = document.getElementById('pageRegister');
+      const rptPage = document.getElementById('pageReport');
+      const tabReg = document.getElementById('tabRegister');
+      const tabRpt = document.getElementById('tabReport');
 
-    // 出荷店を選択・表示エリアにセットする関数
+      if (page === 'register') {
+        regPage.classList.remove('hidden');
+        rptPage.classList.add('hidden');
+        tabReg.classList.add('active');
+        tabRpt.classList.remove('active');
+      } else if (page === 'report') {
+        regPage.classList.add('hidden');
+        rptPage.classList.remove('hidden');
+        tabReg.classList.remove('active');
+        tabRpt.classList.add('active');
+
+        // 帳票画面の日付初期化（当月1日〜本日）
+        initReportForm();
+      }
+    }
+
+// 帳票画面の初期化（日付デフォルト：本日〜本日、マスター読み込み）
+function initReportForm() {
+  const startEl = document.getElementById('pdfStartDate');
+  const endEl = document.getElementById('pdfEndDate');
+  
+  // 日付の初期化（常に「本日〜本日」にするため条件判定をシンプル化）
+  const todayStr = getTodayString();
+  if (startEl) startEl.value = todayStr;
+  if (endEl) endEl.value = todayStr;
+
+  // 1. ルートセレクトボックスの生成
+  const routeSelect = document.getElementById('pdfRouteSelect');
+  if (routeSelect && routeSelect.options.length <= 1 && typeof masterRoutes !== 'undefined' && Object.keys(masterRoutes).length > 0) {
+    Object.keys(masterRoutes).forEach(code => {
+      const opt = document.createElement('option');
+      opt.value = code;
+      opt.textContent = `[${code}] ${masterRoutes[code]}`;
+      routeSelect.appendChild(opt);
+    });
+  }
+
+  // 2. 得意先セレクトボックスの初期生成 ＆ インクリメンタル検索イベント登録
+  initCustomerSearch();
+
+  // 3. 登録者セレクトボックスの生成
+  initUserSelect();
+}
+
+// 今日の日付文字列（YYYY-MM-DD）を取得（時差ズレ回避）
+function getTodayString() {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+// 得意先検索・プルダウン初期化
+function initCustomerSearch() {
+  const customerSelect = document.getElementById('pdfCustomerSelect');
+  const searchInput = document.getElementById('pdfCustomerSearchInput');
+
+  if (!customerSelect) return;
+
+  // マスターが存在する場合の描画処理
+  if (typeof masterCustomers !== 'undefined' && Array.isArray(masterCustomers)) {
+    renderCustomerOptions(masterCustomers);
+
+    // インクリメンタル検索機能のイベント付与（重複防止処理付き）
+    if (searchInput && !searchInput.dataset.hasListener) {
+      searchInput.addEventListener('input', (e) => {
+        const keyword = e.target.value.toLowerCase().trim();
+        const filtered = masterCustomers.filter(c => 
+          String(c.得意先コード || c.customerCode || '').toLowerCase().includes(keyword) ||
+          String(c.得意先名 || c.customerName || '').toLowerCase().includes(keyword)
+        );
+        renderCustomerOptions(filtered);
+      });
+      searchInput.dataset.hasListener = 'true';
+    }
+  }
+}
+
+// 得意先プルダウンの描画
+function renderCustomerOptions(customers) {
+  const customerSelect = document.getElementById('pdfCustomerSelect');
+  if (!customerSelect) return;
+
+  customerSelect.innerHTML = '<option value="">すべての得意先</option>';
+  customers.forEach(c => {
+    const code = c.得意先コード || c.customerCode || '';
+    const name = c.得意先名 || c.customerName || '';
+    if (code || name) {
+      const opt = document.createElement('option');
+      opt.value = code;
+      opt.textContent = `[${code}] ${name}`;
+      customerSelect.appendChild(opt);
+    }
+  });
+}
+
+// 登録者プルダウン初期化
+function initUserSelect() {
+  const userSelect = document.getElementById('pdfUserSelect');
+  if (!userSelect || userSelect.options.length > 1) return;
+
+  // masterStaffs または masterUsers から取得
+  const userList = (typeof masterStaffs !== 'undefined' && Array.isArray(masterStaffs)) ? masterStaffs :
+                   (typeof masterUsers !== 'undefined' && Array.isArray(masterUsers)) ? masterUsers : [];
+
+  userList.forEach(u => {
+    const name = u.担当者名 || u.ユーザー名 || u.userName || u.staffName || '';
+    if (name) {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      userSelect.appendChild(opt);
+    }
+  });
+}
+
+// PDF発行リクエスト処理
+async function generateReportPdf() {
+  const startDate = document.getElementById('pdfStartDate').value;
+  const endDate = document.getElementById('pdfEndDate').value;
+  
+  const routeSelect = document.getElementById('pdfRouteSelect');
+  const routeCode = routeSelect ? routeSelect.value : '';
+  const routeName = (routeSelect && routeSelect.selectedIndex >= 0) ? routeSelect.options[routeSelect.selectedIndex].text : '';
+
+  const customerSelect = document.getElementById('pdfCustomerSelect');
+  const customerCode = customerSelect ? customerSelect.value : '';
+
+  const userSelect = document.getElementById('pdfUserSelect');
+  const userName = userSelect ? userSelect.value : '';
+
+  if (!startDate || !endDate) {
+    alert('対象期間を入力してください。');
+    return;
+  }
+
+  const pdfBtn = document.getElementById('generatePdfBtn');
+  pdfBtn.disabled = true;
+  pdfBtn.textContent = '回収一覧作成中...';
+
+  try {
+    const response = await fetch(GAS_WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        action: 'generatePdf',
+        startDate: startDate,
+        endDate: endDate,
+        routeCode: routeCode,
+        routeName: routeCode ? routeName : 'すべて',
+        customerCode: customerCode, // ★追加：得意先コード
+        userName: userName          // ★追加：登録者名
+      })
+    });
+
+    const result = await response.json();
+
+    if (result.status === 'success' && result.pdfUrl) {
+      // 新規タブでプレビュー表示（ダウンロードダイアログを挟まない設定）
+      const newTab = window.open(result.pdfUrl, '_blank');
+      if (!newTab) {
+        alert('ポップアップがブロックされました。ブラウザのポップアップ許可設定をご確認ください。');
+      }
+    } else {
+      alert(result.message || 'PDFの生成に失敗しました。');
+    }
+  } catch (err) {
+    console.error('PDF作成通信エラー:', err);
+    alert('通信エラーが発生しました。');
+  } finally {
+    pdfBtn.disabled = false;
+    pdfBtn.textContent = '空容器回収一覧発行';
+  }
+}
+
+    
     function setStoreSelect(code, name) {
       document.getElementById('selectedStoreCode').value = code;
       document.getElementById('selectedStoreName').value = name;
       document.getElementById('storeDisplayRow').innerHTML = `<td>${code}</td><td>${name}</td>`;
     }
 
-    /**
-     * 文字列を全角カタカナに統一する関数（ひらがな・半角カナ・英数小文字化）
-     */
     function normalizeToKatakana(str) {
       if (!str) return '';
-      // 1. ひらがな -> 全角カタカナ 変換
-      let kana = str.replace(/[\u3041-\u3096]/g, match => {
-        return String.fromCharCode(match.charCodeAt(0) + 0x60);
-      });
-      // 2. 半角カナ -> 全角カタカナ 変換マップ
+      let kana = str.replace(/[\u3041-\u3096]/g, match => String.fromCharCode(match.charCodeAt(0) + 0x60));
       const kanaMap = {
-        'ｶﾞ': 'ガ', 'ｷﾞ': 'ギ', 'ｸﾞ': 'グ', 'ｹﾞ': 'ゲ', 'ｺﾞ': 'ゴ',
-        'ｻﾞ': 'ザ', 'ｼﾞ': 'ジ', 'ｽﾞ': 'ズ', 'ｾﾞ': 'ゼ', 'ｿﾞ': 'ゾ',
-        'ﾀﾞ': 'ダ', 'ﾁﾞ': 'ヂ', 'ﾂﾞ': 'ヅ', 'ﾃﾞ': 'デ', 'ﾄﾞ': 'ド',
-        'ﾊﾞ': 'バ', 'ﾋﾞ': 'ビ', 'ﾌﾞ': 'ブ', 'ﾍﾞ': 'ベ', 'ﾎﾞ': 'ボ',
-        'ﾊﾟ': 'パ', 'ﾋﾟ': 'ピ', 'ﾌﾟ': 'プ', 'ﾍﾟ': 'ペ', 'ﾎﾟ': 'ポ',
-        'ｳﾞ': 'ヴ', 'ﾜﾞ': 'ヷ', 'ヰﾞ': 'ヸ', 'ヱﾞ': 'ヹ', 'ｦﾞ': 'ヺ',
-        'ｱ': 'ア', 'ｲ': 'イ', 'ｳ': 'ウ', 'ｴ': 'エ', 'ｵ': 'オ',
-        'ｶ': 'カ', 'ｷ': 'キ', 'ｸ': 'ク', 'ｹ': 'ケ', 'ｺ': 'コ',
-        'ｻ': 'サ', 'ｼ': 'シ', 'ｽ': 'ス', 'ｾ': 'セ', 'ｿ': 'ソ',
-        'ﾀ': 'タ', 'ﾁ': 'チ', 'ﾂ': 'ツ', 'ﾃ': 'テ', 'ﾄ': 'ト',
-        'ﾅ': 'ナ', 'ﾆ': 'ニ', 'ﾇ': 'ヌ', 'ﾈ': 'ネ', 'ﾉ': 'ノ',
-        'ﾊ': 'ハ', 'ﾋ': 'ヒ', 'ﾌ': 'フ', 'ﾍ': 'ヘ', 'ﾎ': 'ホ',
-        'ﾏ': 'マ', 'ﾐ': 'ミ', 'ﾑ': 'ム', 'ﾒ': 'メ', 'ﾓ': 'モ',
-        'ﾔ': 'ヤ', 'ﾕ': 'ユ', 'ﾖ': 'ヨ',
-        'ﾗ': 'ラ', 'ﾘ': 'リ', 'ﾙ': 'ル', 'ﾚ': 'レ', 'ﾛ': 'ロ',
-        'ﾜ': 'ワ', 'ｦ': 'ヲ', 'ﾝ': 'ン',
-        'ｧ': 'ァ', 'ｨ': 'ィ', 'ｩ': 'ゥ', 'ｪ': 'ェ', 'ｫ': 'ォ',
-        'ｯ': 'ッ', 'ｬ': 'ャ', 'ｭ': 'ュ', 'ｮ': 'ョ',
-        'ｰ': 'ー', '｡': '。', '｢': '「', '｣': '」', '､': '、', '･': '・'
+        'ｶﾞ':'ガ','ｷﾞ':'ギ','ｸﾞ':'グ','ｹﾞ':'ゲ','ｺﾞ':'ゴ','ｻﾞ':'ザ','ｼﾞ':'ジ','ｽﾞ':'ズ','ｾﾞ':'ゼ','ｿﾞ':'ゾ',
+        'ﾀﾞ':'ダ','ﾁﾞ':'ヂ','ﾂﾞ':'ヅ','ﾃﾞ':'デ','ﾄﾞ':'ド','ﾊﾞ':'バ','ﾋﾞ':'ビ','ﾌﾞ':'ブ','ﾍﾞ':'ベ','ﾎﾞ':'ボ',
+        'ﾊﾟ':'パ','ﾋﾟ':'ピ','ﾌﾟ':'プ','ﾍﾟ':'ペ','ﾎﾟ':'ポ','ｳﾞ':'ヴ','ｱ':'ア','ｲ':'イ','ｳ':'ウ','ｴ':'エ','ｵ':'オ',
+        'ｶ':'カ','ｷ':'キ','ｸ':'ク','ｹ':'ケ','ｺ':'コ','ｻ':'サ','ｼ':'シ','ｽ':'ス','ｾ':'セ','ｿ':'ソ',
+        'ﾀ':'タ','ﾁ':'チ','ﾂ':'ツ','ﾃ':'テ','ﾄ':'ト','ﾅ':'ナ','ﾆ':'ニ','ﾇ':'ヌ','ﾈ':'ネ','ﾉ':'ノ',
+        'ﾊ':'ハ','ﾋ':'ヒ','ﾌ':'フ','ﾍ':'ヘ','ﾎ':'ホ','ﾏ':'マ','ﾐ':'ミ','ﾑ':'ム','ﾒ':'メ','ﾓ':'モ',
+        'ﾔ':'ヤ','ﾕ':'ユ','ﾖ':'ヨ','ﾗ':'ラ','ﾘ':'リ','ﾙ':'ル','ﾚ':'レ','ﾛ':'ロ','ﾜ':'ワ','ｦ':'ヲ','ﾝ':'ン',
+        'ｧ':'ァ','ｨ':'ィ','ｩ':'ゥ','ｪ':'ェ','ｫ':'ォ','ｯ':'ッ','ｬ':'ャ','ｭ':'ュ','ｮ':'ョ','ｰ':'ー'
       };
       const reg = new RegExp(Object.keys(kanaMap).join('|'), 'g');
-      kana = kana.replace(reg, match => kanaMap[match]);
-
-      return kana.toLowerCase();
+      return kana.replace(reg, match => kanaMap[match]).toLowerCase();
     }
 
-    // 出荷店サジェストセットアップ
     function setupStoreSuggest() {
       const input = document.getElementById('storeSearch');
       const suggest = document.getElementById('storeSuggest');
@@ -716,7 +842,8 @@
       });
     }
 
-    // 得意先サジェストセットアップ（あいまい検索統合版）
+
+    
     function setupCustomerSuggest() {
       const input = document.getElementById('customerSearch');
       const suggest = document.getElementById('customerSuggest');
@@ -748,15 +875,9 @@
           const keys = Object.keys(item);
           const code = item[keys[0]] || '';
           const name = item[keys[1]] || '';
-          
-          // BJ列（62列目 = インデックス 61）: 担当者コード
           const staffCode = item[keys[61]] !== undefined ? String(item[keys[61]]).trim() : '';
           const staffName = masterStaffs[staffCode] || (staffCode ? `未登録 (${staffCode})` : '');
-
-          // BQ列（69列目 = インデックス 68）: 出荷店コード
           const storeCodeFromCustomer = item[keys[68]] !== undefined ? String(item[keys[68]]).trim() : '';
-
-          // BS列（71列目 = インデックス 70）: ルートコード
           const routeCode = item[keys[70]] !== undefined ? String(item[keys[70]]).trim() : '';
           const routeName = masterRoutes[routeCode] || (routeCode ? `未登録 (${routeCode})` : '');
 
@@ -772,26 +893,15 @@
             staffCodeHidden.value = staffCode;
             if (staffNameHidden) staffNameHidden.value = staffName;
 
-            // 得意先表示テーブルの更新
             displayRow.innerHTML = `
-              <td>${code}</td>
-              <td>${name}</td>
-              <td>${routeCode || '-'}</td>
-              <td>${routeName || '-'}</td>
-              <td>${staffCode || '-'}</td>
-              <td>${staffName || '-'}</td>
+              <td>${code}</td><td>${name}</td><td>${routeCode || '-'}</td>
+              <td>${routeName || '-'}</td><td>${staffCode || '-'}</td><td>${staffName || '-'}</td>
             `;
 
-            // 出荷店コードの自動割り当て
             if (storeCodeFromCustomer) {
-              const matchedStore = masterStores.find(s => {
-                const sKeys = Object.keys(s);
-                return String(s[sKeys[0]]).trim() === storeCodeFromCustomer;
-              });
-              
+              const matchedStore = masterStores.find(s => String(s[Object.keys(s)[0]]).trim() === storeCodeFromCustomer);
               if (matchedStore) {
-                const storeName = String(matchedStore[Object.keys(matchedStore)[1]] || '').trim();
-                setStoreSelect(storeCodeFromCustomer, storeName);
+                setStoreSelect(storeCodeFromCustomer, String(matchedStore[Object.keys(matchedStore)[1]] || '').trim());
               } else {
                 setStoreSelect(storeCodeFromCustomer, '（店舗名未登録）');
               }
@@ -810,36 +920,31 @@
       });
     }
 
-    // モーダル制御・送信処理
+    // 確認モーダル & データ送信
     const confirmModal = document.getElementById('confirmModal');
 
     document.getElementById('openConfirmBtn').addEventListener('click', () => {
+      const slipDate = document.getElementById('slipDate').value;
       const storeCode = document.getElementById('selectedStoreCode').value;
       const customerCode = document.getElementById('selectedCustomerCode').value;
 
-      if (!customerCode) {
-        alert('得意先を選択してください。');
-        return;
-      }
-      if (!storeCode) {
-        alert('出荷店を選択してください。');
-        return;
-      }
+      if (!slipDate) { alert('伝票日付を入力してください。'); return; }
+      if (!currentUserName) { alert('ログインしてください。'); checkLogin(); return; }
+      if (!customerCode) { alert('得意先を選択してください。'); return; }
+      if (!storeCode) { alert('出荷店を選択してください。'); return; }
 
-      // itemsToSubmit の生成（数量が1以上の容器のみ抽出）
       const itemsToSubmit = Array.from(document.querySelectorAll('.container-qty'))
         .filter(input => parseInt(input.value, 10) > 0)
         .map(input => {
           const code = input.dataset.code;
           const item = masterContainers.find(c => String(c[Object.keys(c)[0]]).trim() === code);
           const keys = item ? Object.keys(item) : [];
-          
           return {
-            containerCode: code,                                    // K列: 商品コード (A列 / keys[0])
-            janCode: item ? (item[keys[1]] || '') : '',             // L列: JANコード (B列 / keys[1])
-            containerName: item ? (item[keys[2]] || '') : '',       // M列: 空容器名 (C列 / keys[2])
-            quantity: parseInt(input.value, 10),                    // N列: 数量
-            unit: input.dataset.unit || '個'                        // O列: 単位
+            containerCode: code,
+            janCode: item ? (item[keys[1]] || '') : '',
+            containerName: item ? (item[keys[2]] || '') : '',
+            quantity: parseInt(input.value, 10),
+            unit: input.dataset.unit || '個'
           };
         });
 
@@ -848,8 +953,9 @@
         return;
       }
 
-      // currentPayload の生成
       currentPayload = {
+        slipDate: slipDate,
+        registrantName: currentUserName,
         storeCode: storeCode,
         storeName: document.getElementById('selectedStoreName').value,
         customerCode: customerCode,
@@ -862,16 +968,14 @@
         items: itemsToSubmit
       };
 
-      // モーダル内のヘッダー表示設定
+      document.getElementById('modalSlipDateStr').textContent = currentPayload.slipDate;
+      document.getElementById('modalRegistrantStr').textContent = currentPayload.registrantName;
       document.getElementById('modalCustomerStr').textContent = `[${currentPayload.customerCode}] ${currentPayload.customerName}`;
       document.getElementById('modalRouteStr').textContent = currentPayload.routeCode ? `[${currentPayload.routeCode}] ${currentPayload.routeName}` : '未設定';
-      document.getElementById('modalStaffStr').textContent = currentPayload.staffCode 
-        ? `[${currentPayload.staffCode}] ${currentPayload.staffName}` 
-        : '未設定';
+      document.getElementById('modalStaffStr').textContent = currentPayload.staffCode ? `[${currentPayload.staffCode}] ${currentPayload.staffName}` : '未設定';
       document.getElementById('modalStoreStr').textContent = `[${currentPayload.storeCode}] ${currentPayload.storeName}`;
       document.getElementById('modalNoteStr').textContent = currentPayload.note || '（なし）';
 
-      // モーダル内の表（商品コード、空容器名、数量）
       const itemsBody = document.getElementById('modalItemsBody');
       if (itemsBody) {
         itemsBody.innerHTML = '';
@@ -889,17 +993,9 @@
       confirmModal.style.display = 'flex';
     });
 
-    // モーダル閉じる（キャンセル）
-    document.getElementById('modalCancelBtn').addEventListener('click', () => {
-      confirmModal.style.display = 'none';
-    });
+    document.getElementById('modalCancelBtn').addEventListener('click', () => { confirmModal.style.display = 'none'; });
+    confirmModal.addEventListener('click', (e) => { if (e.target === confirmModal) confirmModal.style.display = 'none'; });
 
-    // 背景クリックで閉じる
-    confirmModal.addEventListener('click', (e) => {
-      if (e.target === confirmModal) confirmModal.style.display = 'none';
-    });
-
-    // 送信確定
     document.getElementById('modalSubmitBtn').addEventListener('click', async () => {
       if (!currentPayload) return;
 
@@ -922,25 +1018,17 @@
         if (result.status === 'success') {
           submitBtn.textContent = '✓ 送信完了';
           submitBtn.style.backgroundColor = '#28a745';
-          submitBtn.style.borderColor = '#28a745';
 
-          // ★ 送信完了後の全クリア処理
           document.querySelectorAll('.container-qty').forEach(input => input.value = '');
           document.getElementById('note').value = '';
-
           document.getElementById('customerSearch').value = '';
           document.getElementById('selectedCustomerCode').value = '';
           document.getElementById('selectedCustomerName').value = '';
           document.getElementById('selectedRouteCode').value = '';
           document.getElementById('selectedRouteName').value = '';
           document.getElementById('selectedStaffCode').value = '';
-          if (document.getElementById('selectedStaffName')) document.getElementById('selectedStaffName').value = '';
           
-          const displayRow = document.getElementById('customerDisplayRow');
-          if (displayRow) {
-            displayRow.innerHTML = '<td colspan="6" style="text-align:center; color:#999;">未選択（左の検索窓から選択）</td>';
-          }
-
+          document.getElementById('customerDisplayRow').innerHTML = '<td colspan="6" style="text-align:center; color:#999;">未選択（左の検索窓から選択）</td>';
           document.getElementById('storeSearch').value = '';
           document.getElementById('selectedStoreCode').value = '';
           document.getElementById('selectedStoreName').value = '';
@@ -950,12 +1038,10 @@
 
           setTimeout(() => {
             confirmModal.style.display = 'none';
-            
             submitBtn.disabled = false;
             if (cancelBtn) cancelBtn.disabled = false;
             submitBtn.textContent = '送信確定';
             submitBtn.style.backgroundColor = '';
-            submitBtn.style.borderColor = '';
           }, 1200);
         } else {
           alert('保存失敗: ' + result.message);
@@ -971,13 +1057,6 @@
         submitBtn.textContent = '送信確定';
       }
     });
-
-    function showMessage(msg, isError) {
-      const msgDiv = document.getElementById('message');
-      msgDiv.textContent = msg;
-      msgDiv.className = isError ? 'error' : 'success';
-      msgDiv.style.display = 'block';
-    }
   </script>
 </body>
 </html>
