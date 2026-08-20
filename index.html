@@ -969,7 +969,7 @@ async function generateReportPdf() {
   pdfBtn.disabled = true;
   pdfBtn.textContent = '回収一覧作成中...';
 
-  // ★ 1. ボタンを押した直後に空の新しいタブを開く（ポップアップブロック回避策）
+  // ポップアップブロック回避のため先に新しいタブを開く
   const printWindow = window.open('about:blank', '_blank');
   if (printWindow) {
     printWindow.document.write('<html><head><title>PDF生成中...</title></head><body style="font-family:sans-serif; text-align:center; padding-top:50px;"><h2>PDFを生成しています。しばらくお待ちください...</h2></body></html>');
@@ -992,25 +992,15 @@ async function generateReportPdf() {
 
     const result = await response.json();
 
-    if (result.status === 'success' && result.pdfBase64) {
-      // Base64データをBlob化
-      const byteCharacters = atob(result.pdfBase64);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: 'application/pdf' });
-      const blobUrl = URL.createObjectURL(blob);
-
-      // ★ 2. 先ほど開いた新しいタブにPDFを表示させる
+    if (result.status === 'success' && result.pdfUrl) {
+      // ドライブ上のプレビューURLへ移動
       if (printWindow) {
-        printWindow.location.href = blobUrl;
+        printWindow.location.href = result.pdfUrl;
       } else {
-        window.location.href = blobUrl; // 万が一タブが開けなかった場合は自画面で開く
+        window.open(result.pdfUrl, '_blank');
       }
     } else {
-      if (printWindow) printWindow.close(); // エラー時は開いたタブを閉じる
+      if (printWindow) printWindow.close();
       alert(result.message || 'PDFの生成に失敗しました。');
     }
   } catch (err) {
