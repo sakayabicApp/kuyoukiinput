@@ -1253,18 +1253,15 @@ async function loadReportTableData() {
         html += `
           <div id="slip-block-${h.slipNo}" style="background: #f5f5f5; padding: 10px; margin-top: 15px; border-radius: 4px; border-left: 4px solid #007bff;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-              <div>
-                <strong>日付:</strong> ${h.date} | 
-                <strong>伝票No:</strong> ${h.slipNo} | 
-                <strong>得意先:</strong> [${h.customerCode}] ${h.customerName} | 
-                <strong>担当:</strong> ${h.staffName} <br>
-                <small style="color: #666;">登録日時: ${h.regDateTime} / 登録者: ${regUserDisplay}</small>
-              </div>
-              <div style="display: flex; gap: 5px;">
+          <div style="background: #fff; padding: 10px; margin-top: 15px;border-left: 4px solid #007bff;">
+            <strong>伝票日付</strong>:${h.date} 　<strong>伝票No</strong>:${h.slipNo}　<strong>得意先コード</strong>:${h.customerCode}　<strong>得意先名</strong>:${h.customerName}
+            <br>
+            <small style="color: #000;">担当:${h.staffName} 　登録日時: ${h.regDateTime} 　 登録者コード: ${h.regUserCode}　登録者: ${h.regUserName}</small>　
+             <div style="display: flex; gap: 5px;">
                 <button type="button" id="edit-btn-${h.slipNo}" onclick="toggleEditMode('${h.slipNo}')" style="padding: 4px 8px; font-size: 0.8rem; background: #28a745; color: #fff; border: none; border-radius: 3px; cursor: pointer;">修正</button>
                 <button type="button" onclick="openDeleteModal('${h.slipNo}', '${h.customerName}')" style="padding: 4px 8px; font-size: 0.8rem; background: #dc3545; color: #fff; border: none; border-radius: 3px; cursor: pointer;">削除</button>
               </div>
-            </div>
+          
           </div>
           <table id="table-${h.slipNo}" border="1" style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
             <thead>
