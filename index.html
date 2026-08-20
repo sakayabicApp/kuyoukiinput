@@ -246,8 +246,8 @@
 .qty-cell {
   display: flex;
   align-items: center;
-  justify-content: flex-end; /* 右寄せ配置 */
-  gap: 4px;                  /* 入力欄と単位の間の余白 */
+  justify-content: flex-start; /* ★左寄せに変更 */
+  gap: 6px;                    /* 入力欄と単位の間の余白 */
 }
 
 /* 単位テキストの自動伸縮を防ぐ */
@@ -324,7 +324,13 @@
     font-size: 0.9rem;
     text-align: center;
   }  
-    
+
+  /* 数量入力欄の幅を固定化 */
+.container-qty {
+  width: 40px !important;   
+}
+
+  
   }  
 </style>
 </head>
