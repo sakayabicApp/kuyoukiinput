@@ -845,7 +845,7 @@ async function generateReportPdf() {
   const customerCode = document.getElementById('selectedPdfCustomerCode') ? document.getElementById('selectedPdfCustomerCode').value : '';
 
   const userSelect = document.getElementById('pdfUserSelect');
-  const userName = userSelect ? userSelect.value : '';
+  const selectedUserCode = userSelect ? userSelect.value : ''; // ★ 変数名を分かりやすく変更
 
   if (!startDate || !endDate) {
     alert('対象期間を入力してください。');
@@ -867,7 +867,7 @@ async function generateReportPdf() {
         routeCode: routeCode,
         routeName: routeCode ? routeName : 'すべて',
         customerCode: customerCode,
-        userName: userName
+        userCode: selectedUserCode // ★ userCode として送信
       })
     });
 
