@@ -271,6 +271,22 @@
   .report-table td:nth-child(4) {
     width: 25% !important; /* 固定指定を上書き */
   }
+    /* ボタンを折り返さず（nowrap）、画面幅いっぱいに均等配置 */
+  .report-btn-area {
+    display: flex !important;
+    justify-content: space-between !important;
+    gap: 6px !important; /* ボタン同士の余白を少し詰める */
+    width: 100%;
+  }
+
+  /* ボタン内の文字改行を防ぎ、幅を均等化 */
+  .report-btn-area button {
+    flex: 1;                  /* 3つのボタンを均等な幅にする */
+    white-space: nowrap;       /* ★文字の折り返し（縦書き化）を防止 */
+    padding: 8px 4px !important; /* スマホ用に横パディングを少し調整 */
+    font-size: 0.85rem;       /* 文字サイズを少し小さくして収まりを良くする */
+    text-align: center;
+  }
     
   }  
 </style>
@@ -394,7 +410,7 @@
         <button type="button" class="btn-secondary" onclick="resetRegisterForm()">入力クリア</button>
         <button type="button" id="openConfirmBtn" class="btn-primary">送信する</button>
       </div>
-      <label>空容器数量入力（入力後、下の送信ボタンで確定）:</label>
+      <label>空容器数量入力:</label>
       <div class="table-container">
         <table>
           <thead>
@@ -476,9 +492,8 @@
       </div>
 
       <!-- アクションボタンエリア -->
-      <div style="text-align: right; margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 10px;">
-        <button type="button" class="btn-secondary" onclick="resetReportForm()">条件クリア</button>
-        <!-- ボタンエリア -->
+<div class="report-btn-area" style="text-align: right; margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 10px;">
+ <button type="button" class="btn-secondary" onclick="resetReportForm()">条件クリア</button>
   <button type="button" class="btn-primary" id="generatePdfBtn" onclick="generateReportPdf()">PDF作成</button>
   <button type="button" class="btn-primary" id="showDataBtn" onclick="loadReportTableData()">データ表示</button> <!-- ★追加 -->
       </div>
