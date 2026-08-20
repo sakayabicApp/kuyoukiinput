@@ -494,6 +494,20 @@
   </div>
 </div>
 
+<!-- 削除確認モーダル -->
+<div id="deleteConfirmModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+  <div style="background: #fff; padding: 20px; border-radius: 8px; max-width: 500px; width: 90%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    <h3 style="margin-top: 0; color: #dc3545;">伝票削除の確認</h3>
+    <p>この伝票を削除してよろしいですか？</p>
+    <div id="modalTargetInfo" style="background: #f8f9fa; padding: 10px; border: 1px solid #ddd; margin-bottom: 15px; font-size: 0.9rem;"></div>
+    <div style="display: flex; justify-content: flex-end; gap: 10px;">
+      <button type="button" class="btn-secondary" onclick="closeDeleteModal()">キャンセル</button>
+      <button type="button" style="background: #dc3545; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;" onclick="executeDeleteReport()">削除</button>
+    </div>
+  </div>
+</div>  
+  
+
 <script>
     const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw8g-XV7pCCeE99Ps1W3LuKqm1cHXrW8qFZwlfn8r_nUHLfgcC4ox39Zhs3K7WYmeo6/exec';
 
@@ -1177,6 +1191,227 @@ async function loadReportTableData() {
   } finally {
     showBtn.disabled = false;
     showBtn.textContent = 'データ表示';
+  }
+}
+
+  let pendingDeleteSlipNo = null; // 削除対象伝票の保持用
+
+// データ表示・描画
+async function loadReportTableData() {
+  const startDate = document.getElementById('pdfStartDate').value;
+  const endDate = document.getElementById('pdfEndDate').value;
+  const routeCode = document.getElementById('pdfRouteSelect').value;
+  const customerInput = document.getElementById('selectedPdfCustomerCode');
+  const customerCode = customerInput ? customerInput.value : '';
+  const userSelect = document.getElementById('pdfUserSelect');
+  const selectedUserCode = userSelect ? userSelect.value : '';
+
+  if (!startDate || !endDate) {
+    alert('対象期間を入力してください。');
+    return;
+  }
+
+  const showBtn = document.getElementById('showDataBtn');
+  const container = document.getElementById('reportTableContainer');
+  const tableArea = document.getElementById('reportTableArea');
+
+  showBtn.disabled = true;
+  showBtn.textContent = 'データ取得中...';
+
+  try {
+    const response = await fetch(GAS_WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        action: 'fetchReportData',
+        startDate: startDate,
+        endDate: endDate,
+        routeCode: routeCode,
+        customerCode: customerCode,
+        registrantCode: selectedUserCode,
+        userCode: selectedUserCode
+      })
+    });
+
+    const result = await response.json();
+
+    if (result.status === 'success' && Array.isArray(result.data)) {
+      let html = '';
+
+      if (result.data.length === 0) {
+        tableArea.innerHTML = '<p style="padding: 10px; color: #666;">該当するデータはありませんでした。</p>';
+        container.style.display = 'block';
+        return;
+      }
+
+      result.data.forEach(group => {
+        const h = group.header;
+        const regUserDisplay = h.regUserCode && h.regUserName 
+          ? `[${h.regUserCode}] ${h.regUserName}` 
+          : (h.regUserName || h.regUserCode || '');
+
+        html += `
+          <div id="slip-block-${h.slipNo}" style="background: #f5f5f5; padding: 10px; margin-top: 15px; border-radius: 4px; border-left: 4px solid #007bff;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong>日付:</strong> ${h.date} | 
+                <strong>伝票No:</strong> ${h.slipNo} | 
+                <strong>得意先:</strong> [${h.customerCode}] ${h.customerName} | 
+                <strong>担当:</strong> ${h.staffName} <br>
+                <small style="color: #666;">登録日時: ${h.regDateTime} / 登録者: ${regUserDisplay}</small>
+              </div>
+              <div style="display: flex; gap: 5px;">
+                <button type="button" id="edit-btn-${h.slipNo}" onclick="toggleEditMode('${h.slipNo}')" style="padding: 4px 8px; font-size: 0.8rem; background: #28a745; color: #fff; border: none; border-radius: 3px; cursor: pointer;">修正</button>
+                <button type="button" onclick="openDeleteModal('${h.slipNo}', '${h.customerName}')" style="padding: 4px 8px; font-size: 0.8rem; background: #dc3545; color: #fff; border: none; border-radius: 3px; cursor: pointer;">削除</button>
+              </div>
+            </div>
+          </div>
+          <table id="table-${h.slipNo}" border="1" style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
+            <thead>
+              <tr style="background: #eee;">
+                <th>商品コード</th>
+                <th>JANコード</th>
+                <th>商品名</th>
+                <th style="width: 120px;">数量</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+
+        group.details.forEach(d => {
+          html += `
+            <tr data-item-code="${d.itemCode}">
+              <td>${d.itemCode}</td>
+              <td>${d.janCode}</td>
+              <td>${d.itemName}</td>
+              <td style="text-align: right;">
+                <span class="qty-text">${d.quantity}</span> ${d.unit || ''}
+                <input type="number" class="qty-input" value="${d.quantity}" style="display: none; width: 70px; text-align: right;" min="0">
+              </td>
+            </tr>
+          `;
+        });
+
+        if (h.note) {
+          html += `<tr><td colspan="4" style="color: #666; background: #fafafa;"><strong>備考:</strong> ${h.note}</td></tr>`;
+        }
+
+        html += `</tbody></table>`;
+      });
+
+      tableArea.innerHTML = html;
+      container.style.display = 'block';
+    } else {
+      alert('エラー: ' + (result.message || 'データの取得に失敗しました。'));
+      container.style.display = 'none';
+    }
+  } catch (err) {
+    alert('通信エラーが発生しました: ' + err.message);
+  } finally {
+    showBtn.disabled = false;
+    showBtn.textContent = 'データ表示';
+  }
+}
+
+// 編集モードの切り替え・送信実行
+async function toggleEditMode(slipNo) {
+  const table = document.getElementById(`table-${slipNo}`);
+  const btn = document.getElementById(`edit-btn-${slipNo}`);
+  const isEditing = btn.textContent === '送信';
+
+  if (!isEditing) {
+    // 修正モードへ移行（表示用テキストを隠し、Inputを表示）
+    table.querySelectorAll('.qty-text').forEach(el => el.style.display = 'none');
+    table.querySelectorAll('.qty-input').forEach(el => el.style.display = 'inline-block');
+    btn.textContent = '送信';
+    btn.style.background = '#007bff';
+  } else {
+    // 送信処理実行
+    const items = [];
+    table.querySelectorAll('tbody tr[data-item-code]').forEach(tr => {
+      const itemCode = tr.getAttribute('data-item-code');
+      const qtyInput = tr.querySelector('.qty-input');
+      if (itemCode && qtyInput) {
+        items.push({
+          itemCode: itemCode,
+          quantity: Number(qtyInput.value)
+        });
+      }
+    });
+
+    btn.disabled = true;
+    btn.textContent = '送信中...';
+
+    try {
+      const response = await fetch(GAS_WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({
+          action: 'updateReportData',
+          slipNo: slipNo,
+          items: items
+        })
+      });
+
+      const res = await response.json();
+      if (res.status === 'success') {
+        alert(res.message);
+        // 条件を保持したまま再取得
+        await loadReportTableData();
+      } else {
+        alert('更新エラー: ' + res.message);
+        btn.disabled = false;
+        btn.textContent = '送信';
+      }
+    } catch (err) {
+      alert('通信エラーが発生しました: ' + err.message);
+      btn.disabled = false;
+      btn.textContent = '送信';
+    }
+  }
+}
+
+// 削除モーダル制御
+function openDeleteModal(slipNo, customerName) {
+  pendingDeleteSlipNo = slipNo;
+  const info = document.getElementById('modalTargetInfo');
+  info.innerHTML = `<strong>伝票番号:</strong> ${slipNo}<br><strong>得意先:</strong> ${customerName}`;
+  const modal = document.getElementById('deleteConfirmModal');
+  modal.style.display = 'flex';
+}
+
+function closeDeleteModal() {
+  pendingDeleteSlipNo = null;
+  document.getElementById('deleteConfirmModal').style.display = 'none';
+}
+
+// 削除実行
+async function executeDeleteReport() {
+  if (!pendingDeleteSlipNo) return;
+
+  const slipNo = pendingDeleteSlipNo;
+  closeDeleteModal();
+
+  try {
+    const response = await fetch(GAS_WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        action: 'deleteReportData',
+        slipNo: slipNo
+      })
+    });
+
+    const res = await response.json();
+    if (res.status === 'success') {
+      alert(res.message);
+      // 条件を保持したまま再取得
+      await loadReportTableData();
+    } else {
+      alert('削除エラー: ' + res.message);
+    }
+  } catch (err) {
+    alert('通信エラーが発生しました: ' + err.message);
   }
 }
 
