@@ -482,7 +482,7 @@
     
 
 
-  <script>
+<script>
     const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw8g-XV7pCCeE99Ps1W3LuKqm1cHXrW8qFZwlfn8r_nUHLfgcC4ox39Zhs3K7WYmeo6/exec';
 
     let masterStores = [];
@@ -498,7 +498,8 @@
 window.addEventListener('DOMContentLoaded', () => {
   // 伝票日付のデフォルト（本日）
   const today = new Date().toISOString().split('T')[0];
-  document.getElementById('slipDate').value = today;
+  const slipDateEl = document.getElementById('slipDate');
+  if (slipDateEl) slipDateEl.value = today;
 
   setupStoreSuggest();
   setupCustomerSuggest();
@@ -519,7 +520,7 @@ function checkLogin() {
     document.getElementById('userBadge').style.display = 'flex';
     loginModal.style.display = 'none';
 
-    // ★ ログイン完了後に初めて起動画面（読み込み中）を表示してマスターを取得
+    // ログイン完了後に起動画面（読み込み中）を表示してマスターを取得
     loadingOverlay.style.display = 'flex';
     loadMasterData();
   } else {
@@ -576,20 +577,16 @@ function logout() {
   document.getElementById('loginModal').style.display = 'flex';
 }
 
-// マスターデータ読み込み（CORS・リダイレクト対応版）
+// マスターデータ読み込み
 async function loadMasterData() {
   try {
     const response = await fetch(GAS_WEB_APP_URL, {
       method: 'GET',
-      redirect: 'follow', // ★GASのリダイレクトを自動追従する設定
-      headers: {
-        'Content-Type': 'text/plain'
-      }
+      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain' }
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
     const result = await response.json();
     
@@ -598,6 +595,7 @@ async function loadMasterData() {
       masterCustomers = result.data.customers || [];
       masterContainers = result.data.containers || [];
 
+      masterRoutes = {};
       if (result.data.routes) {
         result.data.routes.forEach(row => {
           const keys = Object.keys(row);
@@ -607,6 +605,7 @@ async function loadMasterData() {
         });
       }
 
+      masterStaffs = {};
       if (result.data.staffs) {
         result.data.staffs.forEach(row => {
           const keys = Object.keys(row);
@@ -628,6 +627,7 @@ async function loadMasterData() {
     showLoadingError('通信エラーが発生しました。ブラウザのキャッシュをクリアして再読み込みしてください。');
   }
 }
+
     function showLoadingError(msg) {
       const loadingOverlay = document.getElementById('loadingOverlay');
       if (loadingOverlay) {
@@ -637,6 +637,7 @@ async function loadMasterData() {
 
     function renderContainerTable(containers) {
       const tbody = document.getElementById('containerTableBody');
+      if (!tbody) return;
       tbody.innerHTML = '';
       if (!containers || containers.length === 0) {
         tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">データがありません</td></tr>';
@@ -668,35 +669,35 @@ async function loadMasterData() {
         tbody.appendChild(tr);
       });
     }
+
 // 画面切り替え（タブ選択）
-    function switchPage(page) {
-      const regPage = document.getElementById('pageRegister');
-      const rptPage = document.getElementById('pageReport');
-      const tabReg = document.getElementById('tabRegister');
-      const tabRpt = document.getElementById('tabReport');
+function switchPage(page) {
+  const regPage = document.getElementById('pageRegister');
+  const rptPage = document.getElementById('pageReport');
+  const tabReg = document.getElementById('tabRegister');
+  const tabRpt = document.getElementById('tabReport');
 
-      if (page === 'register') {
-        regPage.classList.remove('hidden');
-        rptPage.classList.add('hidden');
-        tabReg.classList.add('active');
-        tabRpt.classList.remove('active');
-      } else if (page === 'report') {
-        regPage.classList.add('hidden');
-        rptPage.classList.remove('hidden');
-        tabReg.classList.remove('active');
-        tabRpt.classList.add('active');
+  if (page === 'register') {
+    regPage.classList.remove('hidden');
+    rptPage.classList.add('hidden');
+    tabReg.classList.add('active');
+    tabRpt.classList.remove('active');
+  } else if (page === 'report') {
+    regPage.classList.add('hidden');
+    rptPage.classList.remove('hidden');
+    tabReg.classList.remove('active');
+    tabRpt.classList.add('active');
 
-        // 帳票画面の日付初期化（当月1日〜本日）
-        initReportForm();
-      }
-    }
+    // 帳票画面の初期化
+    initReportForm();
+  }
+}
 
-// 帳票画面の初期化（日付デフォルト：本日〜本日、マスター読み込み）
+// 帳票画面の初期化
 function initReportForm() {
   const startEl = document.getElementById('pdfStartDate');
   const endEl = document.getElementById('pdfEndDate');
   
-  // 日付の初期化（常に「本日〜本日」にするため条件判定をシンプル化）
   const todayStr = getTodayString();
   if (startEl) startEl.value = todayStr;
   if (endEl) endEl.value = todayStr;
@@ -710,8 +711,7 @@ function initReportForm() {
       opt.textContent = `[${code}] ${masterRoutes[code]}`;
       routeSelect.appendChild(opt);
     });
-
-    }
+  }
 
   // 2. 帳票用 得意先サジェストのセットアップ
   setupPdfCustomerSuggest();
@@ -720,39 +720,13 @@ function initReportForm() {
   initUserSelect();
 }
 
-// 今日の日付文字列（YYYY-MM-DD）を取得（時差ズレ回避）
+// 今日の日付文字列（YYYY-MM-DD）を取得
 function getTodayString() {
   const now = new Date();
   const yyyy = now.getFullYear();
   const mm = String(now.getMonth() + 1).padStart(2, '0');
   const dd = String(now.getDate()).padStart(2, '0');
   return `${yyyy}-${mm}-${dd}`;
-}
-
-// 得意先検索・プルダウン初期化
-function initCustomerSearch() {
-  const customerSelect = document.getElementById('pdfCustomerSelect');
-  const searchInput = document.getElementById('pdfCustomerSearchInput');
-
-  if (!customerSelect) return;
-
-  // マスターが存在する場合の描画処理
-  if (typeof masterCustomers !== 'undefined' && Array.isArray(masterCustomers)) {
-    renderCustomerOptions(masterCustomers);
-
-    // インクリメンタル検索機能のイベント付与（重複防止処理付き）
-    if (searchInput && !searchInput.dataset.hasListener) {
-      searchInput.addEventListener('input', (e) => {
-        const keyword = e.target.value.toLowerCase().trim();
-        const filtered = masterCustomers.filter(c => 
-          String(c.得意先コード || c.customerCode || '').toLowerCase().includes(keyword) ||
-          String(c.得意先名 || c.customerName || '').toLowerCase().includes(keyword)
-        );
-        renderCustomerOptions(filtered);
-      });
-      searchInput.dataset.hasListener = 'true';
-    }
-  }
 }
 
 // 帳票用 得意先サジェスト＆テーブル表示処理
@@ -821,29 +795,29 @@ function setupPdfCustomerSuggest() {
 
 // 帳票用 得意先選択クリア
 function clearPdfCustomerSelection() {
-  document.getElementById('selectedPdfCustomerCode').value = '';
-  document.getElementById('pdfCustomerDisplayRow').innerHTML = '<td colspan="6" class="empty-td">すべての得意先（指定する場合は左の検索窓から選択）</td>';
-  document.getElementById('pdfCustomerClearBtn').style.display = 'none';
+  const codeHidden = document.getElementById('selectedPdfCustomerCode');
+  if (codeHidden) codeHidden.value = '';
+  const displayRow = document.getElementById('pdfCustomerDisplayRow');
+  if (displayRow) displayRow.innerHTML = '<td colspan="6" class="empty-td">すべての得意先（指定する場合は左の検索窓から選択）</td>';
+  const clearBtn = document.getElementById('pdfCustomerClearBtn');
+  if (clearBtn) clearBtn.style.display = 'none';
 }
 
-// 登録者プルダウン初期化
+// 登録者プルダウン初期化 (修正：オブジェクト構造に対応)
 function initUserSelect() {
   const userSelect = document.getElementById('pdfUserSelect');
   if (!userSelect || userSelect.options.length > 1) return;
 
-  // masterStaffs または masterUsers から取得
-  const userList = (typeof masterStaffs !== 'undefined' && Array.isArray(masterStaffs)) ? masterStaffs :
-                   (typeof masterUsers !== 'undefined' && Array.isArray(masterUsers)) ? masterUsers : [];
-
-  userList.forEach(u => {
-    const name = u.担当者名 || u.ユーザー名 || u.userName || u.staffName || '';
-    if (name) {
-      const opt = document.createElement('option');
-      opt.value = name;
-      opt.textContent = name;
-      userSelect.appendChild(opt);
-    }
-  });
+  if (typeof masterStaffs === 'object' && Object.keys(masterStaffs).length > 0) {
+    Object.values(masterStaffs).forEach(name => {
+      if (name) {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        userSelect.appendChild(opt);
+      }
+    });
+  }
 }
 
 // PDF発行リクエスト処理
@@ -855,7 +829,7 @@ async function generateReportPdf() {
   const routeCode = routeSelect ? routeSelect.value : '';
   const routeName = (routeSelect && routeSelect.selectedIndex >= 0) ? routeSelect.options[routeSelect.selectedIndex].text : '';
 
- const customerCode = document.getElementById('selectedPdfCustomerCode') ? document.getElementById('selectedPdfCustomerCode').value : '';
+  const customerCode = document.getElementById('selectedPdfCustomerCode') ? document.getElementById('selectedPdfCustomerCode').value : '';
 
   const userSelect = document.getElementById('pdfUserSelect');
   const userName = userSelect ? userSelect.value : '';
@@ -879,15 +853,14 @@ async function generateReportPdf() {
         endDate: endDate,
         routeCode: routeCode,
         routeName: routeCode ? routeName : 'すべて',
-        customerCode: customerCode, // ★追加：得意先コード
-        userName: userName          // ★追加：登録者名
+        customerCode: customerCode,
+        userName: userName
       })
     });
 
     const result = await response.json();
 
     if (result.status === 'success' && result.pdfUrl) {
-      // 新規タブでプレビュー表示（ダウンロードダイアログを挟まない設定）
       const newTab = window.open(result.pdfUrl, '_blank');
       if (!newTab) {
         alert('ポップアップがブロックされました。ブラウザのポップアップ許可設定をご確認ください。');
@@ -900,11 +873,10 @@ async function generateReportPdf() {
     alert('通信エラーが発生しました。');
   } finally {
     pdfBtn.disabled = false;
-    pdfBtn.textContent = '空容器回収一覧発行';
+    pdfBtn.textContent = 'PDF発行';
   }
 }
 
-    
     function setStoreSelect(code, name) {
       document.getElementById('selectedStoreCode').value = code;
       document.getElementById('selectedStoreName').value = name;
@@ -931,6 +903,7 @@ async function generateReportPdf() {
     function setupStoreSuggest() {
       const input = document.getElementById('storeSearch');
       const suggest = document.getElementById('storeSuggest');
+      if (!input || !suggest) return;
 
       input.addEventListener('input', () => {
         const keyword = normalizeToKatakana(input.value.trim());
@@ -973,9 +946,8 @@ async function generateReportPdf() {
       });
     }
 
-    // 登録ページの「日付以外」クリア処理
+// 登録ページの「日付以外」クリア処理
 function resetRegisterForm() {
-  // 1. 得意先情報のクリア
   document.getElementById('customerSearch').value = '';
   document.getElementById('selectedCustomerCode').value = '';
   document.getElementById('selectedCustomerName').value = '';
@@ -988,47 +960,30 @@ function resetRegisterForm() {
   document.getElementById('customerDisplayRow').innerHTML = 
     '<td colspan="6" class="empty-td">未選択（左の検索窓から選択）</td>';
 
-  // 2. 出荷店情報のクリア
   document.getElementById('storeSearch').value = '';
   document.getElementById('selectedStoreCode').value = '';
   document.getElementById('selectedStoreName').value = '';
   document.getElementById('storeDisplayRow').innerHTML = 
     '<td colspan="2" class="empty-td">未選択（得意先選択で自動反映・変更可）</td>';
 
-  // 3. 空容器数量のクリア
   document.querySelectorAll('.container-qty').forEach(input => input.value = '');
-
-  // 4. 備考のクリア
   document.getElementById('note').value = '';
 }
 
 // 帳票ページの「日付以外」クリア処理
 function resetReportForm() {
-  // 1. ルート選択を「すべてのルート」にリセット
   const routeSelect = document.getElementById('pdfRouteSelect');
   if (routeSelect) routeSelect.selectedIndex = 0;
 
-  // 2. 得意先選択をクリア
-  if (typeof clearPdfCustomerSelection === 'function') {
-    clearPdfCustomerSelection();
-  } else {
-    const codeHidden = document.getElementById('selectedPdfCustomerCode');
-    if (codeHidden) codeHidden.value = '';
-    const displayRow = document.getElementById('pdfCustomerDisplayRow');
-    if (displayRow) {
-      displayRow.innerHTML = '<td colspan="6" class="empty-td">すべての得意先（指定する場合は左の検索窓から選択）</td>';
-    }
-  }
+  clearPdfCustomerSelection();
+
   const customerSearch = document.getElementById('pdfCustomerSearch');
   if (customerSearch) customerSearch.value = '';
 
-  // 3. 登録者選択を「すべての登録者」にリセット
   const userSelect = document.getElementById('pdfUserSelect');
   if (userSelect) userSelect.selectedIndex = 0;
 }
 
-
-    
     function setupCustomerSuggest() {
       const input = document.getElementById('customerSearch');
       const suggest = document.getElementById('customerSuggest');
@@ -1039,6 +994,8 @@ function resetReportForm() {
       const staffCodeHidden = document.getElementById('selectedStaffCode');
       const staffNameHidden = document.getElementById('selectedStaffName');
       const displayRow = document.getElementById('customerDisplayRow');
+
+      if (!input || !suggest) return;
 
       input.addEventListener('input', () => {
         const keyword = normalizeToKatakana(input.value.trim());
@@ -1204,21 +1161,7 @@ function resetReportForm() {
           submitBtn.textContent = '✓ 送信完了';
           submitBtn.style.backgroundColor = '#28a745';
 
-          document.querySelectorAll('.container-qty').forEach(input => input.value = '');
-          document.getElementById('note').value = '';
-          document.getElementById('customerSearch').value = '';
-          document.getElementById('selectedCustomerCode').value = '';
-          document.getElementById('selectedCustomerName').value = '';
-          document.getElementById('selectedRouteCode').value = '';
-          document.getElementById('selectedRouteName').value = '';
-          document.getElementById('selectedStaffCode').value = '';
-          
-          document.getElementById('customerDisplayRow').innerHTML = '<td colspan="6" style="text-align:center; color:#999;">未選択（左の検索窓から選択）</td>';
-          document.getElementById('storeSearch').value = '';
-          document.getElementById('selectedStoreCode').value = '';
-          document.getElementById('selectedStoreName').value = '';
-          document.getElementById('storeDisplayRow').innerHTML = '<td colspan="2" class="empty-td">未選択（得意先選択で自動反映・変更可）</td>';
-
+          resetRegisterForm();
           currentPayload = null;
 
           setTimeout(() => {
@@ -1242,6 +1185,6 @@ function resetReportForm() {
         submitBtn.textContent = '送信確定';
       }
     });
-  </script>
+</script>
 </body>
 </html>
