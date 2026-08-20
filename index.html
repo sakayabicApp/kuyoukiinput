@@ -1132,11 +1132,9 @@ async function loadReportTableData() {
         const h = group.header;
         html += `
           <div style="background: #fff; padding: 10px; margin-top: 15px;">
-            日付: ${h.date} | 
-            伝票No: ${h.slipNo} | 
-            得意先: [${h.customerCode}] ${h.customerName} | 
-            担当:${h.staffName} <br>
-            <div style="color: #000;">登録日時: ${h.regDateTime} 　 登録者コード: ${h.regUserCode}　登録者: ${h.regUserName}</div>　
+            <strong>日付</storong>:${h.date}  <strong>伝票No</storong>:${h.slipNo}  <strong>得意先コード</storong>:${h.customerCode} 　<strong>得意先名</storong>:${h.customerName}
+            <br>
+            <small style="color: #000;">担当:${h.staffName} 　登録日時: ${h.regDateTime} 　 登録者コード: ${h.regUserCode}　登録者: ${h.regUserName}</small>　
           </div>
           <table border="1" style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
             <thead>
