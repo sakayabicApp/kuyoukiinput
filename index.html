@@ -287,7 +287,6 @@
     font-size: 0.85rem;       /* 文字サイズを少し小さくして収まりを良くする */
     text-align: center;
   }
-
   .action-area {
     display: flex !important;
     width: 100%;
@@ -296,8 +295,8 @@
 
   /* 2つのボタンを幅50%ずつに指定 */
   .action-area button {
-    flex: 1 1 50%;
-    width: 50%;
+    flex: 1 1 50%!important;
+    width: 50%!important;
     white-space: nowrap;       /* 文字の改行（縦書き化）を防止 */
     padding: 10px 4px !important; /* タップしやすい高さ調整 */
     font-size: 0.9rem;
@@ -425,7 +424,7 @@
 <div class="action-area" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
         <button type="button" class="btn-secondary" onclick="resetRegisterForm()">入力クリア</button>
         <button type="button" id="openConfirmBtn" class="btn-primary">送信する</button>
-      </div>
+</div>
       <label>空容器数量入力:</label>
       <div class="table-container">
         <table>
