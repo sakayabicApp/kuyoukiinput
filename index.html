@@ -122,16 +122,7 @@
   .display-table td { background-color: #f0f4f9; color: #1967d2; font-weight: bold; }
   .display-table td.empty-td { background-color: #fafafa; color: #888; font-weight: normal; text-align: center; }
 
-  @media (max-width: 767px) {
-    html { font-size: 14px; }
-    .search-display-grid { flex-direction: column; gap: 0.625rem; }
-    #containerTableBody tr td:nth-child(2), .table-container th:nth-child(2) { display: none; }
-    .table-container th:nth-child(1) { width: 22%; }
-    .table-container th:nth-child(3) { width: 38%; }
-    .table-container th:nth-child(4) { width: 15%; }
-    .table-container th:nth-child(5) { width: 25%; }
-    .responsive-date-wrap {width: 100% !important; }
-  }
+
 
   .suggest-window {
     position: absolute; top: 100%; left: 0; right: 0;
@@ -238,7 +229,50 @@
 .date-range-item {
   flex: 1.5;
 }
-  
+
+ /* PC/デフォルト表示のスタイル */
+.slip-header-item {
+  margin-right: 12px;
+}
+
+  @media (max-width: 767px) {
+    html { font-size: 14px; }
+    .search-display-grid { flex-direction: column; gap: 0.625rem; }
+    #containerTableBody tr td:nth-child(2), .table-container th:nth-child(2) { display: none; }
+    .table-container th:nth-child(1) { width: 22%; }
+    .table-container th:nth-child(3) { width: 38%; }
+    .table-container th:nth-child(4) { width: 15%; }
+    .table-container th:nth-child(5) { width: 25%; }
+    .responsive-date-wrap {width: 100% !important; }
+
+  /* 1. ヘッダーを1項目ごとに改行（ブロック要素化） */
+  .slip-header-info div span,
+  .slip-header-info div small span {
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  /* 2. JANコード列（2列目）を非表示 */
+  .report-table th:nth-child(2),
+  .report-table td:nth-child(2) {
+    display: none;
+  }
+
+  /* 3. 残りの3列の幅割合を「商品コード 30% : 商品名 50% : 数量 20%」に設定 */
+  .report-table th:nth-child(1),
+  .report-table td:nth-child(1) {
+    width: 30%;
+  }
+  .report-table th:nth-child(3),
+  .report-table td:nth-child(3) {
+    width: 50%;
+  }
+  .report-table th:nth-child(4),
+  .report-table td:nth-child(4) {
+    width: 20% !important; /* 固定指定を上書き */
+  }
+    
+  }  
 </style>
 </head>
 <body>
@@ -1148,44 +1182,56 @@ async function loadReportTableData() {
         return;
       }
 
-      result.data.forEach(group => {
+result.data.forEach(group => {
         const h = group.header;
-        const regUserDisplay = h.regUserCode && h.regUserName 
-          ? `[${h.regUserCode}] ${h.regUserName}` 
-          : (h.regUserName || h.regUserCode || '');
 
-html += `
+        // ログインユーザーと登録者コードの照合
+        const currentLoggedInUserCode = (typeof currentUserCode !== 'undefined' ? currentUserCode : sessionStorage.getItem('userId') || '').trim();
+        const isOwner = String(h.regUserCode || '').trim() === String(currentLoggedInUserCode).trim();
+
+        const actionButtonsHtml = isOwner ? `
+          <div style="display: flex; gap: 5px; flex-shrink: 0;">
+            <button type="button" id="edit-btn-${h.slipNo}" onclick="toggleEditMode('${h.slipNo}')" style="padding: 4px 8px; font-size: 0.8rem; background: #28a745; color: #fff; border: none; border-radius: 3px; cursor: pointer;">修正</button>
+            <button type="button" onclick="openDeleteModal('${h.slipNo}', '${h.customerName}')" style="padding: 4px 8px; font-size: 0.8rem; background: #dc3545; color: #fff; border: none; border-radius: 3px; cursor: pointer;">削除</button>
+          </div>
+        ` : '';
+
+        html += `
           <div id="slip-block-${h.slipNo}" style="background: #fff; padding: 10px; margin-top: 15px; border-left: 4px solid #007bff; display: flex; justify-content: space-between; align-items: center;">
             
-            <!-- 左側：伝票情報（2行構成） -->
-            <div>
+            <!-- 左側：伝票情報 -->
+            <div class="slip-header-info">
               <div style="font-weight: normal; margin-bottom: 4px;">
-                <strong>伝票日付</strong>: ${h.date}  <strong>伝票No</strong>: ${h.slipNo} <strong>得意先コード</strong>: ${h.customerCode} <strong>得意先名</strong>: ${h.customerName}
+                <span><strong>伝票日付</strong>: ${h.date}</span>
+                <span><strong>伝票No</strong>: ${h.slipNo}</span>
+                <span><strong>得意先コード</strong>: ${h.customerCode}</span>
+                <span><strong>得意先名</strong>: ${h.customerName}</span>
               </div>
               <div style="font-size: 0.85rem; color: #000;">
-                担当: ${h.staffName}　登録日時: ${h.regDateTime}　登録者コード: ${h.regUserCode}　登録者: ${h.regUserName}
+                <span>担当: ${h.staffName}</span>
+                <span>登録日時: ${h.regDateTime}</span>
+                <span>登録者コード: ${h.regUserCode}</span>
+                <span>登録者: ${h.regUserName}</span>
               </div>
             </div>
 
             <!-- 右側：ボタンエリア -->
-            <div style="display: flex; gap: 5px; flex-shrink: 0;">
-              <button type="button" id="edit-btn-${h.slipNo}" onclick="toggleEditMode('${h.slipNo}')" style="padding: 4px 8px; font-size: 0.8rem; background: #28a745; color: #fff; border: none; border-radius: 3px; cursor: pointer;">修正</button>
-              <button type="button" onclick="openDeleteModal('${h.slipNo}', '${h.customerName}')" style="padding: 4px 8px; font-size: 0.8rem; background: #dc3545; color: #fff; border: none; border-radius: 3px; cursor: pointer;">削除</button>
-            </div>
+            ${actionButtonsHtml}
 
           </div>
-          <table id="table-${h.slipNo}" border="1" style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
+
+          <!-- クラス class="report-table" を追加 -->
+          <table id="table-${h.slipNo}" class="report-table" border="1" style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
             <thead>
               <tr style="background: #eee;">
                 <th>商品コード</th>
                 <th>JANコード</th>
-                <th>商品名</th>
+                <th>空容器名</th>
                 <th style="width: 120px;">数量</th>
               </tr>
             </thead>
             <tbody>
         `;
-
         group.details.forEach(d => {
           html += `
             <tr data-item-code="${d.itemCode}">
