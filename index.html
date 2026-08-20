@@ -567,13 +567,14 @@ function checkLogin() {
       }
     });
 
-    // ログアウト処理
-    function logout() {
-      localStorage.removeItem('containerAppUserName');
-      currentUserName = '';
-      document.getElementById('userBadge').style.display = 'none';
-      document.getElementById('loginModal').style.display = 'flex';
-    }
+// ログアウト処理
+function logout() {
+  localStorage.removeItem('containerAppUserName');
+  currentUserName = '';
+  document.getElementById('userBadge').style.display = 'none';
+  document.getElementById('loadingOverlay').style.display = 'none';
+  document.getElementById('loginModal').style.display = 'flex';
+}
 
 // マスターデータ読み込み（CORS・リダイレクト対応版）
 async function loadMasterData() {
