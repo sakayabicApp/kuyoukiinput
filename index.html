@@ -1183,18 +1183,33 @@ async function loadReportTableData() {
       }
 
 result.data.forEach(group => {
-        const h = group.header;
+  const h = group.header;
 
-        // ログインユーザーと登録者コードの照合
-        const currentLoggedInUserCode = (typeof currentUserCode !== 'undefined' ? currentUserCode : sessionStorage.getItem('userId') || '').trim();
-        const isOwner = String(h.regUserCode || '').trim() === String(currentLoggedInUserCode).trim();
+  // ★ 判定修正: currentUserId または localStorage から直接取得し、文字列として正規化
+  const rawCurrentId = currentUserId || localStorage.getItem('containerAppUserId') || sessionStorage.getItem('userId') || '';
+  const normalizedCurrentId = String(rawCurrentId).trim();
+  const normalizedRegCode = String(h.regUserCode || '').trim();
 
-        const actionButtonsHtml = isOwner ? `
-          <div style="display: flex; gap: 5px; flex-shrink: 0;">
-            <button type="button" id="edit-btn-${h.slipNo}" onclick="toggleEditMode('${h.slipNo}')" style="padding: 4px 8px; font-size: 0.8rem; background: #28a745; color: #fff; border: none; border-radius: 3px; cursor: pointer;">修正</button>
-            <button type="button" onclick="openDeleteModal('${h.slipNo}', '${h.customerName}')" style="padding: 4px 8px; font-size: 0.8rem; background: #dc3545; color: #fff; border: none; border-radius: 3px; cursor: pointer;">削除</button>
-          </div>
-        ` : '';
+  // ログインユーザーと登録者コードの照合
+  const isOwner = normalizedRegCode !== '' && normalizedRegCode === normalizedCurrentId;
+
+  // アクションボタンエリア（取消ボタン用エリア含む）
+  const actionButtonsHtml = isOwner ? `
+    <div style="display: flex; gap: 5px; flex-shrink: 0; align-items: center;">
+      <button type="button" id="cancel-btn-${h.slipNo}" onclick="cancelEditMode('${h.slipNo}')" 
+              style="display: none; padding: 4px 8px; font-size: 0.8rem; background: #6c757d; color: #fff; border: none; border-radius: 3px; cursor: pointer;">
+        修正取消
+      </button>
+      <button type="button" id="edit-btn-${h.slipNo}" onclick="toggleEditMode('${h.slipNo}')" 
+              style="padding: 4px 8px; font-size: 0.8rem; background: #28a745; color: #fff; border: none; border-radius: 3px; cursor: pointer;">
+        修正
+      </button>
+      <button type="button" id="delete-btn-${h.slipNo}" onclick="openDeleteModal('${h.slipNo}', '${h.customerName}')" 
+              style="padding: 4px 8px; font-size: 0.8rem; background: #dc3545; color: #fff; border: none; border-radius: 3px; cursor: pointer;">
+        削除
+      </button>
+    </div>
+  ` : '';
 
         html += `
           <div id="slip-block-${h.slipNo}" style="background: #fff; padding: 10px; margin-top: 15px; border-left: 4px solid #007bff; display: flex; justify-content: space-between; align-items: center;">
@@ -1232,26 +1247,29 @@ result.data.forEach(group => {
             </thead>
             <tbody>
         `;
-        group.details.forEach(d => {
-          html += `
-            <tr data-item-code="${d.itemCode}">
-              <td>${d.itemCode}</td>
-              <td>${d.janCode}</td>
-              <td>${d.itemName}</td>
-              <td style="text-align: right;">
-                <span class="qty-text">${d.quantity}</span> ${d.unit || ''}
-                <input type="number" class="qty-input" value="${d.quantity}" style="display: none; width: 70px; text-align: right;" min="0">
-              </td>
-            </tr>
-          `;
-        });
+  
+group.details.forEach(d => {
+    // ★ 数量変更窓の位置修正: input を左側、span(単位) を右側に配置
+    html += `
+      <tr data-item-code="${d.itemCode}">
+        <td>${d.itemCode}</td>
+        <td>${d.janCode}</td>
+        <td>${d.itemName}</td>
+        <td style="text-align: right;">
+          <span class="qty-text">${d.quantity}</span>
+          <input type="number" class="qty-input" value="${d.quantity}" data-original-val="${d.quantity}" style="display: none; width: 70px; text-align: right; margin-right: 4px;" min="0">
+          <span class="unit-text">${d.unit || ''}</span>
+        </td>
+      </tr>
+    `;
+  });
 
-        if (h.note) {
-          html += `<tr><td colspan="4" style="color: #666; background: #fafafa;"><strong>備考:</strong> ${h.note}</td></tr>`;
-        }
+  if (h.note) {
+    html += `<tr><td colspan="4" style="color: #666; background: #fafafa;"><strong>備考:</strong> ${h.note}</td></tr>`;
+  }
 
-        html += `</tbody></table>`;
-      });
+  html += `</tbody></table>`;
+});
 
       tableArea.innerHTML = html;
       container.style.display = 'block';
@@ -1270,17 +1288,25 @@ result.data.forEach(group => {
 // 編集モードの切り替え・送信実行
 async function toggleEditMode(slipNo) {
   const table = document.getElementById(`table-${slipNo}`);
-  const btn = document.getElementById(`edit-btn-${slipNo}`);
-  const isEditing = btn.textContent === '送信';
+  const editBtn = document.getElementById(`edit-btn-${slipNo}`);
+  const cancelBtn = document.getElementById(`cancel-btn-${slipNo}`);
+  const deleteBtn = document.getElementById(`delete-btn-${slipNo}`);
+  const isEditing = editBtn.textContent === '送信';
 
   if (!isEditing) {
-    // 修正モードへ移行（表示用テキストを隠し、Inputを表示）
+    // 【修正モードへ移行】
     table.querySelectorAll('.qty-text').forEach(el => el.style.display = 'none');
     table.querySelectorAll('.qty-input').forEach(el => el.style.display = 'inline-block');
-    btn.textContent = '送信';
-    btn.style.background = '#007bff';
+    
+    editBtn.textContent = '送信';
+    editBtn.style.background = '#007bff';
+    
+    // 修正取消ボタンを表示、削除ボタンを隠す
+    if (cancelBtn) cancelBtn.style.display = 'inline-block';
+    if (deleteBtn) deleteBtn.style.display = 'none';
+
   } else {
-    // 送信処理実行
+    // 【送信処理実行】
     const items = [];
     table.querySelectorAll('tbody tr[data-item-code]').forEach(tr => {
       const itemCode = tr.getAttribute('data-item-code');
@@ -1293,8 +1319,9 @@ async function toggleEditMode(slipNo) {
       }
     });
 
-    btn.disabled = true;
-    btn.textContent = '送信中...';
+    editBtn.disabled = true;
+    editBtn.textContent = '送信中...';
+    if (cancelBtn) cancelBtn.style.display = 'none';
 
     try {
       const response = await fetch(GAS_WEB_APP_URL, {
@@ -1310,19 +1337,47 @@ async function toggleEditMode(slipNo) {
       const res = await response.json();
       if (res.status === 'success') {
         alert(res.message);
-        // 条件を保持したまま再取得
-        await loadReportTableData();
+        await loadReportTableData(); // 画面再読み込み
       } else {
         alert('更新エラー: ' + res.message);
-        btn.disabled = false;
-        btn.textContent = '送信';
+        editBtn.disabled = false;
+        editBtn.textContent = '送信';
+        if (cancelBtn) cancelBtn.style.display = 'inline-block';
       }
     } catch (err) {
       alert('通信エラーが発生しました: ' + err.message);
-      btn.disabled = false;
-      btn.textContent = '送信';
+      editBtn.disabled = false;
+      editBtn.textContent = '送信';
+      if (cancelBtn) cancelBtn.style.display = 'inline-block';
     }
   }
+}
+
+// 修正取消処理
+function cancelEditMode(slipNo) {
+  const table = document.getElementById(`table-${slipNo}`);
+  const editBtn = document.getElementById(`edit-btn-${slipNo}`);
+  const cancelBtn = document.getElementById(`cancel-btn-${slipNo}`);
+  const deleteBtn = document.getElementById(`delete-btn-${slipNo}`);
+
+  // 入力欄を元の数値に戻して非表示にし、テキスト表示に戻す
+  table.querySelectorAll('.qty-input').forEach(input => {
+    const originalVal = input.getAttribute('data-original-val');
+    if (originalVal !== null) {
+      input.value = originalVal;
+    }
+    input.style.display = 'none';
+  });
+
+  table.querySelectorAll('.qty-text').forEach(el => el.style.display = 'inline');
+
+  // ボタンの状態を「修正」「削除」に戻し、「取消」を隠す
+  editBtn.textContent = '修正';
+  editBtn.style.background = '#28a745';
+  editBtn.disabled = false;
+
+  if (cancelBtn) cancelBtn.style.display = 'none';
+  if (deleteBtn) deleteBtn.style.display = 'inline-block';
 }
 
 // 削除モーダル制御
