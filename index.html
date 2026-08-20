@@ -429,15 +429,32 @@
       </div>
     </div>
 
-    <!-- 2行目：得意先検索 & 選択 -->
-    <div class="form-group-row" style="margin-bottom: 1rem;">
-      <div class="form-group-item" style="flex: 1;">
-        <label for="pdfCustomerSearchInput">得意先検索</label>
-        <input type="text" id="pdfCustomerSearchInput" placeholder="得意先名やコードで検索..." style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 0.25rem; margin-bottom: 0.3rem;">
-        <select id="pdfCustomerSelect" style="width: 100%; padding: 0.625rem; border: 1px solid var(--border-color); border-radius: 0.25rem;">
-          <option value="">すべての得意先</option>
-        </select>
+<!-- 2行目：得意先選択（登録ページと同等のグリッド・サジェスト・表示テーブル） -->
+    <label>得意先絞り込み（指定なしで全得意先対象）:</label>
+    <div class="search-display-grid">
+      <div class="col-1-3">
+        <input type="text" id="pdfCustomerSearch" placeholder="得意先コード・名称・カナ検索" autocomplete="off">
+        <div id="pdfCustomerSuggest" class="suggest-window"></div>
+        <input type="hidden" id="selectedPdfCustomerCode">
+        <button type="button" id="pdfCustomerClearBtn" class="btn-secondary" style="margin-top: 5px; width: 100%; padding: 0.3rem; font-size: 0.8rem; display: none;" onclick="clearPdfCustomerSelection()">得意先指定を解除</button>
       </div>
+      <div class="col-2-3">
+        <div class="display-table-container">
+          <table class="display-table">
+            <thead>
+              <tr>
+                <th>得意先コード</th><th>得意先名</th><th>ルートコード</th><th>配送ルート名</th><th>担当者コード</th><th>担当者</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr id="pdfCustomerDisplayRow">
+                <td colspan="6" class="empty-td">すべての得意先（指定する場合は左の検索窓から選択）</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
 
       <!-- 登録者選択 -->
       <div class="form-group-item" style="flex: 1;">
@@ -675,10 +692,11 @@ function initReportForm() {
       opt.textContent = `[${code}] ${masterRoutes[code]}`;
       routeSelect.appendChild(opt);
     });
-  }
 
-  // 2. 得意先セレクトボックスの初期生成 ＆ インクリメンタル検索イベント登録
-  initCustomerSearch();
+    }
+
+  // 2. 帳票用 得意先サジェストのセットアップ
+  setupPdfCustomerSuggest();
 
   // 3. 登録者セレクトボックスの生成
   initUserSelect();
@@ -719,22 +737,75 @@ function initCustomerSearch() {
   }
 }
 
-// 得意先プルダウンの描画
-function renderCustomerOptions(customers) {
-  const customerSelect = document.getElementById('pdfCustomerSelect');
-  if (!customerSelect) return;
+// 帳票用 得意先サジェスト＆テーブル表示処理
+function setupPdfCustomerSuggest() {
+  const input = document.getElementById('pdfCustomerSearch');
+  const suggest = document.getElementById('pdfCustomerSuggest');
+  const codeHidden = document.getElementById('selectedPdfCustomerCode');
+  const displayRow = document.getElementById('pdfCustomerDisplayRow');
+  const clearBtn = document.getElementById('pdfCustomerClearBtn');
 
-  customerSelect.innerHTML = '<option value="">すべての得意先</option>';
-  customers.forEach(c => {
-    const code = c.得意先コード || c.customerCode || '';
-    const name = c.得意先名 || c.customerName || '';
-    if (code || name) {
-      const opt = document.createElement('option');
-      opt.value = code;
-      opt.textContent = `[${code}] ${name}`;
-      customerSelect.appendChild(opt);
+  if (!input || input.dataset.hasListener) return;
+  input.dataset.hasListener = 'true';
+
+  input.addEventListener('input', () => {
+    const keyword = normalizeToKatakana(input.value.trim());
+    suggest.innerHTML = '';
+    if (!keyword) { suggest.style.display = 'none'; return; }
+
+    const filtered = masterCustomers.filter(item => {
+      const vals = Object.values(item).map(v => normalizeToKatakana(String(v)));
+      return vals.some(v => v.includes(keyword));
+    });
+
+    if (filtered.length === 0) {
+      suggest.innerHTML = '<div class="suggest-item" style="color:#999;">該当なし</div>';
+      suggest.style.display = 'block';
+      return;
+    }
+
+    filtered.forEach(item => {
+      const keys = Object.keys(item);
+      const code = item[keys[0]] || '';
+      const name = item[keys[1]] || '';
+      const staffCode = item[keys[61]] !== undefined ? String(item[keys[61]]).trim() : '';
+      const staffName = masterStaffs[staffCode] || (staffCode ? `未登録 (${staffCode})` : '');
+      const routeCode = item[keys[70]] !== undefined ? String(item[keys[70]]).trim() : '';
+      const routeName = masterRoutes[routeCode] || (routeCode ? `未登録 (${routeCode})` : '');
+
+      const div = document.createElement('div');
+      div.className = 'suggest-item';
+      div.innerHTML = `<span class="code">${code}</span> ${name}`;
+
+      div.addEventListener('click', () => {
+        codeHidden.value = code;
+
+        displayRow.innerHTML = `
+          <td>${code}</td><td>${name}</td><td>${routeCode || '-'}</td>
+          <td>${routeName || '-'}</td><td>${staffCode || '-'}</td><td>${staffName || '-'}</td>
+        `;
+
+        input.value = '';
+        suggest.style.display = 'none';
+        if (clearBtn) clearBtn.style.display = 'block';
+      });
+      suggest.appendChild(div);
+    });
+    suggest.style.display = 'block';
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#pdfCustomerSearch') && !e.target.closest('#pdfCustomerSuggest')) {
+      suggest.style.display = 'none';
     }
   });
+}
+
+// 帳票用 得意先選択クリア
+function clearPdfCustomerSelection() {
+  document.getElementById('selectedPdfCustomerCode').value = '';
+  document.getElementById('pdfCustomerDisplayRow').innerHTML = '<td colspan="6" class="empty-td">すべての得意先（指定する場合は左の検索窓から選択）</td>';
+  document.getElementById('pdfCustomerClearBtn').style.display = 'none';
 }
 
 // 登録者プルダウン初期化
@@ -766,8 +837,7 @@ async function generateReportPdf() {
   const routeCode = routeSelect ? routeSelect.value : '';
   const routeName = (routeSelect && routeSelect.selectedIndex >= 0) ? routeSelect.options[routeSelect.selectedIndex].text : '';
 
-  const customerSelect = document.getElementById('pdfCustomerSelect');
-  const customerCode = customerSelect ? customerSelect.value : '';
+ const customerCode = document.getElementById('selectedPdfCustomerCode') ? document.getElementById('selectedPdfCustomerCode').value : '';
 
   const userSelect = document.getElementById('pdfUserSelect');
   const userName = userSelect ? userSelect.value : '';
