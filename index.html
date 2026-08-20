@@ -718,6 +718,20 @@ function initReportForm() {
     });
   }
 
+  // 2. 登録者（ユーザー）セレクトボックスの生成【ここを追加】
+  const userSelect = document.getElementById('pdfUserSelect');
+  if (userSelect && userSelect.options.length <= 1 && typeof masterUsers !== 'undefined' && Object.keys(masterUsers).length > 0) {
+    Object.keys(masterUsers).forEach(code => {
+      const opt = document.createElement('option');
+      // 値(value)にコードか名前を設定（ここではコードをセット）
+      opt.value = code; 
+      // 表示テキストを「[A列:コード] C列:名前」の形式にする
+      opt.textContent = `[${code}] ${masterUsers[code]}`; 
+      userSelect.appendChild(opt);
+    });
+  }
+}
+
   // 2. 帳票用 得意先サジェストのセットアップ
   setupPdfCustomerSuggest();
 
@@ -809,27 +823,6 @@ function clearPdfCustomerSelection() {
 }
 
 
-// 登録者プルダウン初期化（ユーザーマスター参照に修正）
-function initUserSelect() {
-  const userSelect = document.getElementById('pdfUserSelect');
-  if (!userSelect || userSelect.options.length > 1) return;
-
-  // masterUsers が存在するか確認
-  if (typeof masterUsers === 'object' && masterUsers !== null) {
-    // オブジェクトの全値（ユーザー名配列）を取得してループ
-    Object.values(masterUsers).forEach(user => {
-      // オブジェクトの中に { name: "山田太郎" } 形式で入っている場合と、文字列そのままの場合に対応
-      const userName = (typeof user === 'object' && user !== null) ? user.name : user;
-
-      if (userName) {
-        const opt = document.createElement('option');
-        opt.value = userName;
-        opt.textContent = userName;
-        userSelect.appendChild(opt);
-      }
-    });
-  }
-}  
 
 // PDF発行リクエスト処理
 async function generateReportPdf() {
