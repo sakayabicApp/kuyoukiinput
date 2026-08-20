@@ -969,6 +969,12 @@ async function generateReportPdf() {
   pdfBtn.disabled = true;
   pdfBtn.textContent = '回収一覧作成中...';
 
+  // ★ 1. ボタンを押した直後に空の新しいタブを開く（ポップアップブロック回避策）
+  const printWindow = window.open('about:blank', '_blank');
+  if (printWindow) {
+    printWindow.document.write('<html><head><title>PDF生成中...</title></head><body style="font-family:sans-serif; text-align:center; padding-top:50px;"><h2>PDFを生成しています。しばらくお待ちください...</h2></body></html>');
+  }
+
   try {
     const response = await fetch(GAS_WEB_APP_URL, {
       method: 'POST',
@@ -987,7 +993,7 @@ async function generateReportPdf() {
     const result = await response.json();
 
     if (result.status === 'success' && result.pdfBase64) {
-      // Base64データをBlob化してブラウザで表示できる一時URLを生成
+      // Base64データをBlob化
       const byteCharacters = atob(result.pdfBase64);
       const byteNumbers = new Array(byteCharacters.length);
       for (let i = 0; i < byteCharacters.length; i++) {
@@ -997,19 +1003,22 @@ async function generateReportPdf() {
       const blob = new Blob([byteArray], { type: 'application/pdf' });
       const blobUrl = URL.createObjectURL(blob);
 
-      // 新しいタブでPDFを開く（ブラウザの標準PDFビューアーが起動）
-      const newTab = window.open(blobUrl, '_blank');
-      if (!newTab) {
-        alert('ポップアップがブロックされました。ブラウザの設定をご確認ください。');
+      // ★ 2. 先ほど開いた新しいタブにPDFを表示させる
+      if (printWindow) {
+        printWindow.location.href = blobUrl;
+      } else {
+        window.location.href = blobUrl; // 万が一タブが開けなかった場合は自画面で開く
       }
     } else {
+      if (printWindow) printWindow.close(); // エラー時は開いたタブを閉じる
       alert(result.message || 'PDFの生成に失敗しました。');
     }
   } catch (err) {
+    if (printWindow) printWindow.close();
     alert('通信エラーが発生しました: ' + err.message);
   } finally {
     pdfBtn.disabled = false;
-    pdfBtn.textContent = 'PDF作成'; // ボタン名に合わせて修正
+    pdfBtn.textContent = 'PDF作成';
   }
 }
 
