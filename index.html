@@ -444,12 +444,20 @@
       <!-- アクションボタンエリア -->
       <div style="text-align: right; margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 10px;">
         <button type="button" class="btn-secondary" onclick="resetReportForm()">条件クリア</button>
-        <button type="button" id="generatePdfBtn" class="btn-primary" style="max-width: 250px;" onclick="generateReportPdf()">
-          PDF発行
-        </button>
+        <!-- ボタンエリア -->
+<div style="margin-top: 15px; display: flex; gap: 10px;">
+  <button id="generatePdfBtn" onclick="generateReportPdf()">回収一覧PDF作成</button>
+  <button id="showDataBtn" onclick="loadReportTableData()">データ表示</button> <!-- ★追加 -->
+</div>
       </div>
     </div>
-  </div><!-- /#pageReport 閉じ -->
+    <!-- /#pageReport 閉じ -->
+  <!-- データ表示テーブル領域 ★追加 -->
+<div id="reportTableContainer" style="margin-top: 20px; display: none;">
+  <h3>抽出結果一覧</h3>
+  <div id="reportTableArea"></div>
+</div>
+  </div>
 
 </div><!-- /.container 閉じ -->
 
