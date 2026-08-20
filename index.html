@@ -356,7 +356,10 @@
         <label for="note">備考 / メモ:</label>
         <input type="text" id="note" placeholder="備考があれば入力">
       </div>
-
+<div class="action-area" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" class="btn-secondary" onclick="resetRegisterForm()">入力クリア</button>
+        <button type="button" id="openConfirmBtn" class="btn-primary">送信する</button>
+      </div>
       <label>空容器数量入力（入力後、下の送信ボタンで確定）:</label>
       <div class="table-container">
         <table>
@@ -371,10 +374,7 @@
         </table>
       </div>
 
-      <div class="action-area" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
-        <button type="button" class="btn-secondary" onclick="resetRegisterForm()">入力クリア</button>
-        <button type="button" id="openConfirmBtn" class="btn-primary">送信する</button>
-      </div>
+      
     </form>
   </div><!-- /#pageRegister 閉じ -->
 
