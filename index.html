@@ -1083,12 +1083,16 @@ function resetReportForm() {
       });
     }
   
- // データ表表示
-  async function loadReportTableData() {
+// データ表表示
+async function loadReportTableData() {
   const startDate = document.getElementById('pdfStartDate').value;
   const endDate = document.getElementById('pdfEndDate').value;
   const routeCode = document.getElementById('pdfRouteSelect').value;
-  const customerCode = document.getElementById('pdfCustomerCode').value;
+  
+  // ★修正: id="pdfCustomerCode" ではなく id="selectedPdfCustomerCode" から取得
+  const customerInput = document.getElementById('selectedPdfCustomerCode');
+  const customerCode = customerInput ? customerInput.value : '';
+
   const userSelect = document.getElementById('pdfUserSelect');
   const selectedUserCode = userSelect ? userSelect.value : '';
 
@@ -1114,6 +1118,7 @@ function resetReportForm() {
         endDate: endDate,
         routeCode: routeCode,
         customerCode: customerCode,
+        registrantCode: selectedUserCode, // ★修正: registrantCodeとして送信
         userCode: selectedUserCode
       })
     });
