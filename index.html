@@ -287,6 +287,22 @@
     font-size: 0.85rem;       /* 文字サイズを少し小さくして収まりを良くする */
     text-align: center;
   }
+
+  .action-area {
+    display: flex !important;
+    width: 100%;
+    gap: 10px !important;
+  }
+
+  /* 2つのボタンを幅50%ずつに指定 */
+  .action-area button {
+    flex: 1 1 50%;
+    width: 50%;
+    white-space: nowrap;       /* 文字の改行（縦書き化）を防止 */
+    padding: 10px 4px !important; /* タップしやすい高さ調整 */
+    font-size: 0.9rem;
+    text-align: center;
+  }  
     
   }  
 </style>
