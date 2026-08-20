@@ -235,6 +235,11 @@
   flex: 1;
   min-width: 220px;
 }
+
+/* ★追加: 対象期間だけPC時に少し幅を広くする */
+.date-range-item {
+  flex: 1.5;
+}
   
 </style>
 </head>
@@ -382,34 +387,34 @@
         空容器回収一覧発行
       </h3>
       
-      <!-- 1行目：対象期間 / ルート選択 / 登録者選択（3カラム並列） -->
-      <div class="form-group-row" style="margin-bottom: 1rem; display: flex; gap: 1rem; align-items: flex-end;">
-        <!-- 対象期間 -->
-        <div class="form-group-item" style="flex: 1;">
-          <label for="pdfStartDate">対象期間 <span style="color:red;">*</span></label>
-          <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <input type="date" id="pdfStartDate" required style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 0.25rem;">
-            <span>〜</span>
-            <input type="date" id="pdfEndDate" required style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 0.25rem;">
-          </div>
-        </div>
+<!-- 1行目：対象期間 / ルート選択 / 登録者選択 -->
+<div class="form-group-row">
+  <!-- 対象期間 -->
+  <div class="form-group-item date-range-item">
+    <label for="pdfStartDate">対象期間 <span style="color:red;">*</span></label>
+    <div style="display: flex; align-items: center; gap: 0.25rem;">
+      <input type="date" id="pdfStartDate" required style="width: 100%; min-width: 0; padding: 0.4rem; border: 1px solid var(--border-color); border-radius: 0.25rem; font-size: 0.9rem;">
+      <span style="flex-shrink: 0;">〜</span>
+      <input type="date" id="pdfEndDate" required style="width: 100%; min-width: 0; padding: 0.4rem; border: 1px solid var(--border-color); border-radius: 0.25rem; font-size: 0.9rem;">
+    </div>
+  </div>
 
-        <!-- ルート選択 -->
-        <div class="form-group-item" style="flex: 1;">
-          <label for="pdfRouteSelect">ルート選択</label>
-          <select id="pdfRouteSelect" style="width: 100%; padding: 0.625rem; border: 1px solid var(--border-color); border-radius: 0.25rem;">
-            <option value="">すべてのルート</option>
-          </select>
-        </div>
+  <!-- ルート選択 -->
+  <div class="form-group-item">
+    <label for="pdfRouteSelect">ルート選択</label>
+    <select id="pdfRouteSelect" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 0.25rem; font-size: 0.9rem;">
+      <option value="">すべてのルート</option>
+    </select>
+  </div>
 
-        <!-- 登録者選択（ユーザーマスターから取得） -->
-        <div class="form-group-item" style="flex: 1;">
-          <label for="pdfUserSelect">登録者選択</label>
-          <select id="pdfUserSelect" style="width: 100%; padding: 0.625rem; border: 1px solid var(--border-color); border-radius: 0.25rem;">
-            <option value="">すべての登録者</option>
-          </select>
-        </div>
-      </div>
+  <!-- 登録者選択 -->
+  <div class="form-group-item">
+    <label for="pdfUserSelect">登録者選択</label>
+    <select id="pdfUserSelect" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 0.25rem; font-size: 0.9rem;">
+      <option value="">すべての登録者</option>
+    </select>
+  </div>
+</div>
 
       <!-- 2行目：得意先選択 -->
       <label>得意先絞り込み（指定なしで全得意先対象）:</label>
@@ -805,16 +810,18 @@ function clearPdfCustomerSelection() {
   if (clearBtn) clearBtn.style.display = 'none';
 }
 
-// 登録者プルダウン初期化 (修正：オブジェクト構造に対応)
+// 登録者プルダウン初期化（ユーザーマスター参照に変更）
 function initUserSelect() {
   const userSelect = document.getElementById('pdfUserSelect');
   if (!userSelect || userSelect.options.length > 1) return;
 
-  if (typeof masterStaffs === 'object' && Object.keys(masterStaffs).length > 0) {
-    Object.values(masterStaffs).forEach(name => {
+  // 変数名（masterUsers等）は実際の定義に合わせて修正してください
+  if (typeof masterUsers === 'object' && Object.keys(masterUsers).length > 0) {
+    Object.entries(masterUsers).forEach(([id, name]) => {
       if (name) {
         const opt = document.createElement('option');
-        opt.value = name;
+        // 値にユーザーIDを設定する場合は id、名前なら name
+        opt.value = name; 
         opt.textContent = name;
         userSelect.appendChild(opt);
       }
