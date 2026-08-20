@@ -958,7 +958,7 @@ async function generateReportPdf() {
   const customerCode = document.getElementById('selectedPdfCustomerCode') ? document.getElementById('selectedPdfCustomerCode').value : '';
 
   const userSelect = document.getElementById('pdfUserSelect');
-  const selectedUserCode = userSelect ? userSelect.value : '';
+  const selectedUserCode = userSelect ? userSelect.value : ''; // ★ 変数名を分かりやすく変更
 
   if (!startDate || !endDate) {
     alert('対象期間を入力してください。');
@@ -968,9 +968,6 @@ async function generateReportPdf() {
   const pdfBtn = document.getElementById('generatePdfBtn');
   pdfBtn.disabled = true;
   pdfBtn.textContent = '回収一覧作成中...';
-
-  // ポップアップブロック回避のため先に新しいタブを開く
-  const printWindow = window.open('about:blank', '_blank');
 
   try {
     const response = await fetch(GAS_WEB_APP_URL, {
@@ -983,32 +980,28 @@ async function generateReportPdf() {
         routeCode: routeCode,
         routeName: routeCode ? routeName : 'すべて',
         customerCode: customerCode,
-        userCode: selectedUserCode
+        userCode: selectedUserCode // ★ userCode として送信
       })
     });
 
     const result = await response.json();
 
     if (result.status === 'success' && result.pdfUrl) {
-      // 生成されたPDFのURLを開く
-      if (printWindow) {
-        printWindow.location.href = result.pdfUrl;
-      } else {
-        window.open(result.pdfUrl, '_blank');
+      const newTab = window.open(result.pdfUrl, '_blank');
+      if (!newTab) {
+        alert('ポップアップがブロックされました。ブラウザのポップアップ許可設定をご確認ください。');
       }
     } else {
-      if (printWindow) printWindow.close();
       alert(result.message || 'PDFの生成に失敗しました。');
     }
   } catch (err) {
-    if (printWindow) printWindow.close();
-    alert('通信エラーが発生しました: ' + err.message);
+    console.error('PDF作成通信エラー:', err);
+    alert('通信エラーが発生しました。');
   } finally {
     pdfBtn.disabled = false;
-    pdfBtn.textContent = 'PDF作成';
+    pdfBtn.textContent = 'PDF表示';
   }
 }
-
     function setStoreSelect(code, name) {
       document.getElementById('selectedStoreCode').value = code;
       document.getElementById('selectedStoreName').value = name;
