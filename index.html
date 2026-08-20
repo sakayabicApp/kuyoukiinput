@@ -958,7 +958,7 @@ async function generateReportPdf() {
   const customerCode = document.getElementById('selectedPdfCustomerCode') ? document.getElementById('selectedPdfCustomerCode').value : '';
 
   const userSelect = document.getElementById('pdfUserSelect');
-  const selectedUserCode = userSelect ? userSelect.value : ''; // ★ 変数名を分かりやすく変更
+  const selectedUserCode = userSelect ? userSelect.value : '';
 
   if (!startDate || !endDate) {
     alert('対象期間を入力してください。');
@@ -980,11 +980,10 @@ async function generateReportPdf() {
         routeCode: routeCode,
         routeName: routeCode ? routeName : 'すべて',
         customerCode: customerCode,
-        userCode: selectedUserCode // ★ userCode として送信
+        userCode: selectedUserCode
       })
     });
 
-// JS側の generateReportPdf 内のレスポンス処理部分
     const result = await response.json();
 
     if (result.status === 'success' && result.pdfBase64) {
@@ -1005,9 +1004,12 @@ async function generateReportPdf() {
       }
     } else {
       alert(result.message || 'PDFの生成に失敗しました。');
-    }finally {
+    }
+  } catch (err) {
+    alert('通信エラーが発生しました: ' + err.message);
+  } finally {
     pdfBtn.disabled = false;
-    pdfBtn.textContent = 'PDF発行';
+    pdfBtn.textContent = 'PDF作成'; // ボタン名に合わせて修正
   }
 }
 
