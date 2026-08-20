@@ -523,6 +523,7 @@ function checkLogin() {
 
   if (savedUser) {
     currentUserName = savedUser;
+    currentUserId = savedUserId || ''; // ★追加：ユーザーコードをセット
     document.getElementById('currentUserName').textContent = currentUserName;
     document.getElementById('userBadge').style.display = 'flex';
     loginModal.style.display = 'none';
@@ -557,7 +558,9 @@ function checkLogin() {
 
         if (result.status === 'success') {
           currentUserName = result.userName;
+          currentUserId = result.userId || userId; // ★追加：ユーザーコードを代入
           localStorage.setItem('containerAppUserName', currentUserName);
+          localStorage.setItem('containerAppUserId', currentUserId); // ★追加：ローカルストレージに保存
           checkLogin();
         } else {
           errorDiv.textContent = result.message || 'ログインエラー';
@@ -576,7 +579,9 @@ function checkLogin() {
 // ログアウト処理
 function logout() {
   localStorage.removeItem('containerAppUserName');
+  localStorage.removeItem('containerAppUserId'); // ★追加
   currentUserName = '';
+  currentUserId = ''; // ★追加
   document.getElementById('userBadge').style.display = 'none';
   document.getElementById('loadingOverlay').style.display = 'none';
   document.getElementById('loginModal').style.display = 'flex';
