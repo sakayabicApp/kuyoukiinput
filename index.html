@@ -459,7 +459,8 @@
       </div>
     </div>
 
-      <!-- 登録者選択 -->
+    <!-- 3行目：登録者選択 -->
+    <div class="form-group-row" style="margin-bottom: 1rem; margin-top: 1rem;">
       <div class="form-group-item" style="flex: 1;">
         <label for="pdfUserSelect">登録者選択</label>
         <select id="pdfUserSelect" style="width: 100%; padding: 0.625rem; border: 1px solid var(--border-color); border-radius: 0.25rem;">
@@ -468,16 +469,16 @@
       </div>
     </div>
 
-   <!-- 変更後 -->
-<div style="text-align: right; margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 10px;">
-  <button type="button" class="btn-secondary" onclick="resetReportForm()">条件クリア</button>
-  <button type="button" id="generatePdfBtn" class="btn-primary" style="max-width: 250px;" onclick="generateReportPdf()">
-    PDF発行
-  </button>
-</div>
-</div>
-</div>
+    <!-- アクションボタンエリア -->
+    <div style="text-align: right; margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 10px;">
+      <button type="button" class="btn-secondary" onclick="resetReportForm()">条件クリア</button>
+      <button type="button" id="generatePdfBtn" class="btn-primary" style="max-width: 250px;" onclick="generateReportPdf()">
+        PDF発行
+      </button>
+    </div>
   </div>
+</div>
+
     
 
 
@@ -493,30 +494,40 @@
     let currentUserName = '';
     let currentPayload = null;
 
-    // 初期ロード
-    window.addEventListener('DOMContentLoaded', () => {
-      // 伝票日付のデフォルト（本日）
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById('slipDate').value = today;
+// 初期ロード
+window.addEventListener('DOMContentLoaded', () => {
+  // 伝票日付のデフォルト（本日）
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('slipDate').value = today;
 
-      checkLogin();
-      loadMasterData();
-      setupStoreSuggest();
-      setupCustomerSuggest();
-    });
+  setupStoreSuggest();
+  setupCustomerSuggest();
 
-    // ログイン状態チェック
-    function checkLogin() {
-      const savedUser = localStorage.getItem('containerAppUserName');
-      if (savedUser) {
-        currentUserName = savedUser;
-        document.getElementById('currentUserName').textContent = currentUserName;
-        document.getElementById('userBadge').style.display = 'flex';
-        document.getElementById('loginModal').style.display = 'none';
-      } else {
-        document.getElementById('loginModal').style.display = 'flex';
-      }
-    }
+  // ログインチェック（未ログインならログイン画面のみ表示、読み込み画面は隠す）
+  checkLogin();
+});
+
+// ログイン状態チェック
+function checkLogin() {
+  const savedUser = localStorage.getItem('containerAppUserName');
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  const loginModal = document.getElementById('loginModal');
+
+  if (savedUser) {
+    currentUserName = savedUser;
+    document.getElementById('currentUserName').textContent = currentUserName;
+    document.getElementById('userBadge').style.display = 'flex';
+    loginModal.style.display = 'none';
+
+    // ★ ログイン完了後に初めて起動画面（読み込み中）を表示してマスターを取得
+    loadingOverlay.style.display = 'flex';
+    loadMasterData();
+  } else {
+    // 未ログイン時は読み込み画面を非表示にしてログインダイアログのみ表示
+    loadingOverlay.style.display = 'none';
+    loginModal.style.display = 'flex';
+  }
+}
 
     // ログイン処理
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
