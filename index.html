@@ -344,6 +344,17 @@
           </div>
         </div>
 
+        <!-- 変更後 -->
+<div class="action-area" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+  <button type="button" class="btn-secondary" onclick="resetRegisterForm()">入力クリア</button>
+  <button type="button" id="openConfirmBtn" class="btn-primary">送信する</button>
+</div>
+
+ <div style="margin-bottom: 20px; margin-top: 15px;">
+          <label for="note">備考 / メモ:</label>
+          <input type="text" id="note" placeholder="備考があれば入力">
+        </div>
+
         <label>空容器数量入力（入力後、下の送信ボタンで確定）:</label>
         <div class="table-container">
           <table>
@@ -358,17 +369,9 @@
           </table>
         </div>
 
-        <div style="margin-bottom: 20px; margin-top: 15px;">
-          <label for="note">備考 / メモ:</label>
-          <input type="text" id="note" placeholder="備考があれば入力">
-        </div>
 
-<!-- 確認画面を開くボタンを追加 -->
-        <div class="action-area" style="margin-top: 20px;">
-          <button type="button" id="openConfirmBtn" class="btn-primary">入力内容を確認する</button>
-        </div>
-      </form>
-    </div>
+
+
 
     <!-- 欠落していた確認モーダルのHTMLを追加 -->
     <div id="confirmModal" class="modal-overlay">
@@ -465,14 +468,15 @@
       </div>
     </div>
 
-    <div style="text-align: right; margin-top: 1.5rem;">
-      <button type="button" id="generatePdfBtn" class="btn-primary" style="max-width: 250px;" onclick="generateReportPdf()">
-        PDF発行
-      </button>
-    </div>
-  </div>
+   <!-- 変更後 -->
+<div style="text-align: right; margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 10px;">
+  <button type="button" class="btn-secondary" onclick="resetReportForm()">条件クリア</button>
+  <button type="button" id="generatePdfBtn" class="btn-primary" style="max-width: 250px;" onclick="generateReportPdf()">
+    PDF発行
+  </button>
 </div>
-  </div>
+</div>
+</div>
 
 
   <script>
