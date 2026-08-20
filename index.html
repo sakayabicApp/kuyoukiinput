@@ -971,9 +971,6 @@ async function generateReportPdf() {
 
   // ポップアップブロック回避のため先に新しいタブを開く
   const printWindow = window.open('about:blank', '_blank');
-  if (printWindow) {
-    printWindow.document.write('<html><head><title>PDF生成中...</title></head><body style="font-family:sans-serif; text-align:center; padding-top:50px;"><h2>PDFを生成しています。しばらくお待ちください...</h2></body></html>');
-  }
 
   try {
     const response = await fetch(GAS_WEB_APP_URL, {
@@ -993,7 +990,7 @@ async function generateReportPdf() {
     const result = await response.json();
 
     if (result.status === 'success' && result.pdfUrl) {
-      // ドライブ上のプレビューURLへ移動
+      // 生成されたPDFのURLを開く
       if (printWindow) {
         printWindow.location.href = result.pdfUrl;
       } else {
