@@ -1155,9 +1155,8 @@ async function loadReportTableData() {
           : (h.regUserName || h.regUserCode || '');
 
         html += `
-          <div id="slip-block-${h.slipNo}" style="background: #f5f5f5; padding: 10px; margin-top: 15px; border-radius: 4px; border-left: 4px solid #007bff;">
+          <div id="slip-block-${h.slipNo}" style="background: #fff; padding: 10px; margin-top: 15px;border-left: 4px solid #007bff;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div style="background: #fff; padding: 10px; margin-top: 15px;border-left: 4px solid #007bff;">
             <strong>伝票日付</strong>:${h.date} 　<strong>伝票No</strong>:${h.slipNo}　<strong>得意先コード</strong>:${h.customerCode}　<strong>得意先名</strong>:${h.customerName}
             <br>
             <small style="color: #000;">担当:${h.staffName} 　登録日時: ${h.regDateTime} 　 登録者コード: ${h.regUserCode}　登録者: ${h.regUserName}</small></div>　
