@@ -1195,15 +1195,17 @@ result.data.forEach(group => {
 
   // アクションボタンエリア（取消ボタン用エリア含む）
   const actionButtonsHtml = isOwner ? `
-    <div style="display: flex; gap: 5px; flex-shrink: 0; align-items: center;">
-      <button type="button" id="cancel-btn-${h.slipNo}" onclick="cancelEditMode('${h.slipNo}')" 
-              style="display: none; padding: 4px 8px; font-size: 0.8rem; background: #6c757d; color: #fff; border: none; border-radius: 3px; cursor: pointer;">
-        修正取消
-      </button>
+ <div style="display: flex; gap: 5px; flex-shrink: 0; align-items: center;">
       <button type="button" id="edit-btn-${h.slipNo}" onclick="toggleEditMode('${h.slipNo}')" 
               style="padding: 4px 8px; font-size: 0.8rem; background: #28a745; color: #fff; border: none; border-radius: 3px; cursor: pointer;">
         修正
       </button>
+     
+      <button type="button" id="cancel-btn-${h.slipNo}" onclick="cancelEditMode('${h.slipNo}')" 
+              style="display: none; padding: 4px 8px; font-size: 0.8rem; background: #6c757d; color: #fff; border: none; border-radius: 3px; cursor: pointer;">
+        修正取消
+      </button>
+      
       <button type="button" id="delete-btn-${h.slipNo}" onclick="openDeleteModal('${h.slipNo}', '${h.customerName}')" 
               style="padding: 4px 8px; font-size: 0.8rem; background: #dc3545; color: #fff; border: none; border-radius: 3px; cursor: pointer;">
         削除
