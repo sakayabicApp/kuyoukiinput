@@ -959,6 +959,60 @@ async function generateReportPdf() {
       });
     }
 
+    // 登録ページの「日付以外」クリア処理
+function resetRegisterForm() {
+  // 1. 得意先情報のクリア
+  document.getElementById('customerSearch').value = '';
+  document.getElementById('selectedCustomerCode').value = '';
+  document.getElementById('selectedCustomerName').value = '';
+  document.getElementById('selectedRouteCode').value = '';
+  document.getElementById('selectedRouteName').value = '';
+  document.getElementById('selectedStaffCode').value = '';
+  if (document.getElementById('selectedStaffName')) {
+    document.getElementById('selectedStaffName').value = '';
+  }
+  document.getElementById('customerDisplayRow').innerHTML = 
+    '<td colspan="6" class="empty-td">未選択（左の検索窓から選択）</td>';
+
+  // 2. 出荷店情報のクリア
+  document.getElementById('storeSearch').value = '';
+  document.getElementById('selectedStoreCode').value = '';
+  document.getElementById('selectedStoreName').value = '';
+  document.getElementById('storeDisplayRow').innerHTML = 
+    '<td colspan="2" class="empty-td">未選択（得意先選択で自動反映・変更可）</td>';
+
+  // 3. 空容器数量のクリア
+  document.querySelectorAll('.container-qty').forEach(input => input.value = '');
+
+  // 4. 備考のクリア
+  document.getElementById('note').value = '';
+}
+
+// 帳票ページの「日付以外」クリア処理
+function resetReportForm() {
+  // 1. ルート選択を「すべてのルート」にリセット
+  const routeSelect = document.getElementById('pdfRouteSelect');
+  if (routeSelect) routeSelect.selectedIndex = 0;
+
+  // 2. 得意先選択をクリア
+  if (typeof clearPdfCustomerSelection === 'function') {
+    clearPdfCustomerSelection();
+  } else {
+    const codeHidden = document.getElementById('selectedPdfCustomerCode');
+    if (codeHidden) codeHidden.value = '';
+    const displayRow = document.getElementById('pdfCustomerDisplayRow');
+    if (displayRow) {
+      displayRow.innerHTML = '<td colspan="6" class="empty-td">すべての得意先（指定する場合は左の検索窓から選択）</td>';
+    }
+  }
+  const customerSearch = document.getElementById('pdfCustomerSearch');
+  if (customerSearch) customerSearch.value = '';
+
+  // 3. 登録者選択を「すべての登録者」にリセット
+  const userSelect = document.getElementById('pdfUserSelect');
+  if (userSelect) userSelect.selectedIndex = 0;
+}
+
 
     
     function setupCustomerSuggest() {
