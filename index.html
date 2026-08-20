@@ -235,6 +235,27 @@
   margin-right: 12px;
 }
 
+/* 数量入力欄の幅を固定化 */
+.container-qty {
+  width: 70px !important;    /* 固定したい幅（お好みのサイズに調整可能） */
+  box-sizing: border-box;    /* パディング等を含めた幅に固定 */
+  text-align: right;         /* 数字を右寄せ表示 */
+}
+
+/* 親要素（qty-cell）のレイアウトを揃える */
+.qty-cell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end; /* 右寄せ配置 */
+  gap: 4px;                  /* 入力欄と単位の間の余白 */
+}
+
+/* 単位テキストの自動伸縮を防ぐ */
+.unit-text {
+  flex-shrink: 0;            /* 単位テキストがつぶれないように保護 */
+  white-space: nowrap;       /* 単位の改行を防止 */
+}  
+
   @media (max-width: 767px) {
     html { font-size: 14px; }
     .search-display-grid { flex-direction: column; gap: 0.625rem; }
