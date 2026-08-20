@@ -997,6 +997,7 @@ function resetReportForm() {
   if (userSelect) userSelect.selectedIndex = 0;
 }
 
+
     function setupCustomerSuggest() {
       const input = document.getElementById('customerSearch');
       const suggest = document.getElementById('customerSuggest');
@@ -1074,6 +1075,100 @@ function resetReportForm() {
         if (!e.target.closest('#customerSearch') && !e.target.closest('#customerSuggest')) suggest.style.display = 'none';
       });
     }
+  
+ // データ表表示
+  async function loadReportTableData() {
+  const startDate = document.getElementById('pdfStartDate').value;
+  const endDate = document.getElementById('pdfEndDate').value;
+  const routeCode = document.getElementById('pdfRouteSelect').value;
+  const customerCode = document.getElementById('pdfCustomerCode').value;
+  const userSelect = document.getElementById('pdfUserSelect');
+  const selectedUserCode = userSelect ? userSelect.value : '';
+
+  if (!startDate || !endDate) {
+    alert('対象期間を入力してください。');
+    return;
+  }
+
+  const showBtn = document.getElementById('showDataBtn');
+  const container = document.getElementById('reportTableContainer');
+  const tableArea = document.getElementById('reportTableArea');
+
+  showBtn.disabled = true;
+  showBtn.textContent = 'データ取得中...';
+
+  try {
+    const response = await fetch(GAS_WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        action: 'fetchReportData',
+        startDate: startDate,
+        endDate: endDate,
+        routeCode: routeCode,
+        customerCode: customerCode,
+        userCode: selectedUserCode
+      })
+    });
+
+    const result = await response.json();
+
+    if (result.status === 'success') {
+      let html = '';
+
+      result.data.forEach(group => {
+        const h = group.header;
+        html += `
+          <div style="background: #f5f5f5; padding: 10px; margin-top: 15px; border-radius: 4px; border-left: 4px solid #007bff;">
+            <strong>日付:</strong> ${h.date} | 
+            <strong>伝票No:</strong> ${h.slipNo} | 
+            <strong>得意先:</strong> [${h.customerCode}] ${h.customerName} | 
+            <strong>担当:</strong> ${h.staffName} <br>
+            <small style="color: #666;">登録日時: ${h.regDateTime} / 登録者: ${h.regUser}</small>
+          </div>
+          <table border="1" style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
+            <thead>
+              <tr style="background: #eee;">
+                <th>商品コード</th>
+                <th>JANコード</th>
+                <th>商品名</th>
+                <th>数量</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+
+        group.details.forEach(d => {
+          html += `
+            <tr>
+              <td>${d.itemCode}</td>
+              <td>${d.janCode}</td>
+              <td>${d.itemName}</td>
+              <td style="text-align: right;">${d.quantity}</td>
+            </tr>
+          `;
+        });
+
+        if (h.note) {
+          html += `<tr><td colspan="4" style="color: #666; background: #fafafa;"><strong>備考:</strong> ${h.note}</td></tr>`;
+        }
+
+        html += `</tbody></table>`;
+      });
+
+      tableArea.innerHTML = html;
+      container.style.display = 'block';
+    } else {
+      alert('エラー: ' + result.message);
+      container.style.display = 'none';
+    }
+  } catch (err) {
+    alert('通信エラーが発生しました: ' + err.message);
+  } finally {
+    showBtn.disabled = false;
+    showBtn.textContent = 'データ表示';
+  }
+}
 
     // 確認モーダル & データ送信
     const confirmModal = document.getElementById('confirmModal');
