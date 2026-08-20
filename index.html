@@ -1156,7 +1156,7 @@ async function loadReportTableData() {
               <td>${d.itemCode}</td>
               <td>${d.janCode}</td>
               <td>${d.itemName}</td>
-              <td style="text-align: right;">${d.quantity}</td>
+              <td style="text-align: right;">${d.quantity} ${d.unit || ''}</td>
             </tr>
           `;
         });
