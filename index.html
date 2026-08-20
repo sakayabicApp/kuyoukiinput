@@ -518,6 +518,7 @@ window.addEventListener('DOMContentLoaded', () => {
 // ログイン状態チェック
 function checkLogin() {
   const savedUser = localStorage.getItem('containerAppUserName');
+  const savedUserId = localStorage.getItem('containerAppUserId'); // ★ const を付けて宣言する
   const loadingOverlay = document.getElementById('loadingOverlay');
   const loginModal = document.getElementById('loginModal');
 
