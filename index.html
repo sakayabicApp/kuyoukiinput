@@ -378,9 +378,7 @@
         帳票発行
       </button>
       <!-- ★追加: 管理者のみ表示するタブ（デフォルトは非表示） -->
-  <button type="button" id="tabMaster" class="nav-tab hidden" onclick="switchPage('master')" style="display: none;">
-    マスター管理
-  </button>
+  <button id="tabMaster" onclick="switchPage('master')" style="display: none;">マスター管理</button>
     </div>
   </div> 
   <div style="border-top: 2px solid var(--primary-color); margin-bottom: 1.25rem;"></div>
@@ -550,8 +548,9 @@
   <div id="reportTableArea"></div>
     </div>
     <!-- /#pageReport 閉じ -->
-<!-- 3. マスター管理ページ -->
-<div id="pageMaster" class="page-section hidden">
+
+      <!-- 3. マスター管理ページ -->
+<div id="pageMaster" class="hidden">
   <div class="report-card">
     <h3 style="margin-top:0; color: var(--primary-color); font-size: 1.1rem; margin-bottom: 1rem;">
       マスターデータ管理
@@ -896,7 +895,7 @@ function applyUserPermissions(userRole) {
   if (!masterTab) return;
   
   // ユーザーマスター4列目(管理区分)が '1' (管理者) の場合のみ表示
-  if (String(userRole).trim() === '1') {
+  if (String(userRole).trim() === 1) {
     masterTab.style.display = 'block';
   } else {
     masterTab.style.display = 'none';
