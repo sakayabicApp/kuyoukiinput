@@ -377,6 +377,10 @@
       <button type="button" id="tabReport" class="nav-tab" onclick="switchPage('report')">
         帳票発行
       </button>
+      <!-- ★追加: 管理者のみ表示するタブ（デフォルトは非表示） -->
+  <button type="button" id="tabMaster" class="nav-tab hidden" onclick="switchPage('master')" style="display: none;">
+    マスター管理
+  </button>
     </div>
   </div> 
   <div style="border-top: 2px solid var(--primary-color); margin-bottom: 1.25rem;"></div>
@@ -546,9 +550,54 @@
   <div id="reportTableArea"></div>
     </div>
     <!-- /#pageReport 閉じ -->
+<!-- 3. マスター管理ページ -->
+<div id="pageMaster" class="page-section hidden">
+  <div class="report-card">
+    <h3 style="margin-top:0; color: var(--primary-color); font-size: 1.1rem; margin-bottom: 1rem;">
+      マスターデータ管理
+    </h3>
+    
+    <!-- マスター切替サブタブ -->
+    <div style="display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 1px solid #ccc; padding-bottom: 5px; overflow-x: auto;">
+      <button type="button" class="btn-secondary sub-tab active" onclick="switchMasterTab('containers', this)">空容器</button>
+      <button type="button" class="btn-secondary sub-tab" onclick="switchMasterTab('stores', this)">出荷店</button>
+      <button type="button" class="btn-secondary sub-tab" onclick="switchMasterTab('routes', this)">ルート</button>
+      <button type="button" class="btn-secondary sub-tab" onclick="switchMasterTab('staffs', this)">担当者</button>
+      <button type="button" class="btn-secondary sub-tab" onclick="switchMasterTab('users', this)">ユーザー</button>
+    </div>
 
-</div>
+    <!-- アクションエリア -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <h4 id="currentMasterTitle" style="margin:0;">空容器マスター一覧</h4>
+      <button type="button" class="btn-primary" style="width: auto; padding: 0.4rem 1rem; font-size: 0.85rem;" onclick="openMasterModal('add')">+ 新規登録</button>
+    </div>
+
+    <!-- マスターテーブル表示エリア -->
+    <div class="table-container" style="max-height: 500px; overflow-y: auto;">
+      <table id="masterDataTable">
+        <thead id="masterTableHead"></thead>
+        <tbody id="masterTableBody"></tbody>
+      </table>
+    </div>
   </div>
+</div>
+
+<!-- マスター編集・新規モーダル -->
+<div id="masterFormModal" class="modal-overlay">
+  <div class="modal-content" style="max-width: 450px;">
+    <div class="modal-header" id="masterModalTitle">マスター登録/編集</div>
+    <form id="masterEditForm">
+      <div id="masterFormFields" style="margin-bottom: 15px;"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" onclick="closeMasterModal()">キャンセル</button>
+        <button type="submit" class="btn-primary" style="width: auto;">保存</button>
+      </div>
+    </form>
+  </div>
+</div>
+      
+</div>
+</div>
 
 </div><!-- /.container 閉じ -->
 
