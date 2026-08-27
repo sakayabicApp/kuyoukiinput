@@ -865,14 +865,7 @@ document.getElementById('tabRegister').classList.remove('active');
     // 帳票画面の初期化
     initReportForm();
   }
-  // 選択されたページに応じて表示を切り替える
-  if (pageName === 'register') {
-    document.getElementById('tabRegister').classList.add('active');
-    document.getElementById('registerPage').style.display = 'block';
-  } else if (pageName === 'report') {
-    document.getElementById('tabReport').classList.add('active');
-    document.getElementById('reportPage').style.display = 'block';
-  } else if (pageName === 'master') {                            // ★追加
+　　else if (pageName === 'master') {                            // ★追加
     document.getElementById('tabMaster').classList.add('active');
     document.getElementById('masterPage').style.display = 'block';
   }
