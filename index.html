@@ -378,7 +378,7 @@
         帳票発行
       </button>
       <!-- ★ここに追加：マスター管理タブ -->
-  <button type="button" id="tabMaster" class="nav-tab" onclick="switchTab('master')">マスター管理</button>
+  <button type="button" id="tabMaster" class="nav-tab" onclick="switchpage('master')">マスター管理</button>
     </div>
   </div> 
   <div style="border-top: 2px solid var(--primary-color); margin-bottom: 1.25rem;"></div>
@@ -842,10 +842,14 @@ async function loadMasterData() {
 
 // 画面切り替え（タブ選択）
 function switchPage(page) {
-  const regPage = document.getElementById('pageRegister');
-  const rptPage = document.getElementById('pageReport');
-  const tabReg = document.getElementById('tabRegister');
-  const tabRpt = document.getElementById('tabReport');
+document.getElementById('tabRegister').classList.remove('active');
+  document.getElementById('tabReport').classList.remove('active');
+  document.getElementById('tabMaster').classList.remove('active'); // ★追加
+
+  // すべてのコンテンツページを非表示にする
+  document.getElementById('registerPage').style.display = 'none';
+  document.getElementById('reportPage').style.display = 'none';
+  document.getElementById('masterPage').style.display = 'none';   // ★追加
 
   if (page === 'register') {
     regPage.classList.remove('hidden');
@@ -860,6 +864,17 @@ function switchPage(page) {
 
     // 帳票画面の初期化
     initReportForm();
+  }
+  // 選択されたページに応じて表示を切り替える
+  if (pageName === 'register') {
+    document.getElementById('tabRegister').classList.add('active');
+    document.getElementById('registerPage').style.display = 'block';
+  } else if (pageName === 'report') {
+    document.getElementById('tabReport').classList.add('active');
+    document.getElementById('reportPage').style.display = 'block';
+  } else if (pageName === 'master') {                            // ★追加
+    document.getElementById('tabMaster').classList.add('active');
+    document.getElementById('masterPage').style.display = 'block';
   }
 }
 
