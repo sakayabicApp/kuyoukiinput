@@ -873,39 +873,40 @@ async function loadMasterData() {
       });
     }
 
-// 画面切り替え（タブ選択）
+// 画面切り替え（メインタブ選択）
 function switchPage(page) {
   const regPage = document.getElementById('pageRegister');
   const rptPage = document.getElementById('pageReport');
-  const mstPage = document.getElementById('pageMaster'); // ★追加
+  const mstPage = document.getElementById('pageMaster');
+
   const tabReg = document.getElementById('tabRegister');
   const tabRpt = document.getElementById('tabReport');
-  const tabMst = document.getElementById('tabMaster');   // ★追加
+  const tabMst = document.getElementById('tabMaster');
 
   if (page === 'register') {
-    regPage.classList.remove('hidden');
-    rptPage.classList.add('hidden');
-    mstPage.classList.add('hidden'); // ★追加
+    regPage.style.display = 'block';
+    rptPage.style.display = 'none';
+    mstPage.style.display = 'none';
 
     tabReg.classList.add('active');
     tabRpt.classList.remove('active');
-    tabMst.classList.remove('active'); // ★追加
+    tabMst.classList.remove('active');
+
   } else if (page === 'report') {
-    regPage.classList.add('hidden');
-    rptPage.classList.remove('hidden');
-    mstPage.classList.add('hidden'); // ★追加
+    regPage.style.display = 'none';
+    rptPage.style.display = 'block';
+    mstPage.style.display = 'none';
 
     tabReg.classList.remove('active');
     tabRpt.classList.add('active');
-    tabMst.classList.remove('active'); // ★追加
+    tabMst.classList.remove('active');
 
-    // 帳票画面の初期化
     initReportForm();
-  }
-  else if (page === 'master') {     // ★追加
-    regPage.classList.add('hidden');
-    rptPage.classList.add('hidden');
-    mstPage.classList.remove('hidden');
+
+  } else if (page === 'master') {
+    regPage.style.display = 'none';
+    rptPage.style.display = 'none';
+    mstPage.style.display = 'block';
 
     tabReg.classList.remove('active');
     tabRpt.classList.remove('active');
