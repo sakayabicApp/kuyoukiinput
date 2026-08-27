@@ -569,54 +569,55 @@
     </div>   
     </div><!-- /.report-card 閉じ -->
     </div><!-- /#pageReport 閉じ -->
-<!-- マスター管理 画面エリア -->
-<!-- ★追加: pageMaster のエリアを設置 -->
-  <div id="pageMaster" class="page-content hidden">
+
+  
+<!-- 3. マスター管理 画面エリア -->
+  <div id="pageMaster" class="page-section hidden" style="display: none;">
     
-<!-- サブタブメニュー -->
-  <div class="sub-nav-menu" style="display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 2px solid #ccc; padding-bottom: 8px;">
-    <button type="button" id="subTabItem" class="sub-nav-tab active" onclick="switchMasterSubPage('item')">
-      空容器マスター
-    </button>
-    <button type="button" id="subTabStore" class="sub-nav-tab" onclick="switchMasterSubPage('store')">
-      出荷店マスター
-    </button>
-    <button type="button" id="subTabRoute" class="sub-nav-tab" onclick="switchMasterSubPage('route')">
-      ルートマスター
-    </button>
-    <button type="button" id="subTabStaff" class="sub-nav-tab" onclick="switchMasterSubPage('staff')">
-      担当者マスター
-    </button>
-    <button type="button" id="subTabUser" class="sub-nav-tab" onclick="switchMasterSubPage('user')">
-      ユーザーマスター
-    </button>
-  </div>
-<!-- サブタブコンテンツ表示エリア -->
-<div id="masterSubContent">
-  <!-- デフォルト表示 -->
-  <div id="masterItemPage" class="master-sub-page">
-    <h3>空容器マスター管理</h3>
-  </div>
+    <!-- サブタブメニュー -->
+    <div class="sub-nav-menu" style="display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 2px solid #ccc; padding-bottom: 8px;">
+      <button type="button" id="subTabItem" class="sub-nav-tab active" onclick="switchMasterSubPage('item')">
+        空容器マスター
+      </button>
+      <button type="button" id="subTabStore" class="sub-nav-tab" onclick="switchMasterSubPage('store')">
+        出荷店マスター
+      </button>
+      <button type="button" id="subTabRoute" class="sub-nav-tab" onclick="switchMasterSubPage('route')">
+        ルートマスター
+      </button>
+      <button type="button" id="subTabStaff" class="sub-nav-tab" onclick="switchMasterSubPage('staff')">
+        担当者マスター
+      </button>
+      <button type="button" id="subTabUser" class="sub-nav-tab" onclick="switchMasterSubPage('user')">
+        ユーザーマスター
+      </button>
+    </div>
 
-  <!-- 初期非表示 style="display: none;" を付与 -->
-  <div id="masterStorePage" class="master-sub-page" style="display: none;">
-    <h3>出荷店マスター管理</h3>
-  </div>
-  <div id="masterRoutePage" class="master-sub-page" style="display: none;">
-    <h3>ルートマスター管理</h3>
-  </div>
-  <div id="masterStaffPage" class="master-sub-page" style="display: none;">
-    <h3>担当者マスター管理</h3>
-  </div>
-  <div id="masterUserPage" class="master-sub-page" style="display: none;">
-    <h3>ユーザーマスター管理</h3>
-  </div>
-</div>
+    <!-- サブタブコンテンツ表示エリア -->
+    <div id="masterSubContent">
+      <!-- デフォルト表示 -->
+      <div id="masterItemPage" class="master-sub-page">
+        <h3>空容器マスター管理</h3>
+      </div>
 
-</div><!-- /#pageMaster 閉じ -->
+      <!-- 初期非表示 -->
+      <div id="masterStorePage" class="master-sub-page" style="display: none;">
+        <h3>出荷店マスター管理</h3>
+      </div>
+      <div id="masterRoutePage" class="master-sub-page" style="display: none;">
+        <h3>ルートマスター管理</h3>
+      </div>
+      <div id="masterStaffPage" class="master-sub-page" style="display: none;">
+        <h3>担当者マスター管理</h3>
+      </div>
+      <div id="masterUserPage" class="master-sub-page" style="display: none;">
+        <h3>ユーザーマスター管理</h3>
+      </div>
+    </div>
+
+  </div><!-- /#pageMaster 閉じ -->
 
 </div><!-- /.container 閉じ -->
-
 <!-- 3. 確認モーダル -->
 <div id="confirmModal" class="modal-overlay">
   <div class="modal-content">
