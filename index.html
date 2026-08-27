@@ -842,34 +842,44 @@ async function loadMasterData() {
 
 // 画面切り替え（タブ選択）
 function switchPage(page) {
-document.getElementById('tabRegister').classList.remove('active');
-  document.getElementById('tabReport').classList.remove('active');
-  document.getElementById('tabMaster').classList.remove('active'); // ★追加
-
-  // すべてのコンテンツページを非表示にする
-  document.getElementById('registerPage').style.display = 'none';
-  document.getElementById('reportPage').style.display = 'none';
-  document.getElementById('masterPage').style.display = 'none';   // ★追加
+  const regPage = document.getElementById('pageRegister');
+  const rptPage = document.getElementById('pageReport');
+  const mstPage = document.getElementById('pageMaster'); // ★追加
+  const tabReg = document.getElementById('tabRegister');
+  const tabRpt = document.getElementById('tabReport');
+  const tabMst = document.getElementById('tabMaster');   // ★追加
 
   if (page === 'register') {
     regPage.classList.remove('hidden');
     rptPage.classList.add('hidden');
+    mstPage.classList.add('hidden'); // ★追加
+
     tabReg.classList.add('active');
     tabRpt.classList.remove('active');
+    tabMst.classList.remove('active'); // ★追加
   } else if (page === 'report') {
     regPage.classList.add('hidden');
     rptPage.classList.remove('hidden');
+    mstPage.classList.add('hidden'); // ★追加
+
     tabReg.classList.remove('active');
     tabRpt.classList.add('active');
+    tabMst.classList.remove('active'); // ★追加
 
     // 帳票画面の初期化
     initReportForm();
   }
-　　else if (pageName === 'master') {                            // ★追加
-    document.getElementById('tabMaster').classList.add('active');
-    document.getElementById('masterPage').style.display = 'block';
+  else if (page === 'master') {     // ★追加
+    regPage.classList.add('hidden');
+    rptPage.classList.add('hidden');
+    mstPage.classList.remove('hidden');
+
+    tabReg.classList.remove('active');
+    tabRpt.classList.remove('active');
+    tabMst.classList.add('active');
   }
 }
+
 
 // 帳票画面の初期化
 function initReportForm() {
