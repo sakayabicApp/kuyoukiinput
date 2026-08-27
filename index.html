@@ -592,26 +592,26 @@
     </button>
   </div>
 <!-- サブタブコンテンツ表示エリア -->
-  <div id="masterSubContent">
-    <!-- デフォルト表示: hiddenなし -->
-    <div id="masterItemPage" class="master-sub-page">
-      <h3>空容器マスター管理</h3>
-      <!-- ここに空容器マスターのテーブルや入力フォームが入ります -->
-    </div>
+<div id="masterSubContent">
+  <!-- デフォルト表示 -->
+  <div id="masterItemPage" class="master-sub-page">
+    <h3>空容器マスター管理</h3>
+  </div>
 
-    <!-- 初期非表示: hiddenあり -->
-    <div id="masterStorePage" class="master-sub-page hidden">
-      <h3>出荷店マスター管理</h3>
-    </div>
-    <div id="masterRoutePage" class="master-sub-page hidden">
-      <h3>ルートマスター管理</h3>
-    </div>
-    <div id="masterStaffPage" class="master-sub-page hidden">
-      <h3>担当者マスター管理</h3>
-    </div>
-    <div id="masterUserPage" class="master-sub-page hidden">
-      <h3>ユーザーマスター管理</h3>
-    </div>
+  <!-- 初期非表示 style="display: none;" を付与 -->
+  <div id="masterStorePage" class="master-sub-page" style="display: none;">
+    <h3>出荷店マスター管理</h3>
+  </div>
+  <div id="masterRoutePage" class="master-sub-page" style="display: none;">
+    <h3>ルートマスター管理</h3>
+  </div>
+  <div id="masterStaffPage" class="master-sub-page" style="display: none;">
+    <h3>担当者マスター管理</h3>
+  </div>
+  <div id="masterUserPage" class="master-sub-page" style="display: none;">
+    <h3>ユーザーマスター管理</h3>
+  </div>
+</div>
 
 </div><!-- /#pageMaster 閉じ -->
 
@@ -917,23 +917,21 @@ function switchMasterSubPage(subPage) {
   const subTypes = ['item', 'store', 'route', 'staff', 'user'];
 
   subTypes.forEach(type => {
-    // IDの作成用に頭文字を大文字化 (例: item -> Item)
     const capitalized = type.charAt(0).toUpperCase() + type.slice(1);
-    
     const pageEl = document.getElementById('master' + capitalized + 'Page');
     const tabEl = document.getElementById('subTab' + capitalized);
 
     if (pageEl && tabEl) {
       if (type === subPage) {
-        pageEl.classList.remove('hidden');
+        pageEl.style.display = 'block';
         tabEl.classList.add('active');
       } else {
-        pageEl.classList.add('hidden');
+        pageEl.style.display = 'none';
         tabEl.classList.remove('active');
       }
     }
   });
-}  
+}
 
 // 帳票画面の初期化
 function initReportForm() {
