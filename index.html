@@ -377,8 +377,6 @@
       <button type="button" id="tabReport" class="nav-tab" onclick="switchPage('report')">
         帳票発行
       </button>
-      <!-- ★追加: 管理者のみ表示するタブ（デフォルトは非表示） -->
-  <button id="tabMaster" onclick="switchPage('master')" style="display: none;">マスター管理</button>
     </div>
   </div> 
   <div style="border-top: 2px solid var(--primary-color); margin-bottom: 1.25rem;"></div>
@@ -549,54 +547,8 @@
     </div>
     <!-- /#pageReport 閉じ -->
 
-      <!-- 3. マスター管理ページ -->
-<div id="pageMaster" class="hidden">
-  <div class="report-card">
-    <h3 style="margin-top:0; color: var(--primary-color); font-size: 1.1rem; margin-bottom: 1rem;">
-      マスターデータ管理
-    </h3>
-    
-    <!-- マスター切替サブタブ -->
-    <div style="display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 1px solid #ccc; padding-bottom: 5px; overflow-x: auto;">
-      <button type="button" class="btn-secondary sub-tab active" onclick="switchMasterTab('containers', this)">空容器</button>
-      <button type="button" class="btn-secondary sub-tab" onclick="switchMasterTab('stores', this)">出荷店</button>
-      <button type="button" class="btn-secondary sub-tab" onclick="switchMasterTab('routes', this)">ルート</button>
-      <button type="button" class="btn-secondary sub-tab" onclick="switchMasterTab('staffs', this)">担当者</button>
-      <button type="button" class="btn-secondary sub-tab" onclick="switchMasterTab('users', this)">ユーザー</button>
-    </div>
-
-    <!-- アクションエリア -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-      <h4 id="currentMasterTitle" style="margin:0;">空容器マスター一覧</h4>
-      <button type="button" class="btn-primary" style="width: auto; padding: 0.4rem 1rem; font-size: 0.85rem;" onclick="openMasterModal('add')">+ 新規登録</button>
-    </div>
-
-    <!-- マスターテーブル表示エリア -->
-    <div class="table-container" style="max-height: 500px; overflow-y: auto;">
-      <table id="masterDataTable">
-        <thead id="masterTableHead"></thead>
-        <tbody id="masterTableBody"></tbody>
-      </table>
-    </div>
+</div>
   </div>
-</div>
-
-<!-- マスター編集・新規モーダル -->
-<div id="masterFormModal" class="modal-overlay">
-  <div class="modal-content" style="max-width: 450px;">
-    <div class="modal-header" id="masterModalTitle">マスター登録/編集</div>
-    <form id="masterEditForm">
-      <div id="masterFormFields" style="margin-bottom: 15px;"></div>
-      <div class="modal-actions">
-        <button type="button" class="btn-secondary" onclick="closeMasterModal()">キャンセル</button>
-        <button type="submit" class="btn-primary" style="width: auto;">保存</button>
-      </div>
-    </form>
-  </div>
-</div>
-      
-</div>
-</div>
 
 </div><!-- /.container 閉じ -->
 
@@ -661,10 +613,6 @@
 
     let currentUserName = '';
     let currentPayload = null;
-  // 変数の拡張
-let currentUserRole = ''; // ログインユーザーの管理区分（1:管理者など）
-let currentMasterType = 'containers'; // 現在選択中のマスター種別
-let rawMasterData = {}; // GASから受領した生のマスターデータを保持
 
 // 初期ロード
 window.addEventListener('DOMContentLoaded', () => {
@@ -861,302 +809,25 @@ async function loadMasterData() {
 function switchPage(page) {
   const regPage = document.getElementById('pageRegister');
   const rptPage = document.getElementById('pageReport');
-  const mstPage = document.getElementById('pageMaster');
   const tabReg = document.getElementById('tabRegister');
   const tabRpt = document.getElementById('tabReport');
-  const tabMst = document.getElementById('tabMaster');
-
-  // 全て隠す
-  regPage.classList.add('hidden');
-  rptPage.classList.add('hidden');
-  if (mstPage) mstPage.classList.add('hidden');
-
-  tabReg.classList.remove('active');
-  tabRpt.classList.remove('active');
-  if (tabMst) tabMst.classList.remove('active');
 
   if (page === 'register') {
     regPage.classList.remove('hidden');
+    rptPage.classList.add('hidden');
     tabReg.classList.add('active');
+    tabRpt.classList.remove('active');
   } else if (page === 'report') {
+    regPage.classList.add('hidden');
     rptPage.classList.remove('hidden');
+    tabReg.classList.remove('active');
     tabRpt.classList.add('active');
-    initReportForm(); // 帳票画面の初期化
-  } else if (page === 'master') {
-    if (mstPage) mstPage.classList.remove('hidden');
-    if (tabMst) tabMst.classList.add('active');
-    renderMasterTable(currentMasterType); // マスター画面の初期化
+
+    // 帳票画面の初期化
+    initReportForm();
   }
 }
 
-// --- 権限チェックによる「マスター管理」タブの表示制御 ---
-function applyUserPermissions(role) {
-  const tabMaster = document.getElementById('tabMaster');
-  if (!tabMaster) return;
-
-  // 数値化して 1 か判定（'' や null は 0 または NaN になる）
-  const numericRole = Number(role);
-
-  if (numericRole === 1) {
-    tabMaster.style.display = 'block'; // または tabMaster.classList.remove('hidden');
-  } else {
-    tabMaster.style.display = 'none';  // 管理者以外は非表示
-  }
-}
-
-// --- ログイン処理時の役割保持修正 ---
-// loginForm の submit イベント内の判定を更新
-/* 
-  result.status === 'success' のブロック内で以下を実行:
-  currentUserRole = result.userRole || '';
-  applyUserPermissions(currentUserRole);
-*/
-
-// --- マスターデータ読み込み処理の拡張 ---
-// loadMasterData 内の成功処理内で保持
-/*
-  rawMasterData = result.data;
-  
-  // 現在のユーザー情報をマスターデータから確認・補正
-  if (result.data.users && currentUserId) {
-    const me = result.data.users.find(u => String(u[Object.keys(u)[0]]).trim() === String(currentUserId).trim());
-    if (me) {
-      const keys = Object.keys(me);
-      currentUserRole = me[keys[3]] || ''; // 4列目: 管理区分
-      applyUserPermissions(currentUserRole);
-    }
-  }
-*/
-
-// --- マスター管理機能 (表示・サブタブ切替・CRUD) ---
-
-// マスター定義情報（カラム構成など）
-const MASTER_CONFIG = {
-  containers: {
-    sheetName: '空容器マスター',
-    title: '空容器マスター',
-    cols: [
-      { key: 0, label: '商品コード', required: true, isKey: true },
-      { key: 1, label: 'JANコード' },
-      { key: 2, label: '空容器名', required: true },
-      { key: 3, label: '単価', type: 'number' },
-      { key: 4, label: '単位' }
-    ]
-  },
-  stores: {
-    sheetName: '出荷店マスター',
-    title: '出荷店マスター',
-    cols: [
-      { key: 0, label: '出荷店コード', required: true, isKey: true },
-      { key: 1, label: '出荷店名', required: true }
-    ]
-  },
-  routes: {
-    sheetName: 'ルートマスター',
-    title: 'ルートマスター',
-    cols: [
-      { key: 0, label: 'ルートコード', required: true, isKey: true },
-      { key: 1, label: '配送ルート名', required: true }
-    ]
-  },
-  staffs: {
-    sheetName: '担当者マスター',
-    title: '担当者マスター',
-    cols: [
-      { key: 0, label: '担当者コード', required: true, isKey: true },
-      { key: 1, label: '担当者名', required: true }
-    ]
-  },
-  users: {
-    sheetName: 'ユーザーマスター',
-    title: 'ユーザーマスター',
-    cols: [
-      { key: 0, label: 'ユーザーID', required: true, isKey: true },
-      { key: 1, label: 'パスワード', required: true, type: 'password' },
-      { key: 2, label: 'ユーザー名', required: true },
-      { key: 3, label: '管理区分(1:管理者,2:店舗,3:ドライバー)', required: true, type: 'selectRole' },
-      { key: 4, label: '区分名' }
-    ]
-  }
-};
-
-// サブタブ切替
-function switchMasterTab(type, btnEl) {
-  currentMasterType = type;
-  document.querySelectorAll('.sub-tab').forEach(b => b.style.background = '#6c757d');
-  btnEl.style.background = 'var(--primary-color)';
-  renderMasterTable(type);
-}
-
-// マスターテーブルの描画
-function renderMasterTable(type) {
-  const config = MASTER_CONFIG[type];
-  document.getElementById('currentMasterTitle').textContent = config.title + '一覧';
-  
-  const thead = document.getElementById('masterTableHead');
-  const tbody = document.getElementById('masterTableBody');
-  
-  // ヘッダー生成
-  let thHtml = '<tr>';
-  config.cols.forEach(c => { thHtml += `<th>${c.label}</th>`; });
-  thHtml += '<th style="width: 110px; text-align:center;">操作</th></tr>';
-  thead.innerHTML = thHtml;
-
-  // データ行生成
-  const list = rawMasterData[type] || [];
-  if (list.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="${config.cols.length + 1}" style="text-align:center;">データがありません</td></tr>`;
-    return;
-  }
-
-  let trHtml = '';
-  list.forEach((row, idx) => {
-    const keys = Object.keys(row);
-    trHtml += '<tr>';
-    config.cols.forEach(c => {
-      let val = row[keys[c.key]] !== undefined ? row[keys[c.key]] : '';
-      if (c.type === 'password') val = '****';
-      trHtml += `<td>${val}</td>`;
-    });
-    const keyVal = row[keys[0]]; // 主キーの値
-    trHtml += `
-      <td style="text-align:center;">
-        <button type="button" style="padding: 2px 6px; font-size: 0.75rem; background: #28a745; color:#fff; border:none; border-radius:3px; cursor:pointer;" onclick="openMasterModal('edit', ${idx})">編集</button>
-        <button type="button" style="padding: 2px 6px; font-size: 0.75rem; background: #dc3545; color:#fff; border:none; border-radius:3px; cursor:pointer;" onclick="deleteMasterRecord('${type}', '${keyVal}')">削除</button>
-      </td>
-    </tr>`;
-  });
-  tbody.innerHTML = trHtml;
-}
-
-// モーダルを開く（新規 or 編集）
-let editTargetIndex = null;
-function openMasterModal(mode, index = null) {
-  editTargetIndex = index;
-  const config = MASTER_CONFIG[currentMasterType];
-  const modal = document.getElementById('masterFormModal');
-  const title = document.getElementById('masterModalTitle');
-  const fieldsDiv = document.getElementById('masterFormFields');
-  
-  title.textContent = mode === 'add' ? `${config.title} - 新規登録` : `${config.title} - 編集`;
-  
-  let targetData = null;
-  if (mode === 'edit' && index !== null) {
-    targetData = rawMasterData[currentMasterType][index];
-  }
-
-  let html = '';
-  config.cols.forEach(c => {
-    let val = '';
-    if (targetData) {
-      const keys = Object.keys(targetData);
-      val = targetData[keys[c.key]] !== undefined ? targetData[keys[c.key]] : '';
-    }
-
-    html += `<div style="margin-bottom: 10px;">`;
-    html += `<label style="font-size:0.8rem;">${c.label} ${c.required ? '<span style="color:red;">*</span>' : ''}</label>`;
-    
-    // 管理区分のドロップダウン制御
-    if (c.type === 'selectRole') {
-      html += `
-        <select id="field_${c.key}" class="master-field" style="width:100%; padding: 0.4rem;" onchange="updateRoleName(this.value)">
-          <option value="1" ${String(val) === '1' ? 'selected' : ''}>1: 管理者</option>
-          <option value="2" ${String(val) === '2' ? 'selected' : ''}>2: 店舗</option>
-          <option value="3" ${String(val) === '3' ? 'selected' : ''}>3: ドライバー</option>
-        </select>`;
-    } else {
-      const inputType = c.type === 'number' ? 'number' : (c.type === 'password' ? 'password' : 'text');
-      const isReadOnly = (mode === 'edit' && c.isKey) ? 'readonly style="background:#eee;"' : '';
-      html += `<input type="${inputType}" id="field_${c.key}" class="master-field" value="${val}" ${c.required ? 'required' : ''} ${isReadOnly}>`;
-    }
-    html += `</div>`;
-  });
-
-  fieldsDiv.innerHTML = html;
-  modal.style.display = 'flex';
-}
-
-function updateRoleName(val) {
-  const nameField = document.getElementById('field_4');
-  if (nameField) {
-    if (val === '1') nameField.value = '管理者';
-    if (val === '2') nameField.value = '店舗';
-    if (val === '3') nameField.value = 'ドライバー';
-  }
-}
-
-function closeMasterModal() {
-  document.getElementById('masterFormModal').style.display = 'none';
-}
-
-// モーダル保存フォーム送信
-document.getElementById('masterEditForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const config = MASTER_CONFIG[currentMasterType];
-  const rowData = [];
-
-  config.cols.forEach(c => {
-    const el = document.getElementById(`field_${c.key}`);
-    rowData.push(el ? el.value.trim() : '');
-  });
-
-  try {
-    const response = await fetch(GAS_WEB_APP_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({
-        action: 'saveMaster',
-        masterType: currentMasterType,
-        sheetName: config.sheetName,
-        rowData: rowData,
-        isEdit: editTargetIndex !== null
-      })
-    });
-    const res = await response.json();
-    if (res.status === 'success') {
-      alert(res.message);
-      closeMasterModal();
-      await loadMasterData(); // マスター再取得・再描画
-      if (document.getElementById('pageMaster').classList.contains('hidden') === false) {
-        renderMasterTable(currentMasterType);
-      }
-    } else {
-      alert('エラー: ' + res.message);
-    }
-  } catch (err) {
-    alert('通信エラーが発生しました: ' + err.message);
-  }
-});
-
-// レコード削除
-async function deleteMasterRecord(type, keyVal) {
-  if (!confirm(`識別コード [${keyVal}] のレコードを削除してよろしいですか？`)) return;
-
-  const config = MASTER_CONFIG[type];
-  try {
-    const response = await fetch(GAS_WEB_APP_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({
-        action: 'deleteMaster',
-        masterType: type,
-        sheetName: config.sheetName,
-        keyVal: keyVal
-      })
-    });
-    const res = await response.json();
-    if (res.status === 'success') {
-      alert(res.message);
-      await loadMasterData();
-      renderMasterTable(currentMasterType);
-    } else {
-      alert('削除エラー: ' + res.message);
-    }
-  } catch (err) {
-    alert('通信エラーが発生しました: ' + err.message);
-  }
-}  
-  
 // 帳票画面の初期化
 function initReportForm() {
   const startEl = document.getElementById('pdfStartDate');
