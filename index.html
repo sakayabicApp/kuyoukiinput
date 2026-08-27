@@ -884,18 +884,18 @@ function switchPage(page) {
   const tabMst = document.getElementById('tabMaster');
 
   if (page === 'register') {
-    regPage.style.display = 'block';
-    rptPage.style.display = 'none';
-    mstPage.style.display = 'none';
+    regPage.classList.remove('hidden');
+    rptPage.classList.add('hidden');
+    mstPage.classList.add('hidden');
 
     tabReg.classList.add('active');
     tabRpt.classList.remove('active');
     tabMst.classList.remove('active');
 
   } else if (page === 'report') {
-    regPage.style.display = 'none';
-    rptPage.style.display = 'block';
-    mstPage.style.display = 'none';
+    regPage.classList.add('hidden');
+    rptPage.classList.remove('hidden');
+    mstPage.classList.add('hidden');
 
     tabReg.classList.remove('active');
     tabRpt.classList.add('active');
@@ -904,9 +904,9 @@ function switchPage(page) {
     initReportForm();
 
   } else if (page === 'master') {
-    regPage.style.display = 'none';
-    rptPage.style.display = 'none';
-    mstPage.style.display = 'block';
+    regPage.classList.add('hidden');
+    rptPage.classList.add('hidden');
+    mstPage.classList.remove('hidden');
 
     tabReg.classList.remove('active');
     tabRpt.classList.remove('active');
