@@ -256,6 +256,25 @@
   white-space: nowrap;       /* 単位の改行を防止 */
 }  
 
+/* サブタブの基本スタイル */
+.sub-nav-tab {
+  padding: 6px 16px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+/* アクティブ時のサブタブスタイル */
+.sub-nav-tab.active {
+  background-color: var(--primary-color, #0056b3);
+  color: #ffffff;
+  border-color: var(--primary-color, #0056b3);
+  font-weight: bold;
+}  
+
   @media (max-width: 767px) {
     html { font-size: 14px; }
     .search-display-grid { flex-direction: column; gap: 0.625rem; }
@@ -554,32 +573,44 @@
 <!-- ★追加: pageMaster のエリアを設置 -->
   <div id="pageMaster" class="page-content hidden">
     
-    <!-- サブタブメニュー -->
-    <div class="sub-nav-menu" style="display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 2px solid #ccc; padding-bottom: 8px;">
-      <button type="button" id="subTabItem" class="sub-nav-tab active" onclick="switchMasterSubPage('item')">
-        空容器マスター
-      </button>
-      <button type="button" id="subTabStore" class="sub-nav-tab" onclick="switchMasterSubPage('store')">
-        出荷店マスター
-      </button>
-      <button type="button" id="subTabRoute" class="sub-nav-tab" onclick="switchMasterSubPage('route')">
-        ルートマスター
-      </button>
-      <button type="button" id="subTabStaff" class="sub-nav-tab" onclick="switchMasterSubPage('staff')">
-        担当者マスター
-      </button>
-      <button type="button" id="subTabUser" class="sub-nav-tab" onclick="switchMasterSubPage('user')">
-        ユーザーマスター
-      </button>
+<!-- サブタブメニュー -->
+  <div class="sub-nav-menu" style="display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 2px solid #ccc; padding-bottom: 8px;">
+    <button type="button" id="subTabItem" class="sub-nav-tab active" onclick="switchMasterSubPage('item')">
+      空容器マスター
+    </button>
+    <button type="button" id="subTabStore" class="sub-nav-tab" onclick="switchMasterSubPage('store')">
+      出荷店マスター
+    </button>
+    <button type="button" id="subTabRoute" class="sub-nav-tab" onclick="switchMasterSubPage('route')">
+      ルートマスター
+    </button>
+    <button type="button" id="subTabStaff" class="sub-nav-tab" onclick="switchMasterSubPage('staff')">
+      担当者マスター
+    </button>
+    <button type="button" id="subTabUser" class="sub-nav-tab" onclick="switchMasterSubPage('user')">
+      ユーザーマスター
+    </button>
+  </div>
+<!-- サブタブコンテンツ表示エリア -->
+  <div id="masterSubContent">
+    <!-- デフォルト表示: hiddenなし -->
+    <div id="masterItemPage" class="master-sub-page">
+      <h3>空容器マスター管理</h3>
+      <!-- ここに空容器マスターのテーブルや入力フォームが入ります -->
     </div>
 
-    <!-- サブタブコンテンツ表示エリア -->
-    <div id="masterSubContent">
-      <div id="masterItemPage" class="master-sub-page">空容器マスターのコンテンツ表示エリア</div>
-      <div id="masterStorePage" class="master-sub-page hidden">出荷店マスターのコンテンツ表示エリア</div>
-      <div id="masterRoutePage" class="master-sub-page hidden">ルートマスターのコンテンツ表示エリア</div>
-      <div id="masterStaffPage" class="master-sub-page hidden">担当者マスターのコンテンツ表示エリア</div>
-      <div id="masterUserPage" class="master-sub-page hidden">ユーザーマスターのコンテンツ表示エリア</div>
+    <!-- 初期非表示: hiddenあり -->
+    <div id="masterStorePage" class="master-sub-page hidden">
+      <h3>出荷店マスター管理</h3>
+    </div>
+    <div id="masterRoutePage" class="master-sub-page hidden">
+      <h3>ルートマスター管理</h3>
+    </div>
+    <div id="masterStaffPage" class="master-sub-page hidden">
+      <h3>担当者マスター管理</h3>
+    </div>
+    <div id="masterUserPage" class="master-sub-page hidden">
+      <h3>ユーザーマスター管理</h3>
     </div>
 
 </div><!-- /#pageMaster 閉じ -->
@@ -881,6 +912,28 @@ function switchPage(page) {
   }
 }
 
+// マスター管理内のサブタブ切り替え
+function switchMasterSubPage(subPage) {
+  const subTypes = ['item', 'store', 'route', 'staff', 'user'];
+
+  subTypes.forEach(type => {
+    // IDの作成用に頭文字を大文字化 (例: item -> Item)
+    const capitalized = type.charAt(0).toUpperCase() + type.slice(1);
+    
+    const pageEl = document.getElementById('master' + capitalized + 'Page');
+    const tabEl = document.getElementById('subTab' + capitalized);
+
+    if (pageEl && tabEl) {
+      if (type === subPage) {
+        pageEl.classList.remove('hidden');
+        tabEl.classList.add('active');
+      } else {
+        pageEl.classList.add('hidden');
+        tabEl.classList.remove('active');
+      }
+    }
+  });
+}  
 
 // 帳票画面の初期化
 function initReportForm() {
