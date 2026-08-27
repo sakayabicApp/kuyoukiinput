@@ -890,15 +890,17 @@ function switchPage(page) {
 }
 
 // --- 権限チェックによる「マスター管理」タブの表示制御 ---
-function applyUserPermissions(userRole) {
-  const masterTab = document.getElementById('tabMaster');
-  if (!masterTab) return;
-  
-  // ユーザーマスター4列目(管理区分)が '1' (管理者) の場合のみ表示
-  if (String(userRole).trim() === 1) {
-    masterTab.style.display = 'block';
+function applyUserPermissions(role) {
+  const tabMaster = document.getElementById('tabMaster');
+  if (!tabMaster) return;
+
+  // 数値化して 1 か判定（'' や null は 0 または NaN になる）
+  const numericRole = Number(role);
+
+  if (numericRole === 1) {
+    tabMaster.style.display = 'block'; // または tabMaster.classList.remove('hidden');
   } else {
-    masterTab.style.display = 'none';
+    tabMaster.style.display = 'none';  // 管理者以外は非表示
   }
 }
 
