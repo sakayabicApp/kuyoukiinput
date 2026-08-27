@@ -548,7 +548,38 @@
   <div id="reportTableArea"></div>
     </div>
     <!-- /#pageReport 閉じ -->
+<!-- マスター管理 画面エリア -->
+<div id="masterPage" class="page-content" style="display: none;">
+  
+  <!-- サブタブメニュー -->
+  <div class="sub-nav-menu" style="display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 2px solid #ccc; padding-bottom: 8px;">
+    <button type="button" id="subTabItem" class="sub-nav-tab active" onclick="switchMasterSubPage('item')">
+      空容器マスター
+    </button>
+    <button type="button" id="subTabStore" class="sub-nav-tab" onclick="switchMasterSubPage('store')">
+      出荷店マスター
+    </button>
+    <button type="button" id="subTabRoute" class="sub-nav-tab" onclick="switchMasterSubPage('route')">
+      ルートマスター
+    </button>
+    <button type="button" id="subTabStaff" class="sub-nav-tab" onclick="switchMasterSubPage('staff')">
+      担当者マスター
+    </button>
+    <button type="button" id="subTabUser" class="sub-nav-tab" onclick="switchMasterSubPage('user')">
+      ユーザーマスター
+    </button>
+  </div>
 
+  <!-- 各サブタブの中身を入れるエリア（枠組みだけ用意） -->
+  <div id="masterSubContent">
+    <div id="masterItemPage" class="master-sub-page">空容器マスターのコンテンツ表示エリア</div>
+    <div id="masterStorePage" class="master-sub-page" style="display: none;">出荷店マスターのコンテンツ表示エリア</div>
+    <div id="masterRoutePage" class="master-sub-page" style="display: none;">ルートマスターのコンテンツ表示エリア</div>
+    <div id="masterStaffPage" class="master-sub-page" style="display: none;">担当者マスターのコンテンツ表示エリア</div>
+    <div id="masterUserPage" class="master-sub-page" style="display: none;">ユーザーマスターのコンテンツ表示エリア</div>
+  </div>
+
+</div>
 </div>
   </div>
 
@@ -580,6 +611,8 @@
         <tbody id="modalItemsBody"></tbody>
       </table>
     </div>
+
+    
 
     <div class="modal-actions">
       <button type="button" id="modalCancelBtn" class="btn-secondary">キャンセル</button>
