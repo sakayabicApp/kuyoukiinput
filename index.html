@@ -49,6 +49,8 @@
     color: var(--primary-color);
     font-size: 1.25rem;
   }
+  
+  .hidden { display: none !important; }
 
   .user-badge {
     font-size: 0.875rem;
@@ -916,22 +918,23 @@ function switchMasterSubPage(subPage) {
   const subTypes = ['item', 'store', 'route', 'staff', 'user'];
 
   subTypes.forEach(type => {
+    // 頭文字を大文字化（例: item -> Item）
     const capitalized = type.charAt(0).toUpperCase() + type.slice(1);
+    
     const pageEl = document.getElementById('master' + capitalized + 'Page');
     const tabEl = document.getElementById('subTab' + capitalized);
 
     if (pageEl && tabEl) {
       if (type === subPage) {
-        pageEl.style.display = 'block';
+        pageEl.classList.remove('hidden');
         tabEl.classList.add('active');
       } else {
-        pageEl.style.display = 'none';
+        pageEl.classList.add('hidden');
         tabEl.classList.remove('active');
       }
     }
   });
 }
-
 // 帳票画面の初期化
 function initReportForm() {
   const startEl = document.getElementById('pdfStartDate');
