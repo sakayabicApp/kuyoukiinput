@@ -866,7 +866,8 @@ function switchPage(page) {
   const tabReg = document.getElementById('tabRegister');
   const tabRpt = document.getElementById('tabReport');
   const tabMst = document.getElementById('tabMaster');
-// 全て隠す
+
+  // 全て隠す
   regPage.classList.add('hidden');
   rptPage.classList.add('hidden');
   if (mstPage) mstPage.classList.add('hidden');
@@ -881,14 +882,11 @@ function switchPage(page) {
   } else if (page === 'report') {
     rptPage.classList.remove('hidden');
     tabRpt.classList.add('active');
-    initReportForm();
+    initReportForm(); // 帳票画面の初期化
   } else if (page === 'master') {
     if (mstPage) mstPage.classList.remove('hidden');
     if (tabMst) tabMst.classList.add('active');
-    renderMasterTable(currentMasterType);
-
-    // 帳票画面の初期化
-    initReportForm();
+    renderMasterTable(currentMasterType); // マスター画面の初期化
   }
 }
 
