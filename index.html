@@ -599,6 +599,22 @@
     <div id="masterSubContent">
       <div id="masterItemPage" class="master-sub-page">
         <h3>空容器マスター管理</h3>
+        <div class="table-container">
+  <table id="containerMasterTable" class="master-table">
+    <thead>
+      <tr>
+        <th>商品コード</th>
+        <th>JANコード</th>
+        <th>空容器名</th>
+        <th>単価</th>
+        <th>単位</th>
+      </tr>
+    </thead>
+    <tbody id="containerMasterTbody">
+      <!-- JSで動的に表示 -->
+   　 </tbody>
+  　　</table>
+　　　</div>
       </div>
       <div id="masterStorePage" class="master-sub-page hidden">
         <h3>出荷店マスター管理</h3>
@@ -837,40 +853,64 @@ async function loadMasterData() {
       }
     }
 
-    function renderContainerTable(containers) {
-      const tbody = document.getElementById('containerTableBody');
-      if (!tbody) return;
-      tbody.innerHTML = '';
-      if (!containers || containers.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">データがありません</td></tr>';
-        return;
-      }
+/**
+ * 空容器マスターテーブルの描画関数
+ * @param {Array} containers - loadMasterDataで取得した masterContainers
+ */
+function renderContainerTable(containers) {
+  // テーブルのtbody要素（HTML側のIDに合わせて変更してください）
+  const tbody = document.getElementById('containerMasterTbody');
+  if (!tbody) return;
 
-      containers.forEach(item => {
-        const keys = Object.keys(item);
-        const code  = item[keys[0]] || ''; 
-        const jan   = item[keys[1]] || ''; 
-        const name  = item[keys[2]] || ''; 
-        const price = item[keys[3]] !== undefined ? item[keys[3]] : ''; 
-        const unit  = item[keys[4]] || '個'; 
+  tbody.innerHTML = '';
 
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td><strong>${code}</strong></td>
-          <td>${jan}</td>
-          <td>${name}</td>
-          <td class="price-col">${price ? Number(price).toLocaleString() + '円' : ''}</td>
-          <td>
-            <div class="qty-cell">
-              <input type="number" class="container-qty" min="0" placeholder="0" 
-                     data-code="${code}" data-name="${name}" data-unit="${unit}">
-              <span class="unit-text">${unit}</span>
-            </div>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
+  if (!containers || containers.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center">データが存在しません</td></tr>';
+    return;
+  }
+
+  containers.forEach(row => {
+    let itemCode, janCode, containerName, price, unit;
+
+    // データが配列（2次元配列）で返ってくる場合とオブジェクトで返ってくる場合の両方に対応
+    if (Array.isArray(row)) {
+      // 順序: [0]商品コード, [1]JANコード, [2]空容器名, [3]単価, [4]単位
+      itemCode      = row[0] || '';
+      janCode       = row[1] || '';
+      containerName = row[2] || '';
+      price         = row[3] !== undefined && row[3] !== '' ? Number(row[3]).toLocaleString() : '0';
+      unit          = row[4] || '';
+    } else if (typeof row === 'object' && row !== null) {
+      // オブジェクトで返ってくる場合（GAS側で連想配列化されている場合）
+      const keys = Object.keys(row);
+      itemCode      = row[keys[0]] || '';
+      janCode       = row[keys[1]] || '';
+      containerName = row[keys[2]] || '';
+      price         = row[keys[3]] !== undefined && row[keys[3]] !== '' ? Number(row[keys[3]]).toLocaleString() : '0';
+      unit          = row[keys[4]] || '';
     }
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${escapeHtml(itemCode)}</td>
+      <td>${escapeHtml(janCode)}</td>
+      <td>${escapeHtml(containerName)}</td>
+      <td style="text-align: right;">${escapeHtml(price)}</td>
+      <td>${escapeHtml(unit)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// XSS対策用エスケープ関数
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
 
 // 画面切り替え（メインタブ選択）
 function switchPage(page) {
