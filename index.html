@@ -841,6 +841,8 @@ async function loadMasterData() {
       }
 
       renderContainerTable(masterContainers);
+      // ★追加：マスター管理タブ用の表を描画
+      renderMasterContainerTable(masterContainers);
 
       const loadingOverlay = document.getElementById('loadingOverlay');
       if (loadingOverlay) loadingOverlay.style.display = 'none';
