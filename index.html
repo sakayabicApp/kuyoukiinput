@@ -726,6 +726,48 @@
     </div>
   </div>
 </div>  
+
+<!-- 登録・編集用モーダル本体 -->
+<div id="containerMasterModal" class="modal-overlay" style="display: none;">
+  <div class="modal-content" style="max-width: 500px;">
+    <h3 id="containerModalTitle" style="margin-top: 0;">空容器マスター 新規登録</h3>
+    
+    <form id="containerMasterForm" onsubmit="return false;">
+      <div style="margin-bottom: 12px; text-align: left;">
+        <label style="display: block; font-size: 13px; font-weight: bold;">商品コード <span style="color:red;">*</span></label>
+        <input type="text" id="modalItemCode" required style="width: 100%; padding: 8px; box-sizing: border-box;">
+      </div>
+
+      <div style="margin-bottom: 12px; text-align: left;">
+        <label style="display: block; font-size: 13px; font-weight: bold;">JANコード</label>
+        <input type="text" id="modalJanCode" style="width: 100%; padding: 8px; box-sizing: border-box;">
+      </div>
+
+      <div style="margin-bottom: 12px; text-align: left;">
+        <label style="display: block; font-size: 13px; font-weight: bold;">空容器名 <span style="color:red;">*</span></label>
+        <input type="text" id="modalContainerName" required style="width: 100%; padding: 8px; box-sizing: border-box;">
+      </div>
+
+      <div style="margin-bottom: 12px; text-align: left;">
+        <label style="display: block; font-size: 13px; font-weight: bold;">単価</label>
+        <input type="number" id="modalPrice" min="0" placeholder="0" style="width: 100%; padding: 8px; box-sizing: border-box;">
+      </div>
+
+      <div style="margin-bottom: 20px; text-align: left;">
+        <label style="display: block; font-size: 13px; font-weight: bold;">単位</label>
+        <input type="text" id="modalUnit" placeholder="個" style="width: 100%; padding: 8px; box-sizing: border-box;">
+      </div>
+
+      <!-- 操作ボタン領域 -->
+      <div style="display: flex; justify-content: flex-end; gap: 8px;">
+        <button type="button" class="btn-secondary" onclick="closeContainerModal()">キャンセル</button>
+        <button type="button" id="btnSubmitAdd" class="btn-primary" onclick="handleContainerSubmit('add')">登録</button>
+        <button type="button" id="btnSubmitEdit" class="btn-primary" onclick="handleContainerSubmit('edit')" style="display: none;">保存</button>
+        <button type="button" id="btnSubmitDelete" class="btn-danger" onclick="handleContainerSubmit('delete')" style="display: none; background-color: #dc3545; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">削除</button>
+      </div>
+    </form>
+  </div>
+</div>  
   
 
 <script>
