@@ -596,11 +596,18 @@
     </div>
 
     <!-- サブタブコンテンツ表示エリア -->
-    <div id="masterSubContent">
-      <div id="masterItemPage" class="master-sub-page">
-        <h3>空容器マスター管理</h3>
-        <div class="table-container">
-  <table id="containerMasterTable" class="master-table">
+<div id="masterSubContent">
+<div id="masterItemPage" class="master-sub-page">
+<div class="master-header-container" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+  <h3 style="margin: 0;">空容器マスター一覧</h3>
+  <div class="master-btn-group">
+    <button type="button" class="btn-primary" onclick="openAddContainerModal()">+ 新規登録</button>
+    <button type="button" class="btn-secondary" onclick="openSearchContainerModal()">修正・削除</button>
+  </div>
+</div>
+<!-- テーブル部分 -->
+<div class="table-container">
+  <table class="master-table">
     <thead>
       <tr>
         <th>商品コード</th>
@@ -611,11 +618,11 @@
       </tr>
     </thead>
     <tbody id="containerMasterTbody">
-      <!-- JSで動的に表示 -->
-   　 </tbody>
-  　　</table>
-　　　</div>
-      </div>
+      <!-- JavaScriptで描画 -->
+    </tbody>
+  </table>
+</div>
+</div>
       <div id="masterStorePage" class="master-sub-page hidden">
         <h3>出荷店マスター管理</h3>
       </div>
@@ -1754,6 +1761,115 @@ async function executeDeleteReport() {
         submitBtn.textContent = '送信確定';
       }
     });
+
+ // モーダルのDOM要素（IDは実装に合わせて調整してください）
+const modal = document.getElementById('containerMasterModal');
+// モーダルの閉鎖
+function closeContainerModal() {
+  document.getElementById('containerMasterModal').style.display = 'none';
+}
+
+// 1. 新規登録モーダル表示
+function openAddContainerModal() {
+  document.getElementById('containerMasterForm').reset();
+  document.getElementById('containerModalTitle').textContent = '空容器マスター 新規登録';
+  document.getElementById('modalItemCode').readOnly = false;
+
+  document.getElementById('btnSubmitAdd').style.display = 'inline-block';
+  document.getElementById('btnSubmitEdit').style.display = 'none';
+  document.getElementById('btnSubmitDelete').style.display = 'none';
+
+  document.getElementById('containerMasterModal').style.display = 'flex';
+}
+
+// 2. 修正・削除用検索モーダル
+function openSearchContainerModal() {
+  const itemCode = prompt('修正または削除を行う「商品コード」を入力してください:');
+  if (!itemCode) return;
+
+  const target = masterContainers.find(row => {
+    const code = Array.isArray(row) ? row[0] : row[Object.keys(row)[0]];
+    return String(code).trim() === String(itemCode).trim();
+  });
+
+  if (!target) {
+    alert('該当する商品コードが見つかりませんでした。');
+    return;
+  }
+
+  // フォームへセット
+  if (Array.isArray(target)) {
+    document.getElementById('modalItemCode').value = target[0] || '';
+    document.getElementById('modalJanCode').value = target[1] || '';
+    document.getElementById('modalContainerName').value = target[2] || '';
+    document.getElementById('modalPrice').value = target[3] || 0;
+    document.getElementById('modalUnit').value = target[4] || '';
+  } else {
+    const keys = Object.keys(target);
+    document.getElementById('modalItemCode').value = target[keys[0]] || '';
+    document.getElementById('modalJanCode').value = target[keys[1]] || '';
+    document.getElementById('modalContainerName').value = target[keys[2]] || '';
+    document.getElementById('modalPrice').value = target[keys[3]] || 0;
+    document.getElementById('modalUnit').value = target[keys[4]] || '';
+  }
+
+  document.getElementById('containerModalTitle').textContent = '空容器マスター 修正・削除';
+  document.getElementById('modalItemCode').readOnly = true;
+
+  document.getElementById('btnSubmitAdd').style.display = 'none';
+  document.getElementById('btnSubmitEdit').style.display = 'inline-block';
+  document.getElementById('btnSubmitDelete').style.display = 'inline-block';
+
+  document.getElementById('containerMasterModal').style.display = 'flex';
+}
+
+// 3. 各ボタン押下時の確認処理と送信
+async function handleContainerSubmit(actionType) {
+  let confirmMessage = '';
+  let apiAction = '';
+
+  if (actionType === 'add') {
+    confirmMessage = '登録してよろしいですか？';
+    apiAction = 'saveContainerMaster';
+  } else if (actionType === 'edit') {
+    confirmMessage = '修正内容を保存してよろしいですか？';
+    apiAction = 'updateContainerMaster';
+  } else if (actionType === 'delete') {
+    confirmMessage = '本当にこのデータを削除してよろしいですか？';
+    apiAction = 'deleteContainerMaster';
+  }
+
+  if (!confirm(confirmMessage)) return;
+
+  const payload = {
+    action: apiAction,
+    itemCode: document.getElementById('modalItemCode').value.trim(),
+    janCode: document.getElementById('modalJanCode').value.trim(),
+    containerName: document.getElementById('modalContainerName').value.trim(),
+    price: document.getElementById('modalPrice').value,
+    unit: document.getElementById('modalUnit').value.trim()
+  };
+
+  try {
+    const response = await fetch(GAS_WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload)
+    });
+    
+    const result = await response.json();
+    if (result.status === 'success') {
+      alert('処理が完了しました。');
+      closeContainerModal();
+      await loadMasterData(); // マスターデータを再読み込み
+    } else {
+      alert('エラー: ' + result.message);
+    }
+  } catch (err) {
+    console.error('送信エラー:', err);
+    alert('通信エラーが発生しました。');
+  }
+}
 </script>
 </body>
 </html>
