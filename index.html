@@ -860,6 +860,41 @@ async function loadMasterData() {
       }
     }
 
+    function renderContainerTable(containers) {
+      const tbody = document.getElementById('containerTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      if (!containers || containers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">データがありません</td></tr>';
+        return;
+      }
+
+      containers.forEach(item => {
+        const keys = Object.keys(item);
+        const code  = item[keys[0]] || ''; 
+        const jan   = item[keys[1]] || ''; 
+        const name  = item[keys[2]] || ''; 
+        const price = item[keys[3]] !== undefined ? item[keys[3]] : ''; 
+        const unit  = item[keys[4]] || '個'; 
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${code}</strong></td>
+          <td>${jan}</td>
+          <td>${name}</td>
+          <td class="price-col">${price ? Number(price).toLocaleString() + '円' : ''}</td>
+          <td>
+            <div class="qty-cell">
+              <input type="number" class="container-qty" min="0" placeholder="0" 
+                     data-code="${code}" data-name="${name}" data-unit="${unit}">
+              <span class="unit-text">${unit}</span>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+  
 /**
  * 空容器マスターテーブルの描画関数
  * @param {Array} containers - loadMasterDataで取得した masterContainers
