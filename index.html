@@ -3212,30 +3212,40 @@ async function handleUserSubmit(actionType) {
 // 権限マスター 制御処理
 // =========================================================================
 /**
- * 画面上のタブ要素から権限設定項目を自動スキャンして定義を取得する
+ * 画面上のタブ要素からメインタブとサブタブの親子関係を持った定義を取得する
  */
 function getSystemTabDefinitions() {
-  const definitions = [];
-  
-  // 1. メインナビゲーションタブを自動取得
+  const tabHierarchy = [];
+
+  // メインタブをすべて取得
   const mainTabs = document.querySelectorAll('.nav-tab[data-target]');
-  mainTabs.forEach(tab => {
-    definitions.push({
-      key: tab.getAttribute('data-target'),
-      label: tab.getAttribute('data-label') || tab.textContent.trim()
-    });
+  mainTabs.forEach(mainTab => {
+    const mainKey = mainTab.getAttribute('data-target');
+    const mainLabel = mainTab.getAttribute('data-label') || mainTab.textContent.trim();
+
+    const parentNode = {
+      key: mainKey,
+      label: mainLabel,
+      isParent: true,
+      children: []
+    };
+
+    // もし「マスター管理」などのメインタブの場合、対応するサブタブを紐付ける
+    if (mainKey === 'masterManagement') {
+      const subTabs = document.querySelectorAll('.sub-nav-tab[data-target]');
+      subTabs.forEach(subTab => {
+        parentNode.children.push({
+          key: subTab.getAttribute('data-target'),
+          label: subTab.getAttribute('data-label') || subTab.textContent.trim(),
+          isParent: false
+        });
+      });
+    }
+
+    tabHierarchy.push(parentNode);
   });
 
-  // 2. サブタブ（マスター管理内など）を自動取得
-  const subTabs = document.querySelectorAll('.sub-nav-tab[data-target]');
-  subTabs.forEach(tab => {
-    definitions.push({
-      key: tab.getAttribute('data-target'),
-      label: tab.getAttribute('data-label') || tab.textContent.trim()
-    });
-  });
-
-  return definitions;
+  return tabHierarchy;
 }
 //タブチェックボックスツキモーダル
 function renderPermissionCheckboxes(selectedPermissions = {}) {
@@ -3243,67 +3253,87 @@ function renderPermissionCheckboxes(selectedPermissions = {}) {
   if (!container) return;
 
   container.innerHTML = '';
-  const tabDefs = getSystemTabDefinitions();
+  const tabHierarchy = getSystemTabDefinitions();
 
-  tabDefs.forEach(tab => {
-    // もし「マスター管理」という親タブ自体が定義に含まれている場合の除外処理や識別
-    // 例: tab.key が 'masterManagement' などの親である場合は別枠にする、等
-    const isParent = (tab.key === 'masterManagement'); // 親タブのキー名に合わせて調整
-    const isChecked = selectedPermissions[tab.key] == 1 || selectedPermissions[tab.key] === true;
+  tabHierarchy.forEach(parent => {
+    const isParentChecked = selectedPermissions[parent.key] == 1 || selectedPermissions[parent.key] === true;
 
-    const labelEl = document.createElement('label');
-    labelEl.style.display = 'flex';
-    labelEl.style.alignItems = 'center';
-    labelEl.style.gap = '8px';
-    labelEl.style.cursor = 'pointer';
+    // 親タブの描画
+    const parentLabelEl = document.createElement('label');
+    parentLabelEl.style.display = 'flex';
+    parentLabelEl.style.alignItems = 'center';
+    parentLabelEl.style.gap = '8px';
+    parentLabelEl.style.cursor = 'pointer';
+    parentLabelEl.style.fontWeight = 'bold';
+    parentLabelEl.style.marginTop = '8px';
 
-    // ★ 子タブ（マスター管理以外）の場合は、少し右にずらしてツリー風の見た目にする
-    if (!isParent) {
-      labelEl.style.marginLeft = '24px'; // 1歩右にずらす
-      labelEl.style.position = 'relative';
-      
-      // ツリーのL字の線を擬似的に演出するスタイルのヒント
-      labelEl.style.borderLeft = '2px solid #ced4da';
-      labelEl.style.paddingLeft = '8px';
-    } else {
-      labelEl.style.fontWeight = 'bold'; // 親タブは太字にするなど
-    }
-
-    labelEl.innerHTML = `
-      <input type="checkbox" id="perm_${tab.key}" data-perm-key="${tab.key}" value="1" ${isChecked ? 'checked' : ''} onchange="handlePermissionChange(this)">
-      <span>${escapeHtml(tab.label)}</span>
+    parentLabelEl.innerHTML = `
+      <input type="checkbox" id="perm_${parent.key}" data-perm-key="${parent.key}" value="1" ${isParentChecked ? 'checked' : ''} onchange="handlePermissionChange(this)">
+      <span>${escapeHtml(parent.label)}</span>
     `;
-    container.appendChild(labelEl);
+    container.appendChild(parentLabelEl);
+
+    // 子タブ（サブタブ）の描画
+    if (parent.children && parent.children.length > 0) {
+      const childrenContainer = document.createElement('div');
+      childrenContainer.style.marginLeft = '24px';
+      childrenContainer.style.borderLeft = '2px solid #ced4da';
+      childrenContainer.style.paddingLeft = '8px';
+      childrenContainer.style.display = 'flex';
+      childrenContainer.style.flexDirection = 'column';
+      childrenContainer.style.gap = '6px';
+      childrenContainer.style.marginTop = '4px';
+
+      parent.children.forEach(child => {
+        const isChildChecked = selectedPermissions[child.key] == 1 || selectedPermissions[child.key] === true;
+        // 親がオフかつ子もオフなら、初期状態で無効化するなどの調整
+        const isDisabled = !isParentChecked;
+
+        const childLabelEl = document.createElement('label');
+        childLabelEl.style.display = 'flex';
+        childLabelEl.style.alignItems = 'center';
+        childLabelEl.style.gap = '8px';
+        childLabelEl.style.cursor = isDisabled ? 'not-allowed' : 'pointer';
+        childLabelEl.style.opacity = isDisabled ? '0.5' : '1';
+
+        childLabelEl.innerHTML = `
+          <input type="checkbox" id="perm_${child.key}" data-perm-key="${child.key}" value="1" ${isChildChecked ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
+          <span>${escapeHtml(child.label)}</span>
+        `;
+        childrenContainer.appendChild(childLabelEl);
+      });
+
+      container.appendChild(childrenContainer);
+    }
   });
 }
 
 function handlePermissionChange(changedCheckbox) {
-  // ※親タブのチェックボックスのキー名が 'masterManagement' である場合の例
   const isParentCheckbox = changedCheckbox.getAttribute('data-perm-key') === 'masterManagement';
 
   if (isParentCheckbox) {
     const isParentChecked = changedCheckbox.checked;
     
-    // 子タブのチェックボックスをすべて取得
-    const allCheckboxes = document.querySelectorAll('#dynamicPermContainer input[type="checkbox"]');
-    
-    allCheckboxes.forEach(cb => {
-      const key = cb.getAttribute('data-perm-key');
-      if (key !== 'masterManagement') {
+    // 親チェックボックスの親要素（または次の兄弟要素）にある子タブのチェックボックス群を取得
+    const parentContainer = changedCheckbox.closest('label').nextElementSibling;
+    if (parentContainer) {
+      const childCheckboxes = parentContainer.querySelectorAll('input[type="checkbox"]');
+      
+      childCheckboxes.forEach(cb => {
         if (!isParentChecked) {
-          // 親が外されたら、子のチェックを外し、操作も無効化する
           cb.checked = false;
           cb.disabled = true;
-          cb.closest('label').style.opacity = '0.5'; // 薄くして選べない感を出す
+          cb.closest('label').style.opacity = '0.5';
+          cb.closest('label').style.cursor = 'not-allowed';
         } else {
-          // 親が入ったら、子の操作を有効化する
           cb.disabled = false;
           cb.closest('label').style.opacity = '1';
+          cb.closest('label').style.cursor = 'pointer';
         }
-      }
-    });
+      });
+    }
   }
-}  
+}
 
 
   
@@ -3311,7 +3341,7 @@ function handlePermissionChange(changedCheckbox) {
 // 権限マスター 制御処理（データ構造自動適応版）
 // =========================================================================
 
-// 権限マスター：マスターテーブルを更新して描画
+
 function renderMasterRoleTable(roles) {
   const tbody = document.getElementById('roleMasterTbody');
   if (!tbody) return;
@@ -3631,7 +3661,26 @@ async function handleRoleSubmit(actionType) {
     if (targetBtn) targetBtn.textContent = originalText;
   }
 }
+
+  function getSystemTabDefinitions() {
+  const definitions = [];
   
+  // .nav-tab や .sub-nav-tab など、対象のボタンをすべて取得
+  const tabs = document.querySelectorAll('.nav-tab, .sub-nav-tab, .sub-tab-btn');
+  tabs.forEach(tab => {
+    const target = tab.getAttribute('data-target');
+    const label = tab.getAttribute('data-label') || tab.textContent.trim();
+    
+    if (target) {
+      definitions.push({
+        key: target,   // 修正：カンマを1つにする
+        label: label   // スプレッドシート用ラベル (例: '空容器登録')
+      });
+    }
+  });
+
+  return definitions;
+}
 </script>
 </body>
 </html>
