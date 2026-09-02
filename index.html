@@ -2597,24 +2597,36 @@ async function handleRouteSubmit(mode) {
 
   let action = '';
   let confirmMsg = '';
+  let activeBtn = null;
+  let originalBtnText = '';
 
+  // 押されたボタンの取得とメッセージ設定
   if (mode === 'add') {
     if (!name) { alert('ルート名を入力してください。'); return; }
     action = 'saveRouteMaster';
     confirmMsg = 'このルートを登録しますか？';
+    activeBtn = document.getElementById('btnRouteSubmitAdd');
+    originalBtnText = '登録';
   } else if (mode === 'edit') {
     if (!name) { alert('ルート名を入力してください。'); return; }
     action = 'updateRouteMaster';
     confirmMsg = 'このルート情報を更新しますか？';
+    activeBtn = document.getElementById('btnRouteSubmitEdit');
+    originalBtnText = '更新';
   } else if (mode === 'delete') {
     action = 'deleteRouteMaster';
     confirmMsg = `コード [${code}] を削除しますか？\n※この操作は取り消せません。`;
+    activeBtn = document.getElementById('btnRouteSubmitDelete');
+    originalBtnText = '削除';
   }
 
   if (!confirm(confirmMsg)) return;
 
-  const loadingOverlay = document.getElementById('loadingOverlay');
-  if (loadingOverlay) loadingOverlay.style.display = 'flex';
+  // ボタンを「処理中...」に変更して二重送信を防ぐ（モーダルは閉じない）
+  if (activeBtn) {
+    activeBtn.disabled = true;
+    activeBtn.textContent = mode === 'delete' ? '削除中...' : '保存中...';
+  }
 
   try {
     const response = await fetch(GAS_WEB_APP_URL, {
@@ -2631,8 +2643,8 @@ async function handleRouteSubmit(mode) {
 
     if (result.status === 'success') {
       alert(result.message || '処理が完了しました。');
-      closeRouteModal();
-      await loadMasterData(); // マスターデータを最新化して再描画
+      closeRouteModal(); // 成功時のみモーダルを閉じる
+      await loadMasterData(); // 背後でマスターデータを最新化して再描画
     } else {
       alert('エラー: ' + (result.message || '処理に失敗しました。'));
     }
@@ -2640,7 +2652,11 @@ async function handleRouteSubmit(mode) {
     console.error('ルートマスター送信エラー:', err);
     alert('通信エラーが発生しました。');
   } finally {
-    if (loadingOverlay) loadingOverlay.style.display = 'none';
+    // ボタンの状態を元に戻す
+    if (activeBtn) {
+      activeBtn.disabled = false;
+      activeBtn.textContent = originalBtnText;
+    }
   }
 }
   
