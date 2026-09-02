@@ -907,9 +907,16 @@ async function loadMasterData() {
         loadingOverlay.innerHTML = `<p style="color:red; font-weight:bold; padding:20px; text-align:center;">${msg}<br><br>ページを再読み込みしてください。</p>`;
       }
     }
-/**
- * マスター管理タブ：空容器マスターテーブルの描画
- */
+// エスケープ関数（これを renderMasterContainerTable より上に追加）
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
 /**
  * マスター管理タブ：空容器マスターテーブルの描画（修正・削除ボタン付き）
  */
