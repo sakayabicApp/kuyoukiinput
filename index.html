@@ -951,30 +951,40 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;');
 }
   
-// 例：マスター一覧テーブルの描画処理
-function renderContainerTable(containers) {
-  const tbody = document.getElementById('containerTableBody'); // テーブルのtbodyのID
-  tbody.innerHTML = '';
+ function renderContainerTable(containers) {
+      const tbody = document.getElementById('containerTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      if (!containers || containers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">データがありません</td></tr>';
+        return;
+      }
 
-  containers.forEach(item => {
-    const tr = document.createElement('tr');
-    
-    // エスケープ処理して安全にJSON文字列化
-    const jsonStr = JSON.stringify(item).replace(/"/g, '&quot;');
+      containers.forEach(item => {
+        const keys = Object.keys(item);
+        const code  = item[keys[0]] || ''; 
+        const jan   = item[keys[1]] || ''; 
+        const name  = item[keys[2]] || ''; 
+        const price = item[keys[3]] !== undefined ? item[keys[3]] : ''; 
+        const unit  = item[keys[4]] || '個'; 
 
-    tr.innerHTML = `
-      <td>${item['商品コード'] || item.itemCode || ''}</td>
-      <td>${item['JANコード'] || item.janCode || ''}</td>
-      <td>${item['空容器名'] || item.containerName || ''}</td>
-      <td>${item['単価'] || item.price || 0}</td>
-      <td>${item['単位'] || item.unit || ''}</td>
-      <td>
-        <button type="button" class="btn-secondary" onclick="openEditContainerModal('${jsonStr}')">修正・削除</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${code}</strong></td>
+          <td>${jan}</td>
+          <td>${name}</td>
+          <td class="price-col">${price ? Number(price).toLocaleString() + '円' : ''}</td>
+          <td>
+            <div class="qty-cell">
+              <input type="number" class="container-qty" min="0" placeholder="0" 
+                     data-code="${code}" data-name="${name}" data-unit="${unit}">
+              <span class="unit-text">${unit}</span>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
 
 // 画面切り替え（メインタブ選択）
 function switchPage(page) {
