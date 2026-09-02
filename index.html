@@ -348,6 +348,11 @@
   cursor: pointer;
   border-radius: 4px;
 }
+
+/* 出荷店マスター用（3列）の幅制御 */
+.store-master-table th:nth-child(1) { width: 25%; } /* コード */
+.store-master-table th:nth-child(2) { width: 55%; } /* 店名 */
+.store-master-table th:nth-child(3) { width: 20%; text-align: center; } /* 操作 */  
   
   /* レスポンシブ（スマホ向けスタイル） */
   @media (max-width: 767px) {
@@ -695,9 +700,29 @@
   </table>
 </div>
 </div>
-      <div id="masterStorePage" class="master-sub-page hidden">
-        <h3>出荷店マスター管理</h3>
-      </div>
+<div id="masterStorePage" class="master-sub-page hidden">
+  <div class="master-header-container" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+    <h3 style="margin: 0;">出荷店マスター一覧</h3>
+    <div class="master-btn-group">
+      <button type="button" class="btn-primary" onclick="openAddStoreModal()">+ 新規登録</button>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table class="master-table store-master-table">
+      <thead>
+        <tr>
+          <th>コード</th>
+          <th>店名</th>
+          <th style="text-align: center;">操作</th>
+        </tr>
+      </thead>
+      <tbody id="storeMasterTbody">
+        <!-- JSで描画 -->
+      </tbody>
+    </table>
+  </div>
+</div>
       <div id="masterRoutePage" class="master-sub-page hidden">
         <h3>ルートマスター管理</h3>
       </div>
@@ -801,6 +826,30 @@
   <button type="button" id="btnSubmitDelete" class="btn-modal btn-modal-danger" onclick="handleContainerSubmit('delete')" style="display: none;">削除</button>
   <button type="button" class="btn-modal btn-modal-secondary" onclick="closeContainerModal()">キャンセル</button>
 </div>
+    </form>
+  </div>
+</div>  
+
+<!-- 出荷店マスター モーダル -->
+<div id="storeMasterModal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header" id="storeModalTitle">出荷店マスター 新規登録</div>
+    <form id="storeMasterForm">
+      <div style="margin-bottom: 12px;">
+        <label for="modalStoreCode">コード</label>
+        <input type="text" id="modalStoreCode">
+      </div>
+      <div style="margin-bottom: 12px;">
+        <label for="modalStoreName">店名</label>
+        <input type="text" id="modalStoreName">
+      </div>
+
+      <div class="modal-btn-group">
+        <button type="button" id="btnStoreSubmitAdd" class="btn-modal btn-modal-primary" onclick="handleStoreSubmit('add')">登録</button>
+        <button type="button" id="btnStoreSubmitEdit" class="btn-modal btn-modal-primary" onclick="handleStoreSubmit('edit')" style="display: none;">更新</button>
+        <button type="button" id="btnStoreSubmitDelete" class="btn-modal btn-modal-danger" onclick="handleStoreSubmit('delete')" style="display: none;">削除</button>
+        <button type="button" class="btn-modal btn-modal-secondary" onclick="closeStoreModal()">キャンセル</button>
+      </div>
     </form>
   </div>
 </div>  
@@ -2188,6 +2237,167 @@ async function handleContainerSubmit(actionType) {
     }
   }
 }
+
+// 出荷店マスター描画処理
+function renderStoreMasterTable(storeList) {
+  const tbody = document.getElementById('storeMasterTbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  if (!storeList || storeList.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">データがありません</td></tr>';
+    return;
+  }
+
+  storeList.forEach(item => {
+    const tr = document.createElement('tr');
+    const code = item.code || item[0] || '';
+    const name = item.name || item[1] || '';
+
+    const jsonStr = JSON.stringify({ code: code, name: name })
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+
+    tr.innerHTML = `
+      <td><strong>${escapeHtml(code)}</strong></td>
+      <td>${escapeHtml(name)}</td>
+      <td style="text-align: center;">
+        <button type="button" class="btn-secondary btn-table-action" onclick="openEditStoreModal('${jsonStr}')">修正・削除</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// 新規登録モーダルを開く
+function openAddStoreModal() {
+  document.getElementById('modalStoreCode').value = '';
+  document.getElementById('modalStoreName').value = '';
+
+  const codeInput = document.getElementById('modalStoreCode');
+  codeInput.readOnly = false;
+  codeInput.style.backgroundColor = '#ffffff';
+  codeInput.style.cursor = 'text';
+
+  document.getElementById('storeModalTitle').textContent = '出荷店マスター 新規登録';
+  document.getElementById('btnStoreSubmitAdd').style.display = 'inline-block';
+  document.getElementById('btnStoreSubmitEdit').style.display = 'none';
+  document.getElementById('btnStoreSubmitDelete').style.display = 'none';
+
+  document.getElementById('storeMasterModal').style.display = 'flex';
+}
+
+// 修正・削除モーダルを開く
+function openEditStoreModal(jsonStr) {
+  const data = typeof jsonStr === 'string' ? JSON.parse(
+    jsonStr.replace(/&quot;/g, '"').replace(/&#039;/g, "'")
+  ) : jsonStr;
+
+  document.getElementById('modalStoreCode').value = data.code || '';
+  document.getElementById('modalStoreName').value = data.name || '';
+
+  // コード変更不可
+  const codeInput = document.getElementById('modalStoreCode');
+  codeInput.readOnly = true;
+  codeInput.style.backgroundColor = '#e9ecef';
+  codeInput.style.cursor = 'not-allowed';
+
+  document.getElementById('storeModalTitle').textContent = '出荷店マスター 修正・削除';
+  document.getElementById('btnStoreSubmitAdd').style.display = 'none';
+  document.getElementById('btnStoreSubmitEdit').style.display = 'inline-block';
+  document.getElementById('btnStoreSubmitDelete').style.display = 'inline-block';
+
+  document.getElementById('storeMasterModal').style.display = 'flex';
+}
+
+function closeStoreModal() {
+  document.getElementById('storeMasterModal').style.display = 'none';
+}
+
+// 送信・連打防止処理
+let isStoreSubmitting = false;
+
+async function handleStoreSubmit(actionType) {
+  if (isStoreSubmitting) return;
+
+  let confirmMessage = '';
+  let apiAction = '';
+  let targetBtn = null;
+  let loadingText = '';
+
+  if (actionType === 'add') {
+    confirmMessage = '登録してよろしいですか？';
+    apiAction = 'saveStoreMaster';
+    targetBtn = document.getElementById('btnStoreSubmitAdd');
+    loadingText = '登録中...';
+  } else if (actionType === 'edit') {
+    confirmMessage = '修正内容を保存してよろしいですか？';
+    apiAction = 'updateStoreMaster';
+    targetBtn = document.getElementById('btnStoreSubmitEdit');
+    loadingText = '保存中...';
+  } else if (actionType === 'delete') {
+    confirmMessage = '本当にこのデータを削除してよろしいですか？';
+    apiAction = 'deleteStoreMaster';
+    targetBtn = document.getElementById('btnStoreSubmitDelete');
+    loadingText = '削除中...';
+  }
+
+  isStoreSubmitting = true;
+  const allModalBtns = document.querySelectorAll('#storeMasterModal button');
+  const originalText = targetBtn ? targetBtn.textContent : '';
+
+  allModalBtns.forEach(btn => {
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    btn.style.cursor = 'not-allowed';
+  });
+  if (targetBtn) targetBtn.textContent = loadingText;
+
+  if (!confirm(confirmMessage)) {
+    isStoreSubmitting = false;
+    allModalBtns.forEach(btn => {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    });
+    if (targetBtn) targetBtn.textContent = originalText;
+    return;
+  }
+
+  const payload = {
+    action: apiAction,
+    storeCode: document.getElementById('modalStoreCode').value.trim(),
+    storeName: document.getElementById('modalStoreName').value.trim()
+  };
+
+  try {
+    const response = await fetch(GAS_WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload)
+    });
+    const result = await response.json();
+
+    if (result.status === 'success') {
+      alert('処理が完了しました。');
+      closeStoreModal();
+      if (typeof loadMasterData === 'function') await loadMasterData();
+    } else {
+      alert('エラー: ' + result.message);
+    }
+  } catch (err) {
+    console.error(err);
+    alert('通信エラーが発生しました。');
+  } finally {
+    isStoreSubmitting = false;
+    allModalBtns.forEach(btn => {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    });
+    if (targetBtn) targetBtn.textContent = originalText;
+  }
+}  
 </script>
 </body>
 </html>
