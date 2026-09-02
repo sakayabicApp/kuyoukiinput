@@ -2527,7 +2527,31 @@ function openAddRouteModal() {
   if (modal) modal.style.display = 'flex';
 }
 
-// ルートマスター：修正・削除モーダルを開く
+// 新規登録モーダルを開く
+function openAddRouteModal() {
+  const codeEl = document.getElementById('modalRouteCode');
+  const nameEl = document.getElementById('modalRouteName');
+  
+  if (codeEl) {
+    codeEl.value = '';
+    codeEl.readOnly = false;
+    codeEl.style.backgroundColor = '#fff';
+    codeEl.style.cursor = 'text';
+  }
+  if (nameEl) nameEl.value = '';
+
+  const titleEl = document.getElementById('routeModalTitle');
+  if (titleEl) titleEl.textContent = 'ルートマスター 新規登録';
+
+  document.getElementById('btnRouteSubmitAdd').style.display = 'inline-block';
+  document.getElementById('btnRouteSubmitEdit').style.display = 'none';
+  document.getElementById('btnRouteSubmitDelete').style.display = 'none';
+
+  const modal = document.getElementById('routeMasterModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+// 修正・削除モーダルを開く
 function openEditRouteModal(jsonStr) {
   const data = typeof jsonStr === 'string' ? JSON.parse(
     jsonStr.replace(/&quot;/g, '"').replace(/&#039;/g, "'")
@@ -2535,60 +2559,56 @@ function openEditRouteModal(jsonStr) {
 
   const codeEl = document.getElementById('modalRouteCode');
   const nameEl = document.getElementById('modalRouteName');
-  if (codeEl) codeEl.value = data.code || '';
-  if (nameEl) nameEl.value = data.name || '';
-
-  // 編集時はコード変更不可
+  
   if (codeEl) {
+    codeEl.value = data.code || '';
     codeEl.readOnly = true;
     codeEl.style.backgroundColor = '#e9ecef';
     codeEl.style.cursor = 'not-allowed';
   }
+  if (nameEl) nameEl.value = data.name || '';
 
   const titleEl = document.getElementById('routeModalTitle');
   if (titleEl) titleEl.textContent = 'ルートマスター 修正・削除';
 
-  const btnAdd = document.getElementById('btnRouteSubmitAdd');
-  const btnEdit = document.getElementById('btnRouteSubmitEdit');
-  const btnDelete = document.getElementById('btnRouteSubmitDelete');
-
-  if (btnAdd) btnAdd.style.display = 'none';
-  if (btnEdit) btnEdit.style.display = 'inline-block';
-  if (btnDelete) btnDelete.style.display = 'inline-block';
+  document.getElementById('btnRouteSubmitAdd').style.display = 'none';
+  document.getElementById('btnRouteSubmitEdit').style.display = 'inline-block';
+  document.getElementById('btnRouteSubmitDelete').style.display = 'inline-block';
 
   const modal = document.getElementById('routeMasterModal');
   if (modal) modal.style.display = 'flex';
-} 
+}
+
 // モーダルを閉じる
 function closeRouteModal() {
   const modal = document.getElementById('routeMasterModal');
   if (modal) modal.style.display = 'none';
 }
 
-// ルートマスター 送信処理（新規・更新・削除）
-async function submitRouteMaster(mode) {
+// 送信ハンドラー（登録・更新・削除）
+async function handleRouteSubmit(mode) {
   const code = document.getElementById('modalRouteCode').value.trim();
   const name = document.getElementById('modalRouteName').value.trim();
 
   if (!code) {
-    alert('ルートコードを入力してください。');
+    alert('コードを入力してください。');
     return;
   }
 
   let action = '';
   let confirmMsg = '';
 
-  if (mode === 'save') {
+  if (mode === 'add') {
     if (!name) { alert('ルート名を入力してください。'); return; }
     action = 'saveRouteMaster';
     confirmMsg = 'このルートを登録しますか？';
-  } else if (mode === 'update') {
+  } else if (mode === 'edit') {
     if (!name) { alert('ルート名を入力してください。'); return; }
     action = 'updateRouteMaster';
     confirmMsg = 'このルート情報を更新しますか？';
   } else if (mode === 'delete') {
     action = 'deleteRouteMaster';
-    confirmMsg = `ルートコード [${code}] を削除しますか？\n※この操作は取り消せません。`;
+    confirmMsg = `コード [${code}] を削除しますか？\n※この操作は取り消せません。`;
   }
 
   if (!confirm(confirmMsg)) return;
@@ -2612,8 +2632,7 @@ async function submitRouteMaster(mode) {
     if (result.status === 'success') {
       alert(result.message || '処理が完了しました。');
       closeRouteModal();
-      // 再読み込みして最新データを表示
-      await loadMasterData();
+      await loadMasterData(); // マスターデータを最新化して再描画
     } else {
       alert('エラー: ' + (result.message || '処理に失敗しました。'));
     }
