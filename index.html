@@ -1902,15 +1902,19 @@ function execSearchContainer() {
     return;
   }
 
-  if (!window.masterContainers || !Array.isArray(masterContainers)) {
-    alert('マスターデータがロードされていません。');
+  // GASのdoGetレスポンス構造（masterData.containers または masterContainers）から取得
+  const containers = window.masterData?.containers || window.masterContainers || [];
+
+  if (!Array.isArray(containers) || containers.length === 0) {
+    alert('マスターデータが読み込まれていないか、空です。');
     return;
   }
 
-  // 対象データの検索
-  const target = masterContainers.find(row => {
+  // 対象データの検索 (オブジェクトのキー名に合わせる)
+  const target = containers.find(row => {
     if (!row) return false;
-    const code = Array.isArray(row) ? row[0] : Object.values(row)[0];
+    // 配列形式でもオブジェクト形式（プロパティ名）でも対応できるように保持
+    const code = row['商品コード'] || row.itemCode || (Array.isArray(row) ? row[0] : Object.values(row)[0]);
     return String(code).trim() === String(itemCode).trim();
   });
 
@@ -1921,35 +1925,25 @@ function execSearchContainer() {
 
   // フォームへデータをセット
   try {
-    if (Array.isArray(target)) {
-      document.getElementById('modalItemCode').value = target[0] ?? '';
-      document.getElementById('modalJanCode').value = target[1] ?? '';
-      document.getElementById('modalContainerName').value = target[2] ?? '';
-      document.getElementById('modalPrice').value = target[3] ?? 0;
-      document.getElementById('modalUnit').value = target[4] ?? '';
-    } else {
-      const values = Object.values(target);
-      document.getElementById('modalItemCode').value = values[0] ?? '';
-      document.getElementById('modalJanCode').value = values[1] ?? '';
-      document.getElementById('modalContainerName').value = values[2] ?? '';
-      document.getElementById('modalPrice').value = values[3] ?? 0;
-      document.getElementById('modalUnit').value = values[4] ?? '';
-    }
+    document.getElementById('modalItemCode').value = target['商品コード'] || target.itemCode || '';
+    document.getElementById('modalJanCode').value = target['JANコード'] || target.janCode || '';
+    document.getElementById('modalContainerName').value = target['空容器名'] || target.containerName || '';
+    document.getElementById('modalPrice').value = target['単価'] || target.price || 0;
+    document.getElementById('modalUnit').value = target['単位'] || target.unit || '';
   } catch (e) {
     console.error('フォームセットエラー:', e);
     alert('データの読み込みに失敗しました。');
     return;
   }
 
-  // 検索ポップアップを閉じて、編集用モーダルを開く
+  // ポップアップを閉じて編集モーダルを開く
   closeSearchCodeModal();
-
   document.getElementById('containerModalTitle').textContent = '空容器マスター 修正・削除';
   document.getElementById('modalItemCode').readOnly = true;
 
   toggleModalButtons('edit');
   document.getElementById('containerMasterModal').style.display = 'flex';
-}  
+}
   
 // ボタン表示制御の共通関数
 function toggleModalButtons(mode) {
