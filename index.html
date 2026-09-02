@@ -3399,29 +3399,6 @@ function renderMasterRoleTable(roles) {
   });
 }
 
-// 権限マスター：新規登録モーダルを開く
-function openAddRoleModal() {
-  const codeEl = document.getElementById('modalRoleCode');
-  const nameEl = document.getElementById('modalRoleName');
-  
-  if (codeEl) {
-    codeEl.value = '';
-    codeEl.readOnly = false;
-    codeEl.style.backgroundColor = '#fff';
-    codeEl.style.cursor = 'text';
-  }
-  if (nameEl) nameEl.value = '';
-
-  const titleEl = document.getElementById('staffModalTitle') || document.getElementById('roleModalTitle');
-  if (titleEl) titleEl.textContent = '権限マスター 新規登録';
-
-  document.getElementById('btnRoleSubmitAdd').style.display = 'inline-block';
-  document.getElementById('btnRoleSubmitEdit').style.display = 'none';
-  document.getElementById('btnRoleSubmitDelete').style.display = 'none';
-
-  const modal = document.getElementById('roleMasterModal');
-  if (modal) modal.style.display = 'flex';
-}
 
 // 権限マスター：修正・削除モーダルを開く
 function openEditRoleModal(jsonStr) {
@@ -3529,8 +3506,6 @@ function closeRoleModal() {
 // 連打防止フラグ
 let isRoleSubmitting = false;
 
-// 連打防止フラグ
-let isRoleSubmitting = false;
 
 // 権限マスター：送信処理
 async function handleRoleSubmit(actionType) {
