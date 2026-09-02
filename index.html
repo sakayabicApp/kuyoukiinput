@@ -261,29 +261,38 @@
   .date-range-item { flex: 1.5; }
   .slip-header-item { margin-right: 12px; }
 
-/* テーブル全体のレイアウト固定（幅をあふれさせない設定） */
-#containerMasterTable {
+
+/* テーブル全体のレイアウト設定 */
+.master-table {
   width: 100%;
-  table-layout: fixed; /* 列幅を固定比率にする */
+  table-layout: fixed; /* 各列の幅を固定化 */
   border-collapse: collapse;
 }
 
-/* 各列の幅を最適化（画面幅に綺麗に収める） */
-#containerMasterTable th:nth-child(1) { width: 15%; } /* 商品コード */
-#containerMasterTable th:nth-child(2) { width: 22%; } /* JANコード */
-#containerMasterTable th:nth-child(3) { width: 33%; } /* 空容器名 */
-#containerMasterTable th:nth-child(4) { width: 12%; } /* 単価 */
-#containerMasterTable th:nth-child(5) { width: 10%; } /* 単位 */
-#containerMasterTable th:nth-child(6) { width: 8%;  } /* 操作ボタン */
+/* 各列の幅と寄せ（計6列） */
+.master-table th:nth-child(1) { width: 15%; } /* 商品コード */
+.master-table th:nth-child(2) { width: 22%; } /* JANコード */
+.master-table th:nth-child(3) { width: 32%; } /* 空容器名 */
+.master-table th:nth-child(4) { width: 11%; text-align: right; } /* 単価 */
+.master-table th:nth-child(5) { width: 10%; } /* 単位 */
+.master-table th:nth-child(6) { width: 10%; text-align: center; } /* 操作 */
 
-/* セルのテキストが溢れた場合の処理 */
-#containerMasterTable td, #containerMasterTable th {
-  padding: 6px 4px;
-  font-size: 0.85rem;
+/* セルの基本スタイル（他列とスタイル統一） */
+.master-table th, 
+.master-table td {
+  padding: 0.5rem 0.625rem;
+  border: 1px solid #e0e0e0;
+  vertical-align: middle;
+  font-size: 0.8125rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  vertical-align: middle;
+}
+
+.master-table th {
+  background-color: #f8f9fa;
+  color: #555;
+  font-weight: bold;
 }
 
 /* 行内の「修正・削除」ボタンのスタイリング（コンパクト化＆高さを揃える） */
@@ -624,9 +633,9 @@
         <th>商品コード</th>
         <th>JANコード</th>
         <th>空容器名</th>
-        <th>単価</th>
+        <th style="text-align: right;">単価</th>
         <th>単位</th>
-        <th>操作</th> <!-- ★これを1行追加（計6列にする） -->
+        <th style="text-align: center;">操作</th> <!-- ★他と揃います -->
       </tr>
     </thead>
     <tbody id="containerMasterTbody">
