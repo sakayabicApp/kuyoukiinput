@@ -196,6 +196,49 @@
   .confirm-table { margin-bottom: 0.9375rem; }
   .modal-actions { display: flex; justify-content: flex-end; gap: 0.625rem; margin-top: 1.25rem; }
 
+  /* モーダルボタンエリア */
+.modal-btn-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 1.25rem;
+}
+
+/* モーダル専用ボタンの共通化 */
+.btn-modal {
+  flex: 1;                /* 表示されているボタン同士で幅を均等に分ける */
+  max-width: 120px;       /* ボタンが大きくなりすぎないよう上限を設定 */
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: center;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+}
+
+/* ボタン色 */
+.btn-modal-primary {
+  background-color: var(--primary-color);
+  color: #ffffff;
+}
+
+.btn-modal-danger {
+  background-color: #dc3545;
+  color: #ffffff;
+}
+
+.btn-modal-secondary {
+  background-color: #6c757d;
+  color: #ffffff;
+}
+
+.btn-modal:hover {
+  opacity: 0.85;
+}
+
   /* メインナビゲーションメニュー */
   .nav-menu {
     display: flex;
@@ -743,12 +786,13 @@
       </div>
 
       <!-- 操作ボタン領域 -->
-      <div style="display: flex; justify-content: flex-end; gap: 8px;">
-        <button type="button" id="btnSubmitAdd" class="btn-primary" onclick="handleContainerSubmit('add')">登録</button>
-        <button type="button" id="btnSubmitEdit" class="btn-primary" onclick="handleContainerSubmit('edit')" style="display: none;">更新</button>
-        <button type="button" id="btnSubmitDelete" class="btn-danger" onclick="handleContainerSubmit('delete')" style="display: none; background-color: #dc3545; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">削除</button>
-        <button type="button" class="btn-secondary" onclick="closeContainerModal()">キャンセル</button>
-      </div>
+    <!-- 操作ボタン領域 -->
+<div class="modal-btn-group">
+  <button type="button" id="btnSubmitAdd" class="btn-modal btn-modal-primary" onclick="handleContainerSubmit('add')">登録</button>
+  <button type="button" id="btnSubmitEdit" class="btn-modal btn-modal-primary" onclick="handleContainerSubmit('edit')" style="display: none;">更新</button>
+  <button type="button" id="btnSubmitDelete" class="btn-modal btn-modal-danger" onclick="handleContainerSubmit('delete')" style="display: none;">削除</button>
+  <button type="button" class="btn-modal btn-modal-secondary" onclick="closeContainerModal()">キャンセル</button>
+</div>
     </form>
   </div>
 </div>  
