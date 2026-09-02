@@ -909,15 +909,18 @@ async function loadMasterData() {
 /**
  * マスター管理タブ：空容器マスターテーブルの描画
  */
+/**
+ * マスター管理タブ：空容器マスターテーブルの描画（修正・削除ボタン付き）
+ */
 function renderMasterContainerTable(containers) {
-  // マスター管理画面側の tbody ID を指定（HTML側と合わせてください）
   const tbody = document.getElementById('containerMasterTbody');
   if (!tbody) return;
 
   tbody.innerHTML = '';
 
   if (!containers || containers.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">データがありません</td></tr>';
+    // 列数が6列になったため colspan="6" に修正
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">データがありません</td></tr>';
     return;
   }
 
@@ -929,6 +932,16 @@ function renderMasterContainerTable(containers) {
     const price = item[keys[3]] !== undefined ? item[keys[3]] : ''; 
     const unit  = item[keys[4]] || 'バラ・ケース'; 
 
+    // ボタンの onclick に渡すため、安全なJSON文字列を生成
+    const itemPayload = {
+      itemCode: code,
+      janCode: jan,
+      containerName: name,
+      price: price,
+      unit: unit
+    };
+    const jsonStr = escapeHtml(JSON.stringify(itemPayload));
+
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><strong>${escapeHtml(code)}</strong></td>
@@ -936,19 +949,12 @@ function renderMasterContainerTable(containers) {
       <td>${escapeHtml(name)}</td>
       <td style="text-align: right;">${price !== '' ? Number(price).toLocaleString() + '円' : ''}</td>
       <td>${escapeHtml(unit)}</td>
+      <td style="text-align: center;">
+        <button type="button" class="btn-secondary" onclick="openEditContainerModal('${jsonStr}')">修正・削除</button>
+      </td>
     `;
     tbody.appendChild(tr);
   });
-}
-
-// エスケープ関数（未定義の場合のみ追加してください）
-function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
 }
   
  function renderContainerTable(containers) {
@@ -1876,28 +1882,45 @@ function closeSearchCodeModal() {
   if (searchModal) searchModal.style.display = 'none';
 }
 
-// 行の「修正・削除」ボタンを押したときの処理
+/**
+ * テーブルの「修正・削除」ボタン押下時の処理
+ */
 function openEditContainerModal(jsonStr) {
-  const data = typeof jsonStr === 'string' ? JSON.parse(jsonStr) : jsonStr;
+  // HTMLエスケープされたJSON文字列を元のオブジェクトに復元
+  const data = JSON.parse(
+    jsonStr
+      .replace(/&quot;/g, '"')
+      .replace(/&#039;/g, "'")
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&amp;/g, '&')
+  );
 
-  // フォームに値をセット
-  document.getElementById('modalItemCode').value = data['商品コード'] ?? data.itemCode ?? '';
-  document.getElementById('modalJanCode').value = data['JANコード'] ?? data.janCode ?? '';
-  document.getElementById('modalContainerName').value = data['空容器名'] ?? data.containerName ?? '';
-  document.getElementById('modalPrice').value = data['単価'] ?? data.price ?? 0;
-  document.getElementById('modalUnit').value = data['単位'] ?? data.unit ?? '';
+  // モーダルのフォームに値をセット
+  document.getElementById('modalItemCode').value = data.itemCode || '';
+  document.getElementById('modalJanCode').value = data.janCode || '';
+  document.getElementById('modalContainerName').value = data.containerName || '';
+  document.getElementById('modalPrice').value = data.price !== '' ? data.price : 0;
+  document.getElementById('modalUnit').value = data.unit || '';
 
-  // 商品コードはキーなので修正不可（readOnly）にする
+  // 商品コードはキーのため編集不可（読み取り専用）にする
   document.getElementById('modalItemCode').readOnly = true;
 
-  // モーダルのタイトルとボタン制御
+  // モーダルのタイトルとボタン切り替え
   document.getElementById('containerModalTitle').textContent = '空容器マスター 修正・削除';
-  toggleModalButtons('edit'); // 「保存」「削除」ボタンを表示、「登録」ボタンを非表示にする関数
+  
+  if (typeof toggleModalButtons === 'function') {
+    toggleModalButtons('edit'); // 「保存」「削除」ボタンのみ表示する処理
+  } else {
+    // toggleModalButtons がない場合の直接制御例
+    document.getElementById('btnSubmitAdd').style.display = 'none';
+    document.getElementById('btnSubmitEdit').style.display = 'inline-block';
+    document.getElementById('btnSubmitDelete').style.display = 'inline-block';
+  }
 
   // モーダルを表示
   document.getElementById('containerMasterModal').style.display = 'flex';
 }
-
   
 // ボタン表示制御の共通関数
 function toggleModalButtons(mode) {
