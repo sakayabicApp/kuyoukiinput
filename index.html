@@ -723,9 +723,30 @@
     </table>
   </div>
 </div>
-      <div id="masterRoutePage" class="master-sub-page hidden">
-        <h3>ルートマスター管理</h3>
-      </div>
+<!-- ルートマスター管理エリア -->
+<div id="masterRoutePage" class="master-sub-page hidden">
+  <div class="master-header-container" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+    <h3 style="margin: 0;">ルートマスター一覧</h3>
+    <div class="master-btn-group">
+      <button type="button" class="btn-primary" onclick="openAddRouteModal()">+ 新規登録</button>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table class="master-table route-master-table">
+      <thead>
+        <tr>
+          <th>ルートコード</th>
+          <th>ルート名</th>
+          <th style="text-align: center;">操作</th>
+        </tr>
+      </thead>
+      <tbody id="routeMasterTbody">
+        <!-- JSで描画 -->
+      </tbody>
+    </table>
+  </div>
+</div>
       <div id="masterStaffPage" class="master-sub-page hidden">
         <h3>担当者マスター管理</h3>
       </div>
@@ -851,6 +872,34 @@
         <button type="button" class="btn-modal btn-modal-secondary" onclick="closeStoreModal()">キャンセル</button>
       </div>
     </form>
+  </div>
+</div> 
+
+<!-- ルートマスター 登録・編集モーダル -->
+<div id="routeMasterModal" class="modal-overlay" style="display: none;">
+  <div class="modal-content" style="max-width: 450px;">
+    <div class="modal-header">
+      <h3 id="routeModalTitle">ルートマスター 登録</h3>
+      <button type="button" class="modal-close" onclick="closeRouteModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="routeMasterForm">
+        <div class="form-group" style="margin-bottom: 15px;">
+          <label style="display: block; font-weight: bold; margin-bottom: 5px;">ルートコード <span style="color:red;">*</span></label>
+          <input type="text" id="modalRouteCode" class="form-control" placeholder="例: 01" required style="width: 100%; padding: 8px; box-sizing: border-box;">
+        </div>
+        <div class="form-group" style="margin-bottom: 15px;">
+          <label style="display: block; font-weight: bold; margin-bottom: 5px;">ルート名 <span style="color:red;">*</span></label>
+          <input type="text" id="modalRouteName" class="form-control" placeholder="例: 西尾ルート" required style="width: 100%; padding: 8px; box-sizing: border-box;">
+        </div>
+        <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+          <button type="button" class="btn-secondary" onclick="closeRouteModal()">キャンセル</button>
+          <button type="button" id="btnRouteSubmitAdd" class="btn-primary" onclick="submitRouteMaster('save')">登録</button>
+          <button type="button" id="btnRouteSubmitEdit" class="btn-primary" onclick="submitRouteMaster('update')" style="display: none;">更新</button>
+          <button type="button" id="btnRouteSubmitDelete" class="btn-danger" onclick="submitRouteMaster('delete')" style="display: none; background-color: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">削除</button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>  
   
@@ -1006,10 +1055,9 @@ async function loadMasterData() {
       }
 
       renderContainerTable(masterContainers);
-      // ★追加：マスター管理タブ用の表を描画
-      renderMasterContainerTable(masterContainers);
-      // ★追加：出荷店マスター描画関数の呼び出し
-  renderMasterStoreTable(masterStores);
+      renderMasterContainerTable(masterContainers);// ★追加：マスター管理タブ用の表を描画
+      renderMasterStoreTable(masterStores); // ★追加：出荷店マスター描画関数の呼び出し
+      renderMasterRouteTable(masterRoutes); // ★この行を追加
 
       const loadingOverlay = document.getElementById('loadingOverlay');
       if (loadingOverlay) loadingOverlay.style.display = 'none';
@@ -2419,6 +2467,169 @@ async function handleStoreSubmit(actionType) {
     if (targetBtn) targetBtn.textContent = originalText;
   }
 }  
+// ルートマスター描画処理
+function renderMasterRouteTable(routes) {
+  const tbody = document.getElementById('routeMasterTbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  // routes が空、または要素無しの場合
+  if (!routes || (Array.isArray(routes) && routes.length === 0) || (typeof routes === 'object' && Object.keys(routes).length === 0)) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">データがありません</td></tr>';
+    return;
+  }
+
+  // オブジェクト/配列両対応でルーピング
+  const routeEntries = Array.isArray(routes)
+    ? routes.map(row => {
+        const keys = Object.keys(row);
+        return { code: String(row[keys[0]] || '').trim(), name: String(row[keys[1]] || '').trim() };
+      })
+    : Object.keys(routes).map(code => ({ code: code, name: routes[code] }));
+
+  routeEntries.forEach(item => {
+    if (!item.code) return;
+
+    const jsonStr = JSON.stringify({ code: item.code, name: item.name })
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${escapeHtml(item.code)}</strong></td>
+      <td>${escapeHtml(item.name)}</td>
+      <td style="text-align: center;">
+        <button type="button" class="btn-secondary btn-table-action" onclick="openEditRouteModal('${jsonStr}')">修正・削除</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+// ルートマスター：新規登録モーダルを開く
+function openAddRouteModal() {
+  const codeEl = document.getElementById('modalRouteCode');
+  const nameEl = document.getElementById('modalRouteName');
+  if (codeEl) {
+    codeEl.value = '';
+    codeEl.readOnly = false;
+    codeEl.style.backgroundColor = '#fff';
+    codeEl.style.cursor = 'text';
+  }
+  if (nameEl) nameEl.value = '';
+
+  const titleEl = document.getElementById('routeModalTitle');
+  if (titleEl) titleEl.textContent = 'ルートマスター 新規登録';
+
+  const btnAdd = document.getElementById('btnRouteSubmitAdd');
+  const btnEdit = document.getElementById('btnRouteSubmitEdit');
+  const btnDelete = document.getElementById('btnRouteSubmitDelete');
+
+  if (btnAdd) btnAdd.style.display = 'inline-block';
+  if (btnEdit) btnEdit.style.display = 'none';
+  if (btnDelete) btnDelete.style.display = 'none';
+
+  const modal = document.getElementById('routeMasterModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+// ルートマスター：修正・削除モーダルを開く
+function openEditRouteModal(jsonStr) {
+  const data = typeof jsonStr === 'string' ? JSON.parse(
+    jsonStr.replace(/&quot;/g, '"').replace(/&#039;/g, "'")
+  ) : jsonStr;
+
+  const codeEl = document.getElementById('modalRouteCode');
+  const nameEl = document.getElementById('modalRouteName');
+  if (codeEl) codeEl.value = data.code || '';
+  if (nameEl) nameEl.value = data.name || '';
+
+  // 編集時はコード変更不可
+  if (codeEl) {
+    codeEl.readOnly = true;
+    codeEl.style.backgroundColor = '#e9ecef';
+    codeEl.style.cursor = 'not-allowed';
+  }
+
+  const titleEl = document.getElementById('routeModalTitle');
+  if (titleEl) titleEl.textContent = 'ルートマスター 修正・削除';
+
+  const btnAdd = document.getElementById('btnRouteSubmitAdd');
+  const btnEdit = document.getElementById('btnRouteSubmitEdit');
+  const btnDelete = document.getElementById('btnRouteSubmitDelete');
+
+  if (btnAdd) btnAdd.style.display = 'none';
+  if (btnEdit) btnEdit.style.display = 'inline-block';
+  if (btnDelete) btnDelete.style.display = 'inline-block';
+
+  const modal = document.getElementById('routeMasterModal');
+  if (modal) modal.style.display = 'flex';
+} 
+// モーダルを閉じる
+function closeRouteModal() {
+  const modal = document.getElementById('routeMasterModal');
+  if (modal) modal.style.display = 'none';
+}
+
+// ルートマスター 送信処理（新規・更新・削除）
+async function submitRouteMaster(mode) {
+  const code = document.getElementById('modalRouteCode').value.trim();
+  const name = document.getElementById('modalRouteName').value.trim();
+
+  if (!code) {
+    alert('ルートコードを入力してください。');
+    return;
+  }
+
+  let action = '';
+  let confirmMsg = '';
+
+  if (mode === 'save') {
+    if (!name) { alert('ルート名を入力してください。'); return; }
+    action = 'saveRouteMaster';
+    confirmMsg = 'このルートを登録しますか？';
+  } else if (mode === 'update') {
+    if (!name) { alert('ルート名を入力してください。'); return; }
+    action = 'updateRouteMaster';
+    confirmMsg = 'このルート情報を更新しますか？';
+  } else if (mode === 'delete') {
+    action = 'deleteRouteMaster';
+    confirmMsg = `ルートコード [${code}] を削除しますか？\n※この操作は取り消せません。`;
+  }
+
+  if (!confirm(confirmMsg)) return;
+
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  if (loadingOverlay) loadingOverlay.style.display = 'flex';
+
+  try {
+    const response = await fetch(GAS_WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        action: action,
+        code: code,
+        name: name
+      })
+    });
+
+    const result = await response.json();
+
+    if (result.status === 'success') {
+      alert(result.message || '処理が完了しました。');
+      closeRouteModal();
+      // 再読み込みして最新データを表示
+      await loadMasterData();
+    } else {
+      alert('エラー: ' + (result.message || '処理に失敗しました。'));
+    }
+  } catch (err) {
+    console.error('ルートマスター送信エラー:', err);
+    alert('通信エラーが発生しました。');
+  } finally {
+    if (loadingOverlay) loadingOverlay.style.display = 'none';
+  }
+}
+  
 </script>
 </body>
 </html>
