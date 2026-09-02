@@ -875,34 +875,29 @@
   </div>
 </div> 
 
-<!-- ルートマスター 登録・編集モーダル -->
-<div id="routeMasterModal" class="modal-overlay" style="display: none;">
-  <div class="modal-content" style="max-width: 450px;">
-    <div class="modal-header">
-      <h3 id="routeModalTitle">ルートマスター 登録</h3>
-      <button type="button" class="modal-close" onclick="closeRouteModal()">&times;</button>
-    </div>
-    <div class="modal-body">
-      <form id="routeMasterForm">
-        <div class="form-group" style="margin-bottom: 15px;">
-          <label style="display: block; font-weight: bold; margin-bottom: 5px;">ルートコード <span style="color:red;">*</span></label>
-          <input type="text" id="modalRouteCode" class="form-control" placeholder="例: 01" required style="width: 100%; padding: 8px; box-sizing: border-box;">
-        </div>
-        <div class="form-group" style="margin-bottom: 15px;">
-          <label style="display: block; font-weight: bold; margin-bottom: 5px;">ルート名 <span style="color:red;">*</span></label>
-          <input type="text" id="modalRouteName" class="form-control" placeholder="例: 西尾ルート" required style="width: 100%; padding: 8px; box-sizing: border-box;">
-        </div>
-        <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-          <button type="button" class="btn-secondary" onclick="closeRouteModal()">キャンセル</button>
-          <button type="button" id="btnRouteSubmitAdd" class="btn-primary" onclick="submitRouteMaster('save')">登録</button>
-          <button type="button" id="btnRouteSubmitEdit" class="btn-primary" onclick="submitRouteMaster('update')" style="display: none;">更新</button>
-          <button type="button" id="btnRouteSubmitDelete" class="btn-danger" onclick="submitRouteMaster('delete')" style="display: none; background-color: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">削除</button>
-        </div>
-      </form>
-    </div>
+<!-- ルートマスター モーダル -->
+<div id="routeMasterModal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header" id="routeModalTitle">ルートマスター 新規登録</div>
+    <form id="routeMasterForm">
+      <div style="margin-bottom: 12px;">
+        <label for="modalRouteCode">コード</label>
+        <input type="text" id="modalRouteCode">
+      </div>
+      <div style="margin-bottom: 12px;">
+        <label for="modalRouteName">ルート名</label>
+        <input type="text" id="modalRouteName">
+      </div>
+
+      <div class="modal-btn-group">
+        <button type="button" id="btnRouteSubmitAdd" class="btn-modal btn-modal-primary" onclick="handleRouteSubmit('add')">登録</button>
+        <button type="button" id="btnRouteSubmitEdit" class="btn-modal btn-modal-primary" onclick="handleRouteSubmit('edit')" style="display: none;">更新</button>
+        <button type="button" id="btnRouteSubmitDelete" class="btn-modal btn-modal-danger" onclick="handleRouteSubmit('delete')" style="display: none;">削除</button>
+        <button type="button" class="btn-modal btn-modal-secondary" onclick="closeRouteModal()">キャンセル</button>
+      </div>
+    </form>
   </div>
-</div>  
-  
+</div>
 
 <script>
     const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw8g-XV7pCCeE99Ps1W3LuKqm1cHXrW8qFZwlfn8r_nUHLfgcC4ox39Zhs3K7WYmeo6/exec';
