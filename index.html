@@ -2088,101 +2088,13 @@ function toggleModalButtons(mode) {
   if (btnDelete) btnDelete.style.display = (mode === 'edit') ? 'inline-block' : 'none';
 }
 
-async function handleContainerSubmit(actionType) {
-  let confirmMessage = '';
-  let apiAction = '';
-  let targetBtn = null;
-  let loadingText = '';
 
-  // 押されたボタンに応じたテキストとアクションを設定
-  if (actionType === 'add') {
-    confirmMessage = '登録してよろしいですか？';
-    apiAction = 'saveContainerMaster';
-    targetBtn = document.getElementById('btnSubmitAdd');
-    loadingText = '登録中...';
-  } else if (actionType === 'edit') {
-    confirmMessage = '修正内容を保存してよろしいですか？';
-    apiAction = 'updateContainerMaster';
-    targetBtn = document.getElementById('btnSubmitEdit');
-    loadingText = '保存中...';
-  } else if (actionType === 'delete') {
-    confirmMessage = '本当にこのデータを削除してよろしいですか？';
-    apiAction = 'deleteContainerMaster';
-    targetBtn = document.getElementById('btnSubmitDelete');
-    loadingText = '削除中...';
-  }
-
-  if (!confirm(confirmMessage)) return;
-
-  const payload = {
-    action: apiAction,
-    itemCode: document.getElementById('modalItemCode').value.trim(),
-    janCode: document.getElementById('modalJanCode').value.trim(),
-    containerName: document.getElementById('modalContainerName').value.trim(),
-    price: document.getElementById('modalPrice').value,
-    unit: document.getElementById('modalUnit').value.trim()
-  };
-
-  // --- 2重送信防止処理（非活性 ＆ ローディング表示） ---
-  const allModalBtns = document.querySelectorAll('#containerMasterModal button');
-  const originalText = targetBtn ? targetBtn.textContent : '';
-
-  // モーダル内の全ボタンを無効化（誤操作防止）
-  allModalBtns.forEach(btn => {
-    btn.disabled = true;
-    btn.style.opacity = '0.5';
-    btn.style.cursor = 'not-allowed';
-  });
-
-  if (targetBtn) {
-    targetBtn.textContent = loadingText;
-  }
-
-  try {
-    const response = await fetch(GAS_WEB_APP_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify(payload)
-    });
-    
-    const result = await response.json();
-
-    if (result.status === 'success') {
-      alert('処理が完了しました。');
-      closeContainerModal();
-      if (typeof loadMasterData === 'function') {
-        await loadMasterData();
-      }
-    } else {
-      if (result.message && result.message.includes('既に存在')) {
-        alert('重複データがあります');
-      } else {
-        alert('エラー: ' + result.message);
-      }
-    }
-  } catch (err) {
-    console.error('送信エラー:', err);
-    alert('通信エラーが発生しました。');
-  } finally {
-    // --- ボタンの状態を元に戻す ---
-    allModalBtns.forEach(btn => {
-      btn.disabled = false;
-      btn.style.opacity = '1';
-      btn.style.cursor = 'pointer';
-    });
-
-    if (targetBtn) {
-      targetBtn.textContent = originalText;
-    }
-  }
-}
-
-// 処理中フラグ（広域変数で連打を二重ブロック）
-let isSubmitting = false;
+// 容器マスター処理中フラグ（連打防止）
+let isContainerSubmitting = false;
 
 async function handleContainerSubmit(actionType) {
   // すでに処理中の場合は即座に弾く
-  if (isSubmitting) return;
+  if (isContainerSubmitting) return;
 
   let confirmMessage = '';
   let apiAction = '';
@@ -2207,7 +2119,7 @@ async function handleContainerSubmit(actionType) {
   }
 
   // ★ 1. 確認ダイアログの前に即時ロックをかける
-  isSubmitting = true;
+  isContainerSubmitting = true;
   const allModalBtns = document.querySelectorAll('#containerMasterModal button');
   const originalText = targetBtn ? targetBtn.textContent : '';
 
@@ -2224,7 +2136,7 @@ async function handleContainerSubmit(actionType) {
 
   // ★ 2. キャンセルされた場合はロックを解除して終了
   if (!confirm(confirmMessage)) {
-    isSubmitting = false;
+    isContainerSubmitting = false;
     allModalBtns.forEach(btn => {
       btn.disabled = false;
       btn.style.opacity = '1';
@@ -2270,7 +2182,7 @@ async function handleContainerSubmit(actionType) {
     alert('通信エラーが発生しました。');
   } finally {
     // ★ 3. 処理完了後にロック解除
-    isSubmitting = false;
+    isContainerSubmitting = false;
     allModalBtns.forEach(btn => {
       btn.disabled = false;
       btn.style.opacity = '1';
@@ -2282,7 +2194,6 @@ async function handleContainerSubmit(actionType) {
     }
   }
 }
-
 // 出荷店マスター描画処理
 function renderMasterStoreTable(stores) {
   const tbody = document.getElementById('storeMasterTbody'); // ※HTML側のtbodyのIDをご確認ください
