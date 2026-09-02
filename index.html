@@ -2198,7 +2198,7 @@ async function handleContainerSubmit(actionType) {
     confirmMessage = '修正内容を保存してよろしいですか？';
     apiAction = 'updateContainerMaster';
     targetBtn = document.getElementById('btnSubmitEdit');
-    loadingText = '保存中...';
+    loadingText = '更新中...';
   } else if (actionType === 'delete') {
     confirmMessage = '本当にこのデータを削除してよろしいですか？';
     apiAction = 'deleteContainerMaster';
@@ -2398,7 +2398,7 @@ async function handleStoreSubmit(actionType) {
     confirmMessage = '修正内容を保存してよろしいですか？';
     apiAction = 'updateStoreMaster';
     targetBtn = document.getElementById('btnStoreSubmitEdit');
-    loadingText = '保存中...';
+    loadingText = '更新中...';
   } else if (actionType === 'delete') {
     confirmMessage = '本当にこのデータを削除してよろしいですか？';
     apiAction = 'deleteStoreMaster';
@@ -2585,66 +2585,89 @@ function closeRouteModal() {
   if (modal) modal.style.display = 'none';
 }
 
-// 送信ハンドラー（登録・更新・削除）
-async function handleRouteSubmit(mode) {
+// 連打防止フラグ
+let isRouteSubmitting = false;
+
+async function handleRouteSubmit(actionType) {
+  if (isRouteSubmitting) return;
+
+  let confirmMessage = '';
+  let apiAction = '';
+  let targetBtn = null;
+  let loadingText = '';
+
+  if (actionType === 'add') {
+    confirmMessage = '登録してよろしいですか？';
+    apiAction = 'saveRouteMaster';
+    targetBtn = document.getElementById('btnRouteSubmitAdd');
+    loadingText = '登録中...';
+  } else if (actionType === 'edit') {
+    confirmMessage = '修正内容を保存してよろしいですか？';
+    apiAction = 'updateRouteMaster';
+    targetBtn = document.getElementById('btnRouteSubmitEdit');
+    loadingText = '更新中...';
+  } else if (actionType === 'delete') {
+    confirmMessage = '本当にこのデータを削除してよろしいですか？';
+    apiAction = 'deleteRouteMaster';
+    targetBtn = document.getElementById('btnRouteSubmitDelete');
+    loadingText = '削除中...';
+  }
+
   const code = document.getElementById('modalRouteCode').value.trim();
   const name = document.getElementById('modalRouteName').value.trim();
 
+  // 入力チェック（削除以外はルート名も必須）
   if (!code) {
     alert('コードを入力してください。');
     return;
   }
-
-  let action = '';
-  let confirmMsg = '';
-  let activeBtn = null;
-  let originalBtnText = '';
-
-  // 押されたボタンの取得とメッセージ設定
-  if (mode === 'add') {
-    if (!name) { alert('ルート名を入力してください。'); return; }
-    action = 'saveRouteMaster';
-    confirmMsg = 'このルートを登録しますか？';
-    activeBtn = document.getElementById('btnRouteSubmitAdd');
-    originalBtnText = '登録';
-  } else if (mode === 'edit') {
-    if (!name) { alert('ルート名を入力してください。'); return; }
-    action = 'updateRouteMaster';
-    confirmMsg = 'このルート情報を更新しますか？';
-    activeBtn = document.getElementById('btnRouteSubmitEdit');
-    originalBtnText = '更新';
-  } else if (mode === 'delete') {
-    action = 'deleteRouteMaster';
-    confirmMsg = `コード [${code}] を削除しますか？\n※この操作は取り消せません。`;
-    activeBtn = document.getElementById('btnRouteSubmitDelete');
-    originalBtnText = '削除';
+  if (actionType !== 'delete' && !name) {
+    alert('ルート名を入力してください。');
+    return;
   }
 
-  if (!confirm(confirmMsg)) return;
+  isRouteSubmitting = true;
+  const allModalBtns = document.querySelectorAll('#routeMasterModal button');
+  const originalText = targetBtn ? targetBtn.textContent : '';
 
-  // ボタンを「処理中...」に変更して二重送信を防ぐ（モーダルは閉じない）
-  if (activeBtn) {
-    activeBtn.disabled = true;
-    activeBtn.textContent = mode === 'delete' ? '削除中...' : '保存中...';
+  // ボタンを半透明にして操作不可にする
+  allModalBtns.forEach(btn => {
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    btn.style.cursor = 'not-allowed';
+  });
+  if (targetBtn) targetBtn.textContent = loadingText;
+
+  // 確認ダイアログ
+  if (!confirm(confirmMessage)) {
+    isRouteSubmitting = false;
+    allModalBtns.forEach(btn => {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    });
+    if (targetBtn) targetBtn.textContent = originalText;
+    return;
   }
+
+  const payload = {
+    action: apiAction,
+    code: code,
+    name: name
+  };
 
   try {
     const response = await fetch(GAS_WEB_APP_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({
-        action: action,
-        code: code,
-        name: name
-      })
+      body: JSON.stringify(payload)
     });
-
     const result = await response.json();
 
     if (result.status === 'success') {
-      alert(result.message || '処理が完了しました。');
-      closeRouteModal(); // 成功時のみモーダルを閉じる
-      await loadMasterData(); // 背後でマスターデータを最新化して再描画
+      alert('処理が完了しました。');
+      closeRouteModal();
+      if (typeof loadMasterData === 'function') await loadMasterData();
     } else {
       alert('エラー: ' + (result.message || '処理に失敗しました。'));
     }
@@ -2652,11 +2675,13 @@ async function handleRouteSubmit(mode) {
     console.error('ルートマスター送信エラー:', err);
     alert('通信エラーが発生しました。');
   } finally {
-    // ボタンの状態を元に戻す
-    if (activeBtn) {
-      activeBtn.disabled = false;
-      activeBtn.textContent = originalBtnText;
-    }
+    isRouteSubmitting = false;
+    allModalBtns.forEach(btn => {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    });
+    if (targetBtn) targetBtn.textContent = originalText;
   }
 }
   
