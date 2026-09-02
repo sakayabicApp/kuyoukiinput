@@ -771,10 +771,33 @@
     </table>
   </div>
 </div>
-      <div id="masterUserPage" class="master-sub-page hidden">
-        <h3>ユーザーマスター管理</h3>
-      </div>
+<!-- ユーザーマスター管理エリア -->
+<div id="masterUserPage" class="master-sub-page hidden">
+  <div class="master-header-container" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+    <h3 style="margin: 0;">ユーザーマスター一覧</h3>
+    <div class="master-btn-group">
+      <button type="button" class="btn-primary" onclick="openAddUserModal()">+ 新規登録</button>
     </div>
+  </div>
+
+  <div class="table-container">
+    <table class="master-table user-master-table">
+      <thead>
+        <tr>
+          <th>ユーザーID</th>
+          <th>パスワード</th>
+          <th>登録者名</th>
+          <th>管理区分</th>
+          <th>区分名</th>
+          <th style="text-align: center;">操作</th>
+        </tr>
+      </thead>
+      <tbody id="userMasterTbody">
+        <!-- JSで描画 -->
+      </tbody>
+    </table>
+  </div>
+</div>
 
   </div><!-- /#pageMaster 閉じ -->
 
@@ -943,6 +966,42 @@
     </form>
   </div>
 </div>
+
+<!-- ユーザーマスター モーダル -->
+<div id="userMasterModal" class="modal-overlay">
+  <div class="modal-content" style="max-width: 500px;">
+    <div class="modal-header" id="userModalTitle">ユーザーマスター 新規登録</div>
+    <form id="userMasterForm" onsubmit="return false;">
+      <div style="margin-bottom: 12px; text-align: left;">
+        <label for="modalUserId" style="display: block; font-size: 13px; font-weight: bold;">ユーザーID <span style="color:red;">*</span></label>
+        <input type="text" id="modalUserId" style="width: 100%; padding: 8px; box-sizing: border-box;">
+      </div>
+      <div style="margin-bottom: 12px; text-align: left;">
+        <label for="modalUserPassword" style="display: block; font-size: 13px; font-weight: bold;">パスワード <span style="color:red;">*</span></label>
+        <input type="text" id="modalUserPassword" style="width: 100%; padding: 8px; box-sizing: border-box;">
+      </div>
+      <div style="margin-bottom: 12px; text-align: left;">
+        <label for="modalUserName" style="display: block; font-size: 13px; font-weight: bold;">登録者名 <span style="color:red;">*</span></label>
+        <input type="text" id="modalUserName" style="width: 100%; padding: 8px; box-sizing: border-box;">
+      </div>
+      <div style="margin-bottom: 12px; text-align: left;">
+        <label for="modalUserRoleCode" style="display: block; font-size: 13px; font-weight: bold;">管理区分</label>
+        <input type="text" id="modalUserRoleCode" placeholder="例: 1" style="width: 100%; padding: 8px; box-sizing: border-box;">
+      </div>
+      <div style="margin-bottom: 20px; text-align: left;">
+        <label for="modalUserRoleName" style="display: block; font-size: 13px; font-weight: bold;">区分名</label>
+        <input type="text" id="modalUserRoleName" placeholder="例: 管理者" style="width: 100%; padding: 8px; box-sizing: border-box;">
+      </div>
+
+      <div class="modal-btn-group">
+        <button type="button" id="btnUserSubmitAdd" class="btn-modal btn-modal-primary" onclick="handleUserSubmit('add')">登録</button>
+        <button type="button" id="btnUserSubmitEdit" class="btn-modal btn-modal-primary" onclick="handleUserSubmit('edit')" style="display: none;">更新</button>
+        <button type="button" id="btnUserSubmitDelete" class="btn-modal btn-modal-danger" onclick="handleUserSubmit('delete')" style="display: none;">削除</button>
+        <button type="button" class="btn-modal btn-modal-secondary" onclick="closeUserModal()">キャンセル</button>
+      </div>
+    </form>
+  </div>
+</div>
   
 <script>
     const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw8g-XV7pCCeE99Ps1W3LuKqm1cHXrW8qFZwlfn8r_nUHLfgcC4ox39Zhs3K7WYmeo6/exec';
@@ -1099,6 +1158,7 @@ async function loadMasterData() {
       renderMasterStoreTable(masterStores); // ★追加：出荷店マスター描画関数の呼び出し
       renderMasterRouteTable(masterRoutes); // ★この行を追加
       renderMasterStaffTable(masterStaffs);         // ★追記：担当者マスター描画関数の呼び出し
+      renderMasterUserTable(result.data.users || masterUsers);　// ユーザーマスター描画関数の呼び出しを追加
 
       const loadingOverlay = document.getElementById('loadingOverlay');
       if (loadingOverlay) loadingOverlay.style.display = 'none';
@@ -2819,6 +2879,234 @@ async function handleStaffSubmit(actionType) {
   }
 }
 
+// =========================================================================
+// ユーザーマスター 制御処理
+// =========================================================================
+
+// ユーザーマスター描画処理
+function renderMasterUserTable(users) {
+  const tbody = document.getElementById('userMasterTbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  if (!users || (Array.isArray(users) && users.length === 0) || (typeof users === 'object' && Object.keys(users).length === 0)) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">データがありません</td></tr>';
+    return;
+  }
+
+  // 配列構造・オブジェクト構造の両対応
+  const userEntries = Array.isArray(users)
+    ? users.map(row => {
+        const keys = Object.keys(row);
+        return {
+          id: String(row[keys[0]] || '').trim(),       // A列: ユーザーID
+          password: String(row[keys[1]] || '').trim(), // B列: パスワード
+          name: String(row[keys[2]] || '').trim(),     // C列: 登録者名
+          roleCode: String(row[keys[3]] || '').trim(), // D列: 管理区分
+          roleName: String(row[keys[4]] || '').trim()  // E列: 区分名
+        };
+      })
+    : Object.keys(users).map(id => ({
+        id: id,
+        password: users[id].password || '',
+        name: typeof users[id] === 'object' ? users[id].name || '' : users[id],
+        roleCode: users[id].roleCode || '',
+        roleName: users[id].roleName || ''
+      }));
+
+  userEntries.forEach(item => {
+    if (!item.id) return;
+
+    const jsonStr = JSON.stringify(item)
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${escapeHtml(item.id)}</strong></td>
+      <td>${escapeHtml(item.password)}</td>
+      <td>${escapeHtml(item.name)}</td>
+      <td>${escapeHtml(item.roleCode)}</td>
+      <td>${escapeHtml(item.roleName)}</td>
+      <td style="text-align: center;">
+        <button type="button" class="btn-secondary btn-table-action" onclick="openEditUserModal('${jsonStr}')">修正・削除</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// 新規登録モーダルを開く
+function openAddUserModal() {
+  const idEl = document.getElementById('modalUserId');
+  if (idEl) {
+    idEl.value = '';
+    idEl.readOnly = false;
+    idEl.style.backgroundColor = '#fff';
+    idEl.style.cursor = 'text';
+  }
+  document.getElementById('modalUserPassword').value = '';
+  document.getElementById('modalUserName').value = '';
+  document.getElementById('modalUserRoleCode').value = '';
+  document.getElementById('modalUserRoleName').value = '';
+
+  document.getElementById('userModalTitle').textContent = 'ユーザーマスター 新規登録';
+
+  document.getElementById('btnUserSubmitAdd').style.display = 'inline-block';
+  document.getElementById('btnUserSubmitEdit').style.display = 'none';
+  document.getElementById('btnUserSubmitDelete').style.display = 'none';
+
+  const modal = document.getElementById('userMasterModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+// 修正・削除モーダルを開く
+function openEditUserModal(jsonStr) {
+  const data = typeof jsonStr === 'string' ? JSON.parse(
+    jsonStr.replace(/&quot;/g, '"').replace(/&#039;/g, "'")
+  ) : jsonStr;
+
+  const idEl = document.getElementById('modalUserId');
+  if (idEl) {
+    idEl.value = data.id || '';
+    idEl.readOnly = true;
+    idEl.style.backgroundColor = '#e9ecef';
+    idEl.style.cursor = 'not-allowed';
+  }
+
+  document.getElementById('modalUserPassword').value = data.password || '';
+  document.getElementById('modalUserName').value = data.name || '';
+  document.getElementById('modalUserRoleCode').value = data.roleCode || '';
+  document.getElementById('modalUserRoleName').value = data.roleName || '';
+
+  document.getElementById('userModalTitle').textContent = 'ユーザーマスター 修正・削除';
+
+  document.getElementById('btnUserSubmitAdd').style.display = 'none';
+  document.getElementById('btnUserSubmitEdit').style.display = 'inline-block';
+  document.getElementById('btnUserSubmitDelete').style.display = 'inline-block';
+
+  const modal = document.getElementById('userMasterModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+// モーダルを閉じる
+function closeUserModal() {
+  const modal = document.getElementById('userMasterModal');
+  if (modal) modal.style.display = 'none';
+}
+
+// 連打防止フラグ
+let isUserSubmitting = false;
+
+// 送信処理
+async function handleUserSubmit(actionType) {
+  if (isUserSubmitting) return;
+
+  let confirmMessage = '';
+  let apiAction = '';
+  let targetBtn = null;
+  let loadingText = '';
+
+  if (actionType === 'add') {
+    confirmMessage = '登録してよろしいですか？';
+    apiAction = 'saveUserMaster';
+    targetBtn = document.getElementById('btnUserSubmitAdd');
+    loadingText = '登録中...';
+  } else if (actionType === 'edit') {
+    confirmMessage = '修正内容を保存してよろしいですか？';
+    apiAction = 'updateUserMaster';
+    targetBtn = document.getElementById('btnUserSubmitEdit');
+    loadingText = '更新中...';
+  } else if (actionType === 'delete') {
+    confirmMessage = '本当にこのデータを削除してよろしいですか？';
+    apiAction = 'deleteUserMaster';
+    targetBtn = document.getElementById('btnUserSubmitDelete');
+    loadingText = '削除中...';
+  }
+
+  const userId = document.getElementById('modalUserId').value.trim();
+  const password = document.getElementById('modalUserPassword').value.trim();
+  const name = document.getElementById('modalUserName').value.trim();
+  const roleCode = document.getElementById('modalUserRoleCode').value.trim();
+  const roleName = document.getElementById('modalUserRoleName').value.trim();
+
+  // 入力チェック（削除以外はID・パスワード・名前が必須）
+  if (!userId) {
+    alert('ユーザーIDを入力してください。');
+    return;
+  }
+  if (actionType !== 'delete') {
+    if (!password) {
+      alert('パスワードを入力してください。');
+      return;
+    }
+    if (!name) {
+      alert('登録者名を入力してください。');
+      return;
+    }
+  }
+
+  isUserSubmitting = true;
+  const allModalBtns = document.querySelectorAll('#userMasterModal button');
+  const originalText = targetBtn ? targetBtn.textContent : '';
+
+  // ボタン非活性化
+  allModalBtns.forEach(btn => {
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    btn.style.cursor = 'not-allowed';
+  });
+  if (targetBtn) targetBtn.textContent = loadingText;
+
+  // 確認ダイアログ
+  if (!confirm(confirmMessage)) {
+    isUserSubmitting = false;
+    allModalBtns.forEach(btn => {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    });
+    if (targetBtn) targetBtn.textContent = originalText;
+    return;
+  }
+
+  const payload = {
+    action: apiAction,
+    id: userId,
+    password: password,
+    name: name,
+    roleCode: roleCode,
+    roleName: roleName
+  };
+
+  try {
+    const response = await fetch(GAS_WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload)
+    });
+    const result = await response.json();
+
+    if (result.status === 'success') {
+      alert('処理が完了しました。');
+      closeUserModal();
+      if (typeof loadMasterData === 'function') await loadMasterData();
+    } else {
+      alert('エラー: ' + (result.message || '処理に失敗しました。'));
+    }
+  } catch (err) {
+    console.error('ユーザーマスター送信エラー:', err);
+    alert('通信エラーが発生しました。');
+  } finally {
+    isUserSubmitting = false;
+    allModalBtns.forEach(btn => {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    });
+    if (targetBtn) targetBtn.textContent = originalText;
+  }
+}  
   
 </script>
 </body>
