@@ -691,22 +691,6 @@
   </div>
 </div>  
 
-<!-- 商品コード入力用 ポップアップ（画面中央） -->
-<div id="searchCodeModal" class="modal-overlay" style="display: none;">
-  <div class="modal-content" style="max-width: 400px; text-align: center;">
-    <h3>修正・削除対象の検索</h3>
-    <p style="font-size: 14px; color: #666;">商品コードを入力してください</p>
-    
-    <div style="margin: 20px 0;">
-      <input type="text" id="searchTargetCode" placeholder="例: 1001" style="width: 80%; padding: 8px; font-size: 16px; text-align: center;">
-    </div>
-
-    <div style="display: flex; justify-content: space-between; gap: 10px;">
-      <button type="button" class="btn-secondary" onclick="closeSearchCodeModal()" style="flex: 1;">キャンセル</button>
-      <button type="button" class="btn-primary" onclick="execSearchContainer()" style="flex: 1;">検索</button>
-    </div>
-  </div>
-</div>  
 
 <!-- 登録・編集用モーダル本体 -->
 <div id="containerMasterModal" class="modal-overlay" style="display: none;">
@@ -943,7 +927,7 @@ function renderMasterContainerTable(containers) {
     const jan   = item[keys[1]] || ''; 
     const name  = item[keys[2]] || ''; 
     const price = item[keys[3]] !== undefined ? item[keys[3]] : ''; 
-    const unit  = item[keys[4]] || '個'; 
+    const unit  = item[keys[4]] || 'バラ・ケース'; 
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -967,41 +951,30 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;');
 }
   
-    function renderContainerTable(containers) {
-      const tbody = document.getElementById('containerTableBody');
-      if (!tbody) return;
-      tbody.innerHTML = '';
-      if (!containers || containers.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">データがありません</td></tr>';
-        return;
-      }
+// 例：マスター一覧テーブルの描画処理
+function renderContainerTable(containers) {
+  const tbody = document.getElementById('containerTableBody'); // テーブルのtbodyのID
+  tbody.innerHTML = '';
 
-      containers.forEach(item => {
-        const keys = Object.keys(item);
-        const code  = item[keys[0]] || ''; 
-        const jan   = item[keys[1]] || ''; 
-        const name  = item[keys[2]] || ''; 
-        const price = item[keys[3]] !== undefined ? item[keys[3]] : ''; 
-        const unit  = item[keys[4]] || '個'; 
+  containers.forEach(item => {
+    const tr = document.createElement('tr');
+    
+    // エスケープ処理して安全にJSON文字列化
+    const jsonStr = JSON.stringify(item).replace(/"/g, '&quot;');
 
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td><strong>${code}</strong></td>
-          <td>${jan}</td>
-          <td>${name}</td>
-          <td class="price-col">${price ? Number(price).toLocaleString() + '円' : ''}</td>
-          <td>
-            <div class="qty-cell">
-              <input type="number" class="container-qty" min="0" placeholder="0" 
-                     data-code="${code}" data-name="${name}" data-unit="${unit}">
-              <span class="unit-text">${unit}</span>
-            </div>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
+    tr.innerHTML = `
+      <td>${item['商品コード'] || item.itemCode || ''}</td>
+      <td>${item['JANコード'] || item.janCode || ''}</td>
+      <td>${item['空容器名'] || item.containerName || ''}</td>
+      <td>${item['単価'] || item.price || 0}</td>
+      <td>${item['単位'] || item.unit || ''}</td>
+      <td>
+        <button type="button" class="btn-secondary" onclick="openEditContainerModal('${jsonStr}')">修正・削除</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
 
 // 画面切り替え（メインタブ選択）
 function switchPage(page) {
@@ -1893,58 +1866,28 @@ function closeSearchCodeModal() {
   if (searchModal) searchModal.style.display = 'none';
 }
 
+// 行の「修正・削除」ボタンを押したときの処理
+function openEditContainerModal(jsonStr) {
+  const data = typeof jsonStr === 'string' ? JSON.parse(jsonStr) : jsonStr;
 
-// C. 検索実行ボタン押下時の処理
-function execSearchContainer() {
-  const itemCode = document.getElementById('searchTargetCode').value.trim();
-  
-  if (!itemCode) {
-    alert('商品コードを入力してください。');
-    return;
-  }
+  // フォームに値をセット
+  document.getElementById('modalItemCode').value = data['商品コード'] ?? data.itemCode ?? '';
+  document.getElementById('modalJanCode').value = data['JANコード'] ?? data.janCode ?? '';
+  document.getElementById('modalContainerName').value = data['空容器名'] ?? data.containerName ?? '';
+  document.getElementById('modalPrice').value = data['単価'] ?? data.price ?? 0;
+  document.getElementById('modalUnit').value = data['単位'] ?? data.unit ?? '';
 
-  // GASのdoGet(data.containers)からデータ取得
-  const containers = window.masterData?.containers || [];
-
-  if (!Array.isArray(containers) || containers.length === 0) {
-    alert('マスターデータがロードされていないか、データが存在しません。');
-    return;
-  }
-
-  // 対象データの検索（ヘッダー名 '商品コード' またはプロパティ名で判定）
-  const target = containers.find(row => {
-    if (!row) return false;
-    const code = row['商品コード'] ?? row.itemCode ?? (Array.isArray(row) ? row[0] : '');
-    return String(code).trim() === String(itemCode).trim();
-  });
-
-  if (!target) {
-    alert('指定された商品コードのデータが見つかりませんでした。');
-    return;
-  }
-
-  // フォームへデータをセット
-  try {
-    document.getElementById('modalItemCode').value = target['商品コード'] ?? target.itemCode ?? '';
-    document.getElementById('modalJanCode').value = target['JANコード'] ?? target.janCode ?? '';
-    document.getElementById('modalContainerName').value = target['空容器名'] ?? target.containerName ?? '';
-    document.getElementById('modalPrice').value = target['単価'] ?? target.price ?? 0;
-    document.getElementById('modalUnit').value = target['単位'] ?? target.unit ?? '';
-  } catch (e) {
-    console.error('フォームセットエラー:', e);
-    alert('データの読み込みに失敗しました。');
-    return;
-  }
-
-  // 検索ポップアップを閉じて編集モーダルを開く
-  closeSearchCodeModal();
-
-  document.getElementById('containerModalTitle').textContent = '空容器マスター 修正・削除';
+  // 商品コードはキーなので修正不可（readOnly）にする
   document.getElementById('modalItemCode').readOnly = true;
 
-  toggleModalButtons('edit');
+  // モーダルのタイトルとボタン制御
+  document.getElementById('containerModalTitle').textContent = '空容器マスター 修正・削除';
+  toggleModalButtons('edit'); // 「保存」「削除」ボタンを表示、「登録」ボタンを非表示にする関数
+
+  // モーダルを表示
   document.getElementById('containerMasterModal').style.display = 'flex';
 }
+
   
 // ボタン表示制御の共通関数
 function toggleModalButtons(mode) {
