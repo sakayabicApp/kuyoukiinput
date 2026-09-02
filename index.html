@@ -3271,54 +3271,64 @@ function renderPermissionCheckboxes(selectedPermissions = {}) {
 }  
   
 // 権限マスター：マスターテーブルを更新して描画（権限をまとめて1列に表示する方式）
+// =========================================================================
+// 権限マスター 制御処理（データ構造自動適応版）
+// =========================================================================
+
+// 権限マスター：マスターテーブルを更新して描画
 function renderMasterRoleTable(roles) {
   const tbody = document.getElementById('roleMasterTbody');
   if (!tbody) return;
   tbody.innerHTML = '';
-
-  const tabDefs = getSystemTabDefinitions();
-
-  // テーブルのヘッダー（th）を固定の3列構成に変更
-  const theadTr = document.querySelector('.role-master-table thead tr');
-  if (theadTr) {
-    theadTr.innerHTML = `
-      <th style="width: 15%;">区分コード</th>
-      <th style="width: 25%;">区分名</th>
-      <th style="width: 45%;">アクセス可能権限</th>
-      <th style="width: 15%; text-align: center;">操作</th>
-    `;
-  }
 
   if (!roles || (Array.isArray(roles) && roles.length === 0) || (typeof roles === 'object' && Object.keys(roles).length === 0)) {
     tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">データがありません</td></tr>';
     return;
   }
 
+  // 配列またはオブジェクトのデータを正規化
   const roleEntries = Array.isArray(roles)
     ? roles.map(row => {
-        const item = {
-          roleCode: String(row.roleCode || '').trim(),
-          roleName: String(row.roleName || '').trim(),
-          permissions: {}
-        };
-        tabDefs.forEach(tab => {
-          const val = row[tab.key] !== undefined ? row[tab.key] : row['perm' + capitalizeFirstLetter(tab.key)];
-          item.permissions[tab.key] = val == 1 || val === true || val === '1';
+        const code = String(row.code || row.roleCode || '').trim();
+        const name = String(row.name || row.roleName || '').trim();
+        
+        // code, name 以外のプロパティをすべて権限フラグとして自動抽出
+        const permissions = {};
+        Object.keys(row).forEach(key => {
+          if (key !== 'code' && key !== 'name' && key !== 'roleCode' && key !== 'roleName') {
+            const val = row[key];
+            permissions[key] = val == 1 || val === true || val === '1';
+          }
         });
-        return item;
+        return { roleCode: code, roleName: name, permissions: permissions };
       })
     : Object.keys(roles).map(code => {
-        const item = {
-          roleCode: code,
-          roleName: roles[code].roleName || '',
-          permissions: {}
-        };
-        tabDefs.forEach(tab => {
-          const val = roles[code][tab.key] !== undefined ? roles[code][tab.key] : roles[code]['perm' + capitalizeFirstLetter(tab.key)];
-          item.permissions[tab.key] = val == 1 || val === true;
+        const row = roles[code];
+        const name = String(row.name || row.roleName || '').trim();
+        const permissions = {};
+        Object.keys(row).forEach(key => {
+          if (key !== 'name' && key !== 'roleName') {
+            const val = row[key];
+            permissions[key] = val == 1 || val === true;
+          }
         });
-        return item;
+        return { roleCode: code, roleName: name, permissions: permissions };
       });
+
+  // 最初のデータから権限キーのリストを割り出す
+  const firstItem = roleEntries[0] || { permissions: {} };
+  const permKeys = Object.keys(firstItem.permissions);
+
+  // ヘッダーを動的に構築
+  const theadTr = document.querySelector('.role-master-table thead tr');
+  if (theadTr) {
+    theadTr.innerHTML = `
+      <th style="width: 15%;">区分コード</th>
+      <th style="width: 25%;">区分名</th>
+      <th style="width: 45%;">権限設定</th>
+      <th style="width: 15%; text-align: center;">操作</th>
+    `;
+  }
 
   roleEntries.forEach(item => {
     if (!item.roleCode) return;
@@ -3327,22 +3337,23 @@ function renderMasterRoleTable(roles) {
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
 
-    // 許可されている権限のラベルを配列に集めて、バッジ風の見た目にする
+    // 有効な権限のキー名をバッジ風に表示
     const activeLabels = [];
-    tabDefs.forEach(tab => {
-      if (item.permissions[tab.key]) {
-        activeLabels.push(tab.label);
+    Object.keys(item.permissions).forEach(key => {
+      if (item.permissions[key]) {
+        // キー名をそのまま、または分かりやすく表示
+        activeLabels.push(key);
       }
     });
 
     const permHtml = activeLabels.length > 0 
-      ? activeLabels.map(label => `<span style="display: inline-block; background: #e2f0d9; color: #385723; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin: 2px; border: 1px solid #c8e1bc;">${escapeHtml(label)}</span>`).join('')
+      ? activeLabels.map(key => `<span style="display: inline-block; background: #e2f0d9; color: #385723; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin: 2px; border: 1px solid #c8e1bc;">${escapeHtml(key)}</span>`).join('')
       : '<span style="color: #999;">なし</span>';
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><strong>${escapeHtml(item.roleCode)}</strong></td>
-      <td>${escapeHtml(item.roleName)}</td>
+      <td>${escapeHtml(item.name || item.roleName)}</td>
       <td>${permHtml}</td>
       <td style="text-align: center;">
         <button type="button" class="btn-secondary btn-table-action" onclick="openEditRoleModal('${jsonStr}')">修正・削除</button>
@@ -3350,6 +3361,64 @@ function renderMasterRoleTable(roles) {
     `;
     tbody.appendChild(tr);
   });
+}
+
+// 権限マスター：新規登録モーダルを開く
+function openAddRoleModal() {
+  const codeEl = document.getElementById('modalRoleCode');
+  const nameEl = document.getElementById('modalRoleName');
+  
+  if (codeEl) {
+    codeEl.value = '';
+    codeEl.readOnly = false;
+    codeEl.style.backgroundColor = '#fff';
+    codeEl.style.cursor = 'text';
+  }
+  if (nameEl) nameEl.value = '';
+
+  const titleEl = document.getElementById('staffModalTitle') || document.getElementById('roleModalTitle');
+  if (titleEl) titleEl.textContent = '権限マスター 新規登録';
+
+  document.getElementById('btnRoleSubmitAdd').style.display = 'inline-block';
+  document.getElementById('btnRoleSubmitEdit').style.display = 'none';
+  document.getElementById('btnRoleSubmitDelete').style.display = 'none';
+
+  const modal = document.getElementById('roleMasterModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+// 権限マスター：修正・削除モーダルを開く
+function openEditRoleModal(jsonStr) {
+  const data = typeof jsonStr === 'string' ? JSON.parse(
+    jsonStr.replace(/&quot;/g, '"').replace(/&#039;/g, "'")
+  ) : jsonStr;
+
+  const codeEl = document.getElementById('modalRoleCode');
+  const nameEl = document.getElementById('modalRoleName');
+  
+  if (codeEl) {
+    codeEl.value = data.roleCode || data.code || '';
+    codeEl.readOnly = true;
+    codeEl.style.backgroundColor = '#e9ecef';
+    codeEl.style.cursor = 'not-allowed';
+  }
+  if (nameEl) nameEl.value = data.roleName || data.name || '';
+
+  const titleEl = document.getElementById('roleModalTitle');
+  if (titleEl) titleEl.textContent = '権限マスター 修正・削除';
+
+  document.getElementById('btnRoleSubmitAdd').style.display = 'none';
+  document.getElementById('btnRoleSubmitEdit').style.display = 'inline-block';
+  document.getElementById('btnRoleSubmitDelete').style.display = 'inline-block';
+
+  const modal = document.getElementById('roleMasterModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+// 権限マスター：モーダルを閉じる
+function closeRoleModal() {
+  const modal = document.getElementById('roleMasterModal');
+  if (modal) modal.style.display = 'none';
 }
 
   // 頭文字大文字変換ヘルパー
