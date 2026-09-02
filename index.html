@@ -468,16 +468,17 @@
       </div>
     </div>
 
-    <div class="nav-menu">
-      <button type="button" id="tabRegister" class="nav-tab active" onclick="switchPage('register')">
+ <div class="nav-menu">
+      <button type="button" id="tabRegister" class="nav-tab active" data-target="register" data-label="空容器登録" onclick="switchPage('register')">
         空容器登録
       </button>
-      <button type="button" id="tabReport" class="nav-tab" onclick="switchPage('report')">
+      <button type="button" id="tabReport" class="nav-tab" data-target="report" data-label="帳票発行" onclick="switchPage('report')">
         帳票発行
       </button>
-      <!-- ★ここに追加：マスター管理タブ -->
-  <button type="button" id="tabMaster" class="nav-tab" onclick="switchPage('master')">マスター管理</button>
-  </div>
+      <button type="button" id="tabMaster" class="nav-tab" data-target="master" data-label="マスター管理" onclick="switchPage('master')">
+        マスター管理
+      </button>
+    </div>
 
   </div> 
   <div style="border-top: 2px solid var(--primary-color); margin-bottom: 1.25rem;"></div>
@@ -653,23 +654,24 @@
 <!-- 3. マスター管理 画面エリア -->
   <div id="pageMaster" class="page-section hidden">
     
-    <!-- サブタブメニュー -->
+   <!-- サブタブメニュー -->
     <div class="sub-nav-menu" style="display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 2px solid #ccc; padding-bottom: 8px;">
-      <button type="button" id="subTabItem" class="sub-nav-tab active" onclick="switchMasterSubPage('item')">
+      <button type="button" id="subTabItem" class="sub-nav-tab active" data-target="item" data-label="空容器マスター" onclick="switchMasterSubPage('item')">
         空容器マスター
       </button>
-      <button type="button" id="subTabStore" class="sub-nav-tab" onclick="switchMasterSubPage('store')">
+      <button type="button" id="subTabStore" class="sub-nav-tab" data-target="store" data-label="出荷店マスター" onclick="switchMasterSubPage('store')">
         出荷店マスター
       </button>
-      <button type="button" id="subTabRoute" class="sub-nav-tab" onclick="switchMasterSubPage('route')">
+      <button type="button" id="subTabRoute" class="sub-nav-tab" data-target="route" data-label="ルートマスター" onclick="switchMasterSubPage('route')">
         ルートマスター
       </button>
-      <button type="button" id="subTabStaff" class="sub-nav-tab" onclick="switchMasterSubPage('staff')">
+      <button type="button" id="subTabStaff" class="sub-nav-tab" data-target="staff" data-label="担当者マスター" onclick="switchMasterSubPage('staff')">
         担当者マスター
       </button>
-      <button type="button" id="subTabUser" class="sub-nav-tab" onclick="switchMasterSubPage('user')">
+      <button type="button" id="subTabUser" class="sub-nav-tab" data-target="user" data-label="ユーザーマスター" onclick="switchMasterSubPage('user')">
         ユーザーマスター
       </button>
+      <button type="button" id="subTabRole" class="sub-nav-tab" data-target="role" data-label="権限マスター" onclick="switchMasterSubPage('role')">権限マスター</button>
     </div>
 
     <!-- サブタブコンテンツ表示エリア -->
@@ -798,6 +800,34 @@
     </table>
   </div>
 </div>
+<!-- ★追加: 権限マスター管理エリア -->
+<div id="masterRolePage" class="master-sub-page hidden">
+  <div class="master-header-container" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+    <h3 style="margin: 0;">権限マスター一覧</h3>
+    <div class="master-btn-group">
+      <button type="button" class="btn-primary" onclick="openAddRoleModal()">+ 新規登録</button>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table class="master-table role-master-table">
+      <thead>
+        <tr>
+          <th>区分コード</th>
+          <th>区分名</th>
+          <th style="text-align: center;">伝票入力</th>
+          <th style="text-align: center;">伝票履歴</th>
+          <th style="text-align: center;">マスター管理</th>
+          <th style="text-align: center;">操作</th>
+        </tr>
+      </thead>
+      <tbody id="roleMasterTbody">
+        <!-- JSで描画 -->
+      </tbody>
+    </table>
+  </div>
+</div>
+  
 
   </div><!-- /#pageMaster 閉じ -->
 
@@ -1002,6 +1032,41 @@
     </form>
   </div>
 </div>
+
+<!-- ★追加: 権限マスター モーダル -->
+<div id="roleMasterModal" class="modal-overlay" style="display: none;">
+  <div class="modal-content" style="max-width: 500px;">
+    <div class="modal-header" id="roleModalTitle">権限マスター 新規登録</div>
+    <form id="roleMasterForm" onsubmit="return false;">
+      <div style="margin-bottom: 12px; text-align: left;">
+        <label for="modalRoleCode" style="display: block; font-size: 13px; font-weight: bold;">区分コード <span style="color:red;">*</span></label>
+        <input type="text" id="modalRoleCode" style="width: 100%; padding: 8px; box-sizing: border-box;">
+      </div>
+      <div style="margin-bottom: 12px; text-align: left;">
+        <label for="modalRoleName" style="display: block; font-size: 13px; font-weight: bold;">区分名 <span style="color:red;">*</span></label>
+        <input type="text" id="modalRoleName" style="width: 100%; padding: 8px; box-sizing: border-box;">
+      </div>
+
+      <!-- 機能ごとのアクセス許可設定（チェックボックス） -->
+      <div style="margin-bottom: 20px; text-align: left; background: #f8f9fa; padding: 12px; border-radius: 6px; border: 1px solid #ddd;">
+        <label style="display: block; font-size: 13px; font-weight: bold; margin-bottom: 8px;">アクセス可能機能</label>
+        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 14px;">
+          <label><input type="checkbox" id="permInput" value="1"> 伝票入力画面</label>
+          <label><input type="checkbox" id="permHistory" value="1"> 伝票履歴画面</label>
+          <label><input type="checkbox" id="permMaster" value="1"> マスター管理画面</label>
+        </div>
+      </div>
+
+      <div class="modal-btn-group">
+        <button type="button" id="btnRoleSubmitAdd" class="btn-modal btn-modal-primary" onclick="handleRoleSubmit('add')">登録</button>
+        <button type="button" id="btnRoleSubmitEdit" class="btn-modal btn-modal-primary" onclick="handleRoleSubmit('edit')" style="display: none;">更新</button>
+        <button type="button" id="btnRoleSubmitDelete" class="btn-modal btn-modal-danger" onclick="handleRoleSubmit('delete')" style="display: none;">削除</button>
+        <button type="button" class="btn-modal btn-modal-secondary" onclick="closeRoleModal()">キャンセル</button>
+      </div>
+    </form>
+  </div>
+</div>
+  
   
 <script>
     const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw8g-XV7pCCeE99Ps1W3LuKqm1cHXrW8qFZwlfn8r_nUHLfgcC4ox39Zhs3K7WYmeo6/exec';
@@ -3144,6 +3209,8 @@ async function handleUserSubmit(actionType) {
     if (targetBtn) targetBtn.textContent = originalText;
   }
 }
+
+  
   
 </script>
 </body>
