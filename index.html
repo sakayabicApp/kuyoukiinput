@@ -2240,40 +2240,42 @@ async function handleContainerSubmit(actionType) {
   }
 }
 
-// 出荷店マスターテーブルの描画関数例
+// 出荷店マスター描画処理
 function renderMasterStoreTable(stores) {
-  const tbody = document.getElementById('storeMasterTbody'); // ※HTMLのtbodyのIDに合わせてください
+  const tbody = document.getElementById('storeMasterTbody'); // ※HTML側のtbodyのIDをご確認ください
   if (!tbody) return;
-
   tbody.innerHTML = '';
 
   if (!stores || stores.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" class="text-center">データがありません</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">データがありません</td></tr>';
     return;
   }
 
   stores.forEach(row => {
-    // オブジェクトのキーを動的に取得（列名に依存しないようにする）
+    // オブジェクトのキーを動的に取得（スプレッドシートの見出し名に左右されないように取得）
     const keys = Object.keys(row);
     const code = String(row[keys[0]] || '').trim(); // A列：店舗コード
     const name = String(row[keys[1]] || '').trim(); // B列：店舗名
 
-    // コードが存在する場合のみ行を作成
-    if (code) {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${code}</td>
-        <td>${name}</td>
-        <td>
-          <button type="button" onclick="editStore('${code}', '${name}')">編集</button>
-          <button type="button" onclick="deleteStore('${code}')">削除</button>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    }
+    if (!code) return; // コードが空の場合はスキップ
+
+    // 特殊文字対策（JSON文字列化 ＆ HTMLエスケープ）
+    const jsonStr = JSON.stringify({ code: code, name: name })
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${escapeHtml(code)}</strong></td>
+      <td>${escapeHtml(name)}</td>
+      <td style="text-align: center;">
+        <button type="button" class="btn-secondary btn-table-action" onclick="openEditStoreModal('${jsonStr}')">修正・削除</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
   });
 }
-
+  
 // 新規登録モーダルを開く
 function openAddStoreModal() {
   document.getElementById('modalStoreCode').value = '';
@@ -2293,26 +2295,40 @@ function openAddStoreModal() {
 }
 
 // 修正・削除モーダルを開く
+// 出荷店マスター 修正・削除モーダルを開く
 function openEditStoreModal(jsonStr) {
   const data = typeof jsonStr === 'string' ? JSON.parse(
     jsonStr.replace(/&quot;/g, '"').replace(/&#039;/g, "'")
   ) : jsonStr;
 
-  document.getElementById('modalStoreCode').value = data.code || '';
-  document.getElementById('modalStoreName').value = data.name || '';
+  // フォーム（モーダル内の入力項目）に値をセット
+  const codeEl = document.getElementById('modalStoreCode');
+  const nameEl = document.getElementById('modalStoreName');
+  if (codeEl) codeEl.value = data.code || '';
+  if (nameEl) nameEl.value = data.name || '';
 
-  // コード変更不可
-  const codeInput = document.getElementById('modalStoreCode');
-  codeInput.readOnly = true;
-  codeInput.style.backgroundColor = '#e9ecef';
-  codeInput.style.cursor = 'not-allowed';
+  // 修正時はコード変更不可（グレーアウト）
+  if (codeEl) {
+    codeEl.readOnly = true;
+    codeEl.style.backgroundColor = '#e9ecef';
+    codeEl.style.cursor = 'not-allowed';
+  }
 
-  document.getElementById('storeModalTitle').textContent = '出荷店マスター 修正・削除';
-  document.getElementById('btnStoreSubmitAdd').style.display = 'none';
-  document.getElementById('btnStoreSubmitEdit').style.display = 'inline-block';
-  document.getElementById('btnStoreSubmitDelete').style.display = 'inline-block';
+  // モーダルのタイトルとボタン表示の制御
+  const titleEl = document.getElementById('storeModalTitle');
+  if (titleEl) titleEl.textContent = '出荷店マスター 修正・削除';
 
-  document.getElementById('storeMasterModal').style.display = 'flex';
+  const btnAdd = document.getElementById('btnStoreSubmitAdd');
+  const btnEdit = document.getElementById('btnStoreSubmitEdit');
+  const btnDelete = document.getElementById('btnStoreSubmitDelete');
+
+  if (btnAdd) btnAdd.style.display = 'none';
+  if (btnEdit) btnEdit.style.display = 'inline-block';
+  if (btnDelete) btnDelete.style.display = 'inline-block';
+
+  // モーダルを表示
+  const modal = document.getElementById('storeMasterModal');
+  if (modal) modal.style.display = 'flex';
 }
 
 function closeStoreModal() {
