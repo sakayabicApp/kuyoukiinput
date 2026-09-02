@@ -768,10 +768,10 @@
     <h3 id="containerModalTitle" style="margin-top: 0;">空容器マスター 新規登録</h3>
     
     <form id="containerMasterForm" onsubmit="return false;">
-      <div style="margin-bottom: 12px; text-align: left;">
-        <label style="display: block; font-size: 13px; font-weight: bold;">商品コード <span style="color:red;">*</span></label>
-        <input type="text" id="modalItemCode" required style="width: 100%; padding: 8px; box-sizing: border-box;">
-      </div>
+      <div class="form-group" style="margin-bottom: 12px; text-align: left;">
+        <label for="modalItemCode">商品コード</label>
+  <input type="text" id="modalItemCode" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+</div>
 
       <div style="margin-bottom: 12px; text-align: left;">
         <label style="display: block; font-size: 13px; font-weight: bold;">JANコード</label>
@@ -793,7 +793,7 @@
         <input type="text" id="modalUnit" placeholder="バラ・ケース" style="width: 100%; padding: 8px; box-sizing: border-box;">
       </div>
 
-      <!-- 操作ボタン領域 -->
+
     <!-- 操作ボタン領域 -->
 <div class="modal-btn-group">
   <button type="button" id="btnSubmitAdd" class="btn-modal btn-modal-primary" onclick="handleContainerSubmit('add')">登録</button>
@@ -1921,85 +1921,67 @@ function closeContainerModal() {
   document.getElementById('containerMasterModal').style.display = 'none';
 }
 
-// 1. 新規登録モーダル表示
+/**
+ * 新規登録モーダルを開く
+ */
 function openAddContainerModal() {
-  const form = document.getElementById('containerMasterForm');
-  const modal = document.getElementById('containerMasterModal');
+  // フォームリセット
+  document.getElementById('modalItemCode').value = '';
+  document.getElementById('modalJanCode').value = '';
+  document.getElementById('modalContainerName').value = '';
+  document.getElementById('modalPrice').value = '';
+  document.getElementById('modalUnit').value = 'バラ・ケース';
 
-  if (!form || !modal) {
-    console.error('モーダルまたはフォームのHTML要素が見つかりません。');
-    return;
-  }
-
-  form.reset();
-  document.getElementById('containerModalTitle').textContent = '空容器マスター 新規登録';
-  
+  // 新規登録時は商品コードを入力可能にする
   const itemCodeInput = document.getElementById('modalItemCode');
-  if (itemCodeInput) itemCodeInput.readOnly = false;
+  itemCodeInput.readOnly = false;
+  itemCodeInput.style.backgroundColor = '#ffffff';
+  itemCodeInput.style.cursor = 'text';
 
-  // ボタンの表示制御
-  toggleModalButtons('add');
+  // ボタン切り替え
+  document.getElementById('containerModalTitle').textContent = '空容器マスター 新規登録';
+  document.getElementById('btnSubmitAdd').style.display = 'inline-block';
+  document.getElementById('btnSubmitEdit').style.display = 'none';
+  document.getElementById('btnSubmitDelete').style.display = 'none';
 
-  modal.style.display = 'flex';
-}
-
-// A. 「修正・削除」ボタン押下時：検索用ポップアップを開く
-function openSearchContainerModal() {
-  const searchInput = document.getElementById('searchTargetCode');
-  if (searchInput) searchInput.value = ''; // 前回の入力をクリア
-
-  const searchModal = document.getElementById('searchCodeModal');
-  if (searchModal) {
-    searchModal.style.display = 'flex'; // 画面中央に表示
-    setTimeout(() => searchInput?.focus(), 100); // 自動でフォーカスを当てる
-  }
-}
-
-// B. 検索ポップアップを閉じる
-function closeSearchCodeModal() {
-  const searchModal = document.getElementById('searchCodeModal');
-  if (searchModal) searchModal.style.display = 'none';
+  document.getElementById('containerMasterModal').style.display = 'flex';
 }
 
 /**
- * テーブルの「修正・削除」ボタン押下時の処理
+ * 修正・削除モーダルを開く
  */
 function openEditContainerModal(jsonStr) {
-  // HTMLエスケープされたJSON文字列を元のオブジェクトに復元
-  const data = JSON.parse(
+  const data = typeof jsonStr === 'string' ? JSON.parse(
     jsonStr
       .replace(/&quot;/g, '"')
       .replace(/&#039;/g, "'")
       .replace(/&lt;/g, '<')
       .replace(/&gt;/g, '>')
       .replace(/&amp;/g, '&')
-  );
+  ) : jsonStr;
 
-  // モーダルのフォームに値をセット
+  // フォームに値をセット
   document.getElementById('modalItemCode').value = data.itemCode || '';
   document.getElementById('modalJanCode').value = data.janCode || '';
   document.getElementById('modalContainerName').value = data.containerName || '';
   document.getElementById('modalPrice').value = data.price !== '' ? data.price : 0;
   document.getElementById('modalUnit').value = data.unit || '';
 
-  // 商品コードはキーのため編集不可（読み取り専用）にする
-  document.getElementById('modalItemCode').readOnly = true;
+  // 修正時は商品コードを固定（編集不可・グレーアウト）
+  const itemCodeInput = document.getElementById('modalItemCode');
+  itemCodeInput.readOnly = true;
+  itemCodeInput.style.backgroundColor = '#e9ecef';
+  itemCodeInput.style.cursor = 'not-allowed';
 
-  // モーダルのタイトルとボタン切り替え
+  // ボタン切り替え
   document.getElementById('containerModalTitle').textContent = '空容器マスター 修正・削除';
-  
-  if (typeof toggleModalButtons === 'function') {
-    toggleModalButtons('edit'); // 「保存」「削除」ボタンのみ表示する処理
-  } else {
-    // toggleModalButtons がない場合の直接制御例
-    document.getElementById('btnSubmitAdd').style.display = 'none';
-    document.getElementById('btnSubmitEdit').style.display = 'inline-block';
-    document.getElementById('btnSubmitDelete').style.display = 'inline-block';
-  }
+  document.getElementById('btnSubmitAdd').style.display = 'none';
+  document.getElementById('btnSubmitEdit').style.display = 'inline-block';
+  document.getElementById('btnSubmitDelete').style.display = 'inline-block';
 
-  // モーダルを表示
   document.getElementById('containerMasterModal').style.display = 'flex';
 }
+
   
 // ボタン表示制御の共通関数
 function toggleModalButtons(mode) {
