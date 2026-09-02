@@ -3237,10 +3237,7 @@ function getSystemTabDefinitions() {
 
   return definitions;
 }
-
-/**
- * モーダル内のチェックボックスエリアを自動生成する
- */
+//タブチェックボックスツキモーダル
 function renderPermissionCheckboxes(selectedPermissions = {}) {
   const container = document.getElementById('dynamicPermContainer');
   if (!container) return;
@@ -3249,6 +3246,9 @@ function renderPermissionCheckboxes(selectedPermissions = {}) {
   const tabDefs = getSystemTabDefinitions();
 
   tabDefs.forEach(tab => {
+    // もし「マスター管理」という親タブ自体が定義に含まれている場合の除外処理や識別
+    // 例: tab.key が 'masterManagement' などの親である場合は別枠にする、等
+    const isParent = (tab.key === 'masterManagement'); // 親タブのキー名に合わせて調整
     const isChecked = selectedPermissions[tab.key] == 1 || selectedPermissions[tab.key] === true;
 
     const labelEl = document.createElement('label');
@@ -3257,15 +3257,56 @@ function renderPermissionCheckboxes(selectedPermissions = {}) {
     labelEl.style.gap = '8px';
     labelEl.style.cursor = 'pointer';
 
+    // ★ 子タブ（マスター管理以外）の場合は、少し右にずらしてツリー風の見た目にする
+    if (!isParent) {
+      labelEl.style.marginLeft = '24px'; // 1歩右にずらす
+      labelEl.style.position = 'relative';
+      
+      // ツリーのL字の線を擬似的に演出するスタイルのヒント
+      labelEl.style.borderLeft = '2px solid #ced4da';
+      labelEl.style.paddingLeft = '8px';
+    } else {
+      labelEl.style.fontWeight = 'bold'; // 親タブは太字にするなど
+    }
+
     labelEl.innerHTML = `
-      <input type="checkbox" id="perm_${tab.key}" data-perm-key="${tab.key}" value="1" ${isChecked ? 'checked' : ''}>
+      <input type="checkbox" id="perm_${tab.key}" data-perm-key="${tab.key}" value="1" ${isChecked ? 'checked' : ''} onchange="handlePermissionChange(this)">
       <span>${escapeHtml(tab.label)}</span>
     `;
     container.appendChild(labelEl);
   });
+}
+
+function handlePermissionChange(changedCheckbox) {
+  // ※親タブのチェックボックスのキー名が 'masterManagement' である場合の例
+  const isParentCheckbox = changedCheckbox.getAttribute('data-perm-key') === 'masterManagement';
+
+  if (isParentCheckbox) {
+    const isParentChecked = changedCheckbox.checked;
+    
+    // 子タブのチェックボックスをすべて取得
+    const allCheckboxes = document.querySelectorAll('#dynamicPermContainer input[type="checkbox"]');
+    
+    allCheckboxes.forEach(cb => {
+      const key = cb.getAttribute('data-perm-key');
+      if (key !== 'masterManagement') {
+        if (!isParentChecked) {
+          // 親が外されたら、子のチェックを外し、操作も無効化する
+          cb.checked = false;
+          cb.disabled = true;
+          cb.closest('label').style.opacity = '0.5'; // 薄くして選べない感を出す
+        } else {
+          // 親が入ったら、子の操作を有効化する
+          cb.disabled = false;
+          cb.closest('label').style.opacity = '1';
+        }
+      }
+    });
+  }
 }  
+
+
   
-// 権限マスター：マスターテーブルを更新して描画（権限をまとめて1列に表示する方式）
 // =========================================================================
 // 権限マスター 制御処理（データ構造自動適応版）
 // =========================================================================
@@ -3488,9 +3529,45 @@ function closeRoleModal() {
 // 連打防止フラグ
 let isRoleSubmitting = false;
 
+// 連打防止フラグ
+let isRoleSubmitting = false;
+
 // 権限マスター：送信処理
 async function handleRoleSubmit(actionType) {
   if (isRoleSubmitting) return;
+
+  const roleCode = document.getElementById('modalRoleCode').value.trim();
+  const roleName = document.getElementById('modalRoleName').value.trim();
+  
+  // 入力チェック（削除以外はコードと名前が必須）
+  if (!roleCode) {
+    alert('区分コードを入力してください。');
+    return;
+  }
+  if (actionType !== 'delete' && !roleName) {
+    alert('区分名を入力してください。');
+    return;
+  }
+
+  // --- ▼ 親権限とサブ権限の整合性チェック（削除以外） ▼ ---
+  if (actionType !== 'delete') {
+    const masterManagementCheckbox = document.getElementById('perm_masterManagement');
+    const isMasterChecked = masterManagementCheckbox ? masterManagementCheckbox.checked : false;
+    
+    let hasSubChecked = false;
+    const checkboxes = document.querySelectorAll('#dynamicPermContainer input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+      if (cb.getAttribute('data-perm-key') !== 'masterManagement' && cb.checked) {
+        hasSubChecked = true;
+      }
+    });
+
+    if (!isMasterChecked && hasSubChecked) {
+      alert('「マスター管理」の権限が付与されていないため、下位のマスター機能を選択することはできません。');
+      return; // 送信をストップ
+    }
+  }
+  // --- ▲ ここまで ▲ ---
 
   let confirmMessage = '';
   let apiAction = '';
@@ -3514,26 +3591,13 @@ async function handleRoleSubmit(actionType) {
     loadingText = '削除中...';
   }
 
-  const roleCode = document.getElementById('modalRoleCode').value.trim();
-  const roleName = document.getElementById('modalRoleName').value.trim();
-  
   // 動的チェックボックスから値を自動収集してペイロードに含める
   const permissions = {};
-  const checkboxes = document.querySelectorAll('#dynamicPermContainer input[type="checkbox"]');
-  checkboxes.forEach(cb => {
+  const allCheckboxes = document.querySelectorAll('#dynamicPermContainer input[type="checkbox"]');
+  allCheckboxes.forEach(cb => {
     const key = cb.getAttribute('data-perm-key');
     permissions[key] = cb.checked ? 1 : 0;
   });
-
-  // 入力チェック
-  if (!roleCode) {
-    alert('区分コードを入力してください。');
-    return;
-  }
-  if (actionType !== 'delete' && !roleName) {
-    alert('区分名を入力してください。');
-    return;
-  }
 
   isRoleSubmitting = true;
   const allModalBtns = document.querySelectorAll('#roleMasterModal button');
@@ -3557,7 +3621,7 @@ async function handleRoleSubmit(actionType) {
     return;
   }
 
-  // 送信データ構造（roleCode, roleNameに加え、自動収集した各タブの権限フラグを展開）
+  // 送信データ構造
   const payload = Object.assign({
     action: apiAction,
     roleCode: roleCode,
