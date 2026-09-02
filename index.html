@@ -747,9 +747,30 @@
     </table>
   </div>
 </div>
-      <div id="masterStaffPage" class="master-sub-page hidden">
-        <h3>担当者マスター管理</h3>
-      </div>
+<!-- 担当者マスター管理エリア -->
+<div id="masterStaffPage" class="master-sub-page hidden">
+  <div class="master-header-container" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+    <h3 style="margin: 0;">担当者マスター一覧</h3>
+    <div class="master-btn-group">
+      <button type="button" class="btn-primary" onclick="openAddStaffModal()">+ 新規登録</button>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table class="master-table staff-master-table">
+      <thead>
+        <tr>
+          <th>担当者コード</th>
+          <th>担当者名</th>
+          <th style="text-align: center;">操作</th>
+        </tr>
+      </thead>
+      <tbody id="staffMasterTbody">
+        <!-- JSで描画 -->
+      </tbody>
+    </table>
+  </div>
+</div>
       <div id="masterUserPage" class="master-sub-page hidden">
         <h3>ユーザーマスター管理</h3>
       </div>
@@ -899,6 +920,30 @@
   </div>
 </div>
 
+<!-- 担当者マスター モーダル -->
+<div id="staffMasterModal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header" id="staffModalTitle">担当者マスター 新規登録</div>
+    <form id="staffMasterForm" onsubmit="return false;">
+      <div style="margin-bottom: 12px;">
+        <label for="modalStaffCode">担当者コード</label>
+        <input type="text" id="modalStaffCode">
+      </div>
+      <div style="margin-bottom: 12px;">
+        <label for="modalStaffName">担当者名</label>
+        <input type="text" id="modalStaffName">
+      </div>
+
+      <div class="modal-btn-group">
+        <button type="button" id="btnStaffSubmitAdd" class="btn-modal btn-modal-primary" onclick="handleStaffSubmit('add')">登録</button>
+        <button type="button" id="btnStaffSubmitEdit" class="btn-modal btn-modal-primary" onclick="handleStaffSubmit('edit')" style="display: none;">更新</button>
+        <button type="button" id="btnStaffSubmitDelete" class="btn-modal btn-modal-danger" onclick="handleStaffSubmit('delete')" style="display: none;">削除</button>
+        <button type="button" class="btn-modal btn-modal-secondary" onclick="closeStaffModal()">キャンセル</button>
+      </div>
+    </form>
+  </div>
+</div>
+  
 <script>
     const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw8g-XV7pCCeE99Ps1W3LuKqm1cHXrW8qFZwlfn8r_nUHLfgcC4ox39Zhs3K7WYmeo6/exec';
 
@@ -1053,6 +1098,7 @@ async function loadMasterData() {
       renderMasterContainerTable(masterContainers);// ★追加：マスター管理タブ用の表を描画
       renderMasterStoreTable(masterStores); // ★追加：出荷店マスター描画関数の呼び出し
       renderMasterRouteTable(masterRoutes); // ★この行を追加
+      renderMasterStaffTable(masterStaffs);         // ★追記：担当者マスター描画関数の呼び出し
 
       const loadingOverlay = document.getElementById('loadingOverlay');
       if (loadingOverlay) loadingOverlay.style.display = 'none';
@@ -2411,32 +2457,7 @@ function renderMasterRouteTable(routes) {
     tbody.appendChild(tr);
   });
 }
-// ルートマスター：新規登録モーダルを開く
-function openAddRouteModal() {
-  const codeEl = document.getElementById('modalRouteCode');
-  const nameEl = document.getElementById('modalRouteName');
-  if (codeEl) {
-    codeEl.value = '';
-    codeEl.readOnly = false;
-    codeEl.style.backgroundColor = '#fff';
-    codeEl.style.cursor = 'text';
-  }
-  if (nameEl) nameEl.value = '';
 
-  const titleEl = document.getElementById('routeModalTitle');
-  if (titleEl) titleEl.textContent = 'ルートマスター 新規登録';
-
-  const btnAdd = document.getElementById('btnRouteSubmitAdd');
-  const btnEdit = document.getElementById('btnRouteSubmitEdit');
-  const btnDelete = document.getElementById('btnRouteSubmitDelete');
-
-  if (btnAdd) btnAdd.style.display = 'inline-block';
-  if (btnEdit) btnEdit.style.display = 'none';
-  if (btnDelete) btnDelete.style.display = 'none';
-
-  const modal = document.getElementById('routeMasterModal');
-  if (modal) modal.style.display = 'flex';
-}
 
 // 新規登録モーダルを開く
 function openAddRouteModal() {
@@ -2595,6 +2616,209 @@ async function handleRouteSubmit(actionType) {
     if (targetBtn) targetBtn.textContent = originalText;
   }
 }
+
+// =========================================================================
+// 担当者マスター 制御処理
+// =========================================================================
+
+// 担当者マスター描画処理
+function renderMasterStaffTable(staffs) {
+  const tbody = document.getElementById('staffMasterTbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  // staffs が空、または要素無しの場合
+  if (!staffs || (Array.isArray(staffs) && staffs.length === 0) || (typeof staffs === 'object' && Object.keys(staffs).length === 0)) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">データがありません</td></tr>';
+    return;
+  }
+
+  // オブジェクト/配列両対応でルーピング
+  const staffEntries = Array.isArray(staffs)
+    ? staffs.map(row => {
+        const keys = Object.keys(row);
+        return { code: String(row[keys[0]] || '').trim(), name: String(row[keys[1]] || '').trim() };
+      })
+    : Object.keys(staffs).map(code => ({ code: code, name: staffs[code] }));
+
+  staffEntries.forEach(item => {
+    if (!item.code) return;
+
+    const jsonStr = JSON.stringify({ code: item.code, name: item.name })
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${escapeHtml(item.code)}</strong></td>
+      <td>${escapeHtml(item.name)}</td>
+      <td style="text-align: center;">
+        <button type="button" class="btn-secondary btn-table-action" onclick="openEditStaffModal('${jsonStr}')">修正・削除</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// 担当者マスター：新規登録モーダルを開く
+function openAddStaffModal() {
+  const codeEl = document.getElementById('modalStaffCode');
+  const nameEl = document.getElementById('modalStaffName');
+  
+  if (codeEl) {
+    codeEl.value = '';
+    codeEl.readOnly = false;
+    codeEl.style.backgroundColor = '#fff';
+    codeEl.style.cursor = 'text';
+  }
+  if (nameEl) nameEl.value = '';
+
+  const titleEl = document.getElementById('staffModalTitle');
+  if (titleEl) titleEl.textContent = '担当者マスター 新規登録';
+
+  document.getElementById('btnStaffSubmitAdd').style.display = 'inline-block';
+  document.getElementById('btnStaffSubmitEdit').style.display = 'none';
+  document.getElementById('btnStaffSubmitDelete').style.display = 'none';
+
+  const modal = document.getElementById('staffMasterModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+// 担当者マスター：修正・削除モーダルを開く
+function openEditStaffModal(jsonStr) {
+  const data = typeof jsonStr === 'string' ? JSON.parse(
+    jsonStr.replace(/&quot;/g, '"').replace(/&#039;/g, "'")
+  ) : jsonStr;
+
+  const codeEl = document.getElementById('modalStaffCode');
+  const nameEl = document.getElementById('modalStaffName');
+  
+  if (codeEl) {
+    codeEl.value = data.code || '';
+    codeEl.readOnly = true;
+    codeEl.style.backgroundColor = '#e9ecef';
+    codeEl.style.cursor = 'not-allowed';
+  }
+  if (nameEl) nameEl.value = data.name || '';
+
+  const titleEl = document.getElementById('staffModalTitle');
+  if (titleEl) titleEl.textContent = '担当者マスター 修正・削除';
+
+  document.getElementById('btnStaffSubmitAdd').style.display = 'none';
+  document.getElementById('btnStaffSubmitEdit').style.display = 'inline-block';
+  document.getElementById('btnStaffSubmitDelete').style.display = 'inline-block';
+
+  const modal = document.getElementById('staffMasterModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+// 担当者マスター：モーダルを閉じる
+function closeStaffModal() {
+  const modal = document.getElementById('staffMasterModal');
+  if (modal) modal.style.display = 'none';
+}
+
+// 連打防止フラグ
+let isStaffSubmitting = false;
+
+// 担当者マスター：送信処理
+async function handleStaffSubmit(actionType) {
+  if (isStaffSubmitting) return;
+
+  let confirmMessage = '';
+  let apiAction = '';
+  let targetBtn = null;
+  let loadingText = '';
+
+  if (actionType === 'add') {
+    confirmMessage = '登録してよろしいですか？';
+    apiAction = 'saveStaffMaster';
+    targetBtn = document.getElementById('btnStaffSubmitAdd');
+    loadingText = '登録中...';
+  } else if (actionType === 'edit') {
+    confirmMessage = '修正内容を保存してよろしいですか？';
+    apiAction = 'updateStaffMaster';
+    targetBtn = document.getElementById('btnStaffSubmitEdit');
+    loadingText = '更新中...';
+  } else if (actionType === 'delete') {
+    confirmMessage = '本当にこのデータを削除してよろしいですか？';
+    apiAction = 'deleteStaffMaster';
+    targetBtn = document.getElementById('btnStaffSubmitDelete');
+    loadingText = '削除中...';
+  }
+
+  const code = document.getElementById('modalStaffCode').value.trim();
+  const name = document.getElementById('modalStaffName').value.trim();
+
+  // 入力チェック（削除以外は担当者名も必須）
+  if (!code) {
+    alert('担当者コードを入力してください。');
+    return;
+  }
+  if (actionType !== 'delete' && !name) {
+    alert('担当者名を入力してください。');
+    return;
+  }
+
+  isStaffSubmitting = true;
+  const allModalBtns = document.querySelectorAll('#staffMasterModal button');
+  const originalText = targetBtn ? targetBtn.textContent : '';
+
+  // ボタンを半透明にして操作不可にする
+  allModalBtns.forEach(btn => {
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    btn.style.cursor = 'not-allowed';
+  });
+  if (targetBtn) targetBtn.textContent = loadingText;
+
+  // 確認ダイアログ
+  if (!confirm(confirmMessage)) {
+    isStaffSubmitting = false;
+    allModalBtns.forEach(btn => {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    });
+    if (targetBtn) targetBtn.textContent = originalText;
+    return;
+  }
+
+  const payload = {
+    action: apiAction,
+    code: code,
+    name: name
+  };
+
+  try {
+    const response = await fetch(GAS_WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload)
+    });
+    const result = await response.json();
+
+    if (result.status === 'success') {
+      alert('処理が完了しました。');
+      closeStaffModal();
+      if (typeof loadMasterData === 'function') await loadMasterData();
+    } else {
+      alert('エラー: ' + (result.message || '処理に失敗しました。'));
+    }
+  } catch (err) {
+    console.error('担当者マスター送信エラー:', err);
+    alert('通信エラーが発生しました。');
+  } finally {
+    isStaffSubmitting = false;
+    allModalBtns.forEach(btn => {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    });
+    if (targetBtn) targetBtn.textContent = originalText;
+  }
+}
+
   
 </script>
 </body>
