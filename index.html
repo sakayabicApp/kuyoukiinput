@@ -968,7 +968,7 @@
 </div>
 
 <!-- ユーザーマスター モーダル -->
-<div id="userMasterModal" class="modal-overlay">
+<div id="userMasterModal" class="modal-overlay" style="display: none;">
   <div class="modal-content" style="max-width: 500px;">
     <div class="modal-header" id="userModalTitle">ユーザーマスター 新規登録</div>
     <form id="userMasterForm" onsubmit="return false;">
@@ -984,13 +984,13 @@
         <label for="modalUserName" style="display: block; font-size: 13px; font-weight: bold;">登録者名 <span style="color:red;">*</span></label>
         <input type="text" id="modalUserName" style="width: 100%; padding: 8px; box-sizing: border-box;">
       </div>
-      <div style="margin-bottom: 12px; text-align: left;">
-        <label for="modalUserRoleCode" style="display: block; font-size: 13px; font-weight: bold;">管理区分</label>
-        <input type="text" id="modalUserRoleCode" placeholder="例: 1" style="width: 100%; padding: 8px; box-sizing: border-box;">
-      </div>
+
+      <!-- ★ G・H列から読み込んだ区分を選択するセレクトボックス -->
       <div style="margin-bottom: 20px; text-align: left;">
-        <label for="modalUserRoleName" style="display: block; font-size: 13px; font-weight: bold;">区分名</label>
-        <input type="text" id="modalUserRoleName" placeholder="例: 管理者" style="width: 100%; padding: 8px; box-sizing: border-box;">
+        <label for="modalUserRoleSelect" style="display: block; font-size: 13px; font-weight: bold;">管理区分 <span style="color:red;">*</span></label>
+        <select id="modalUserRoleSelect" style="width: 100%; padding: 8px; box-sizing: border-box;">
+          <option value="">-- 区分を選択してください --</option>
+        </select>
       </div>
 
       <div class="modal-btn-group">
@@ -1143,22 +1143,31 @@ async function loadMasterData() {
       }
 
       // ★追加：GASから users マスターが返ってきた場合のパース（A列コード, C列名前）
+     // ★ IDから名前を参照するためのオブジェクト形式
       masterUsers = {};
       if (result.data.users) {
         result.data.users.forEach(row => {
           const keys = Object.keys(row);
-          const code = String(row[keys[0]] || '').trim(); // A列：ユーザーコード
-          const name = String(row[keys[2]] || row[keys[1]] || '').trim(); // C列：名前（無ければB列）
+          const code = String(row[keys[0]] || '').trim();
+          const name = String(row[keys[2]] || row[keys[1]] || '').trim();
           if (code) masterUsers[code] = name;
         });
       }
 
+      // ★ マスター管理画面の一覧描画用の配列形式
+      const masterUsersList = result.data.users || [];
+
+      // ★ パターンB: G・H列から取得した roles を使ってセレクトボックス生成
+      if (result.data.roles) {
+        updateRoleSelectOptions(result.data.roles);
+      }
+      
       renderContainerTable(masterContainers);
       renderMasterContainerTable(masterContainers);// ★追加：マスター管理タブ用の表を描画
       renderMasterStoreTable(masterStores); // ★追加：出荷店マスター描画関数の呼び出し
       renderMasterRouteTable(masterRoutes); // ★この行を追加
       renderMasterStaffTable(masterStaffs);         // ★追記：担当者マスター描画関数の呼び出し
-      renderMasterUserTable(result.data.users || masterUsers);　// ユーザーマスター描画関数の呼び出しを追加
+      renderMasterUserTable(masterUsersList); // ★ 配列を渡す
 
       const loadingOverlay = document.getElementById('loadingOverlay');
       if (loadingOverlay) loadingOverlay.style.display = 'none';
@@ -2681,7 +2690,6 @@ async function handleRouteSubmit(actionType) {
 // 担当者マスター 制御処理
 // =========================================================================
 
-// 担当者マスター描画処理
 function renderMasterStaffTable(staffs) {
   const tbody = document.getElementById('staffMasterTbody');
   if (!tbody) return;
@@ -2883,38 +2891,44 @@ async function handleStaffSubmit(actionType) {
 // ユーザーマスター 制御処理
 // =========================================================================
 
+// 管理区分セレクトボックス（<option>）の更新処理
+function updateRoleSelectOptions(roleList) {
+  const selectEl = document.getElementById('modalUserRoleSelect');
+  if (!selectEl) return;
+
+  selectEl.innerHTML = '<option value="">-- 区分を選択してください --</option>';
+
+  (roleList || []).forEach(role => {
+    const option = document.createElement('option');
+    option.value = role.code;               // D列（管理区分）にセットする値
+    option.textContent = `${role.code} : ${role.name}`; // 画面表示「1 : 管理者」
+    option.dataset.roleName = role.name;    // E列（区分名）にセットする値を保持
+    selectEl.appendChild(option);
+  });
+}
+  
 // ユーザーマスター描画処理
 function renderMasterUserTable(users) {
   const tbody = document.getElementById('userMasterTbody');
   if (!tbody) return;
   tbody.innerHTML = '';
 
-  if (!users || (Array.isArray(users) && users.length === 0) || (typeof users === 'object' && Object.keys(users).length === 0)) {
+  if (!users || (Array.isArray(users) && users.length === 0)) {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">データがありません</td></tr>';
     return;
   }
 
-  // 配列構造・オブジェクト構造の両対応
-  const userEntries = Array.isArray(users)
-    ? users.map(row => {
-        const keys = Object.keys(row);
-        return {
-          id: String(row[keys[0]] || '').trim(),       // A列: ユーザーID
-          password: String(row[keys[1]] || '').trim(), // B列: パスワード
-          name: String(row[keys[2]] || '').trim(),     // C列: 登録者名
-          roleCode: String(row[keys[3]] || '').trim(), // D列: 管理区分
-          roleName: String(row[keys[4]] || '').trim()  // E列: 区分名
-        };
-      })
-    : Object.keys(users).map(id => ({
-        id: id,
-        password: users[id].password || '',
-        name: typeof users[id] === 'object' ? users[id].name || '' : users[id],
-        roleCode: users[id].roleCode || '',
-        roleName: users[id].roleName || ''
-      }));
+  users.forEach(row => {
+    // getSheetData から返ってくる配列/オブジェクト構造に柔軟に対応
+    const keys = Object.keys(row);
+    const item = {
+      id: String(row.id || row[keys[0]] || '').trim(),       // A列: ユーザーID
+      password: String(row.password || row[keys[1]] || '').trim(), // B列: パスワード
+      name: String(row.name || row[keys[2]] || '').trim(),     // C列: 登録者名
+      roleCode: String(row.roleCode || row[keys[3]] || '').trim(), // D列: 管理区分
+      roleName: String(row.roleName || row[keys[4]] || '').trim()  // E列: 区分名
+    };
 
-  userEntries.forEach(item => {
     if (!item.id) return;
 
     const jsonStr = JSON.stringify(item)
@@ -2947,11 +2961,9 @@ function openAddUserModal() {
   }
   document.getElementById('modalUserPassword').value = '';
   document.getElementById('modalUserName').value = '';
-  document.getElementById('modalUserRoleCode').value = '';
-  document.getElementById('modalUserRoleName').value = '';
+  document.getElementById('modalUserRoleSelect').value = '';
 
   document.getElementById('userModalTitle').textContent = 'ユーザーマスター 新規登録';
-
   document.getElementById('btnUserSubmitAdd').style.display = 'inline-block';
   document.getElementById('btnUserSubmitEdit').style.display = 'none';
   document.getElementById('btnUserSubmitDelete').style.display = 'none';
@@ -2976,11 +2988,14 @@ function openEditUserModal(jsonStr) {
 
   document.getElementById('modalUserPassword').value = data.password || '';
   document.getElementById('modalUserName').value = data.name || '';
-  document.getElementById('modalUserRoleCode').value = data.roleCode || '';
-  document.getElementById('modalUserRoleName').value = data.roleName || '';
+  
+  // セレクトボックスに選択中の管理区分をセット
+  const selectEl = document.getElementById('modalUserRoleSelect');
+  if (selectEl) {
+    selectEl.value = data.roleCode || '';
+  }
 
   document.getElementById('userModalTitle').textContent = 'ユーザーマスター 修正・削除';
-
   document.getElementById('btnUserSubmitAdd').style.display = 'none';
   document.getElementById('btnUserSubmitEdit').style.display = 'inline-block';
   document.getElementById('btnUserSubmitDelete').style.display = 'inline-block';
@@ -3027,10 +3042,14 @@ async function handleUserSubmit(actionType) {
   const userId = document.getElementById('modalUserId').value.trim();
   const password = document.getElementById('modalUserPassword').value.trim();
   const name = document.getElementById('modalUserName').value.trim();
-  const roleCode = document.getElementById('modalUserRoleCode').value.trim();
-  const roleName = document.getElementById('modalUserRoleName').value.trim();
 
-  // 入力チェック（削除以外はID・パスワード・名前が必須）
+  // ★ セレクトボックスから選択されているコードと区分名を取得
+  const roleSelect = document.getElementById('modalUserRoleSelect');
+  const roleCode = roleSelect.value;
+  const selectedOption = roleSelect.options[roleSelect.selectedIndex];
+  const roleName = selectedOption ? (selectedOption.dataset.roleName || '') : '';
+
+  // 入力チェック
   if (!userId) {
     alert('ユーザーIDを入力してください。');
     return;
@@ -3042,6 +3061,10 @@ async function handleUserSubmit(actionType) {
     }
     if (!name) {
       alert('登録者名を入力してください。');
+      return;
+    }
+    if (!roleCode) {
+      alert('管理区分を選択してください。');
       return;
     }
   }
@@ -3075,8 +3098,8 @@ async function handleUserSubmit(actionType) {
     id: userId,
     password: password,
     name: name,
-    roleCode: roleCode,
-    roleName: roleName
+    roleCode: roleCode, // D列に書き込まれる
+    roleName: roleName  // E列に書き込まれる
   };
 
   try {
@@ -3106,7 +3129,7 @@ async function handleUserSubmit(actionType) {
     });
     if (targetBtn) targetBtn.textContent = originalText;
   }
-}  
+}
   
 </script>
 </body>
