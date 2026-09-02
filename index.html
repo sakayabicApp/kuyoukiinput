@@ -28,6 +28,7 @@
     100% { transform: rotate(360deg); }
   }
 
+  /* レイアウトコンテナ */
   .container {
     background: var(--card-bg);
     padding: 1.25rem;
@@ -52,6 +53,7 @@
   
   .hidden { display: none !important; }
 
+  /* ユーザー情報・ログアウト */
   .user-badge {
     font-size: 0.875rem;
     background: #e8f0fe;
@@ -74,6 +76,7 @@
     padding: 0;
   }
 
+  /* グリッド・フォーム要素 */
   .search-display-grid {
     display: flex;
     flex-direction: row;
@@ -99,6 +102,7 @@
     border-radius: 0.25rem;
   }
 
+  /* テーブル共通 */
   table {
     width: 100%;
     border-collapse: collapse;
@@ -113,6 +117,12 @@
   }
   th { background-color: #f8f9fa; color: #555; font-weight: bold; }
 
+  .table-container { 
+    overflow-x: auto; 
+    margin-top: 0.625rem; 
+    border: 1px solid #e0e0e0; 
+    border-radius: 0.375rem; 
+  }
   .table-container table { table-layout: fixed; width: 100%; }
   .table-container th:nth-child(1) { width: 18%; }
   .table-container th:nth-child(2) { width: 22%; }
@@ -124,8 +134,29 @@
   .display-table td { background-color: #f0f4f9; color: #1967d2; font-weight: bold; }
   .display-table td.empty-td { background-color: #fafafa; color: #888; font-weight: normal; text-align: center; }
 
+  .price-col { text-align: right; }
 
+  /* 数量入力・単位テキスト（統合済み） */
+  .qty-cell { 
+    display: flex; 
+    align-items: center; 
+    justify-content: flex-start;
+    gap: 0.375rem; 
+  }
+  .container-qty {
+    width: 70px !important;
+    box-sizing: border-box;
+    text-align: right;
+    padding: 0.375rem;
+  }
+  .unit-text { 
+    font-size: 0.75rem; 
+    color: #555; 
+    white-space: nowrap; 
+    flex-shrink: 0;
+  }
 
+  /* サジェスト（入力補完） */
   .suggest-window {
     position: absolute; top: 100%; left: 0; right: 0;
     max-height: 13.75rem; overflow-y: auto; background: #ffffff;
@@ -137,12 +168,7 @@
   .suggest-item:hover { background-color: #e8f0fe; }
   .suggest-item .code { font-weight: bold; color: var(--primary-color); margin-right: 0.375rem; }
 
-  .table-container { overflow-x: auto; margin-top: 0.625rem; border: 1px solid #e0e0e0; border-radius: 0.375rem; }
-  .price-col { text-align: right; }
-  .qty-cell { display: flex; align-items: center; gap: 0.375rem; }
-  .qty-cell input { padding: 0.375rem; text-align: right; }
-  .unit-text { font-size: 0.75rem; color: #555; white-space: nowrap; }
-
+  /* ボタン・アクションエリア */
   .action-area { margin-top: 1.25rem; text-align: right; }
   button.btn-primary {
     background-color: var(--primary-color); color: white; font-size: 1rem; font-weight: bold;
@@ -155,6 +181,7 @@
     padding: 0.625rem 1.25rem; border: none; border-radius: 0.25rem; cursor: pointer;
   }
 
+  /* モーダル */
   .modal-overlay {
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0,0,0,0.5); display: none;
@@ -169,192 +196,175 @@
   .confirm-table { margin-bottom: 0.9375rem; }
   .modal-actions { display: flex; justify-content: flex-end; gap: 0.625rem; margin-top: 1.25rem; }
 
-/* ナビゲーションメニュー */
-.nav-menu {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
+  /* メインナビゲーションメニュー */
+  .nav-menu {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+  .nav-tab {
+    padding: 0.5rem 1.25rem;
+    font-size: 0.9375rem;
+    font-weight: bold;
+    border: none;
+    background: #e0e6ed;
+    color: #555;
+    border-radius: 0.375rem 0.375rem 0 0;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .nav-tab:hover { background: #d0d7de; }
+  .nav-tab.active {
+    background: var(--primary-color);
+    color: #ffffff;
+  }
+
+  /* サブナビゲーション */
+  .sub-nav-tab {
+    padding: 6px 16px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+  .sub-nav-tab.active {
+    background-color: var(--primary-color);
+    color: #ffffff;
+    border-color: var(--primary-color);
+    font-weight: bold;
+  }
+
+  /* ページ表示切替 */
+  .page-section { display: block; }
+  .page-section.hidden { display: none !important; }
+
+  /* 帳票発行画面 */
+  .report-card {
+    background: #fafafa;
+    border: 1px solid #e0e0e0;
+    border-radius: 0.375rem;
+    padding: 1.25rem;
+    margin-top: 0.5rem;
+  }
+  .form-group-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+  }
+  .form-group-item {
+    flex: 1;
+    min-width: 220px;
+  }
+  .date-range-item { flex: 1.5; }
+  .slip-header-item { margin-right: 12px; }
+
+/* テーブル全体のレイアウト固定（幅をあふれさせない設定） */
+#containerMasterTable {
+  width: 100%;
+  table-layout: fixed; /* 列幅を固定比率にする */
+  border-collapse: collapse;
 }
 
-.nav-tab {
-  padding: 0.5rem 1.25rem;
-  font-size: 0.9375rem;
-  font-weight: bold;
-  border: none;
-  background: #e0e6ed;
-  color: #555;
-  border-radius: 0.375rem 0.375rem 0 0;
+/* 各列の幅を最適化（画面幅に綺麗に収める） */
+#containerMasterTable th:nth-child(1) { width: 15%; } /* 商品コード */
+#containerMasterTable th:nth-child(2) { width: 22%; } /* JANコード */
+#containerMasterTable th:nth-child(3) { width: 33%; } /* 空容器名 */
+#containerMasterTable th:nth-child(4) { width: 12%; } /* 単価 */
+#containerMasterTable th:nth-child(5) { width: 10%; } /* 単位 */
+#containerMasterTable th:nth-child(6) { width: 8%;  } /* 操作ボタン */
+
+/* セルのテキストが溢れた場合の処理 */
+#containerMasterTable td, #containerMasterTable th {
+  padding: 6px 4px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+/* 行内の「修正・削除」ボタンのスタイリング（コンパクト化＆高さを揃える） */
+.btn-table-action {
+  padding: 2px 6px !important;
+  font-size: 0.75rem !important;
+  line-height: 1.2 !important;
+  height: 26px !important;       /* 行の高さに合わせる */
+  white-space: nowrap;
   cursor: pointer;
-  transition: all 0.2s;
+  border-radius: 4px;
 }
-
-.nav-tab:hover {
-  background: #d0d7de;
-}
-
-.nav-tab.active {
-  background: var(--primary-color);
-  color: #ffffff;
-}
-
-/* ページエリアの表示切替 */
-.page-section {
-  display: block;
-}
-
-.page-section.hidden {
-  display: none !important;
-}
-
-/* 帳票発行画面のスタイル */
-.report-card {
-  background: #fafafa;
-  border: 1px solid #e0e0e0;
-  border-radius: 0.375rem;
-  padding: 1.25rem;
-  margin-top: 0.5rem;
-}
-
-.form-group-row {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
-  flex-wrap: wrap;
-}
-
-.form-group-item {
-  flex: 1;
-  min-width: 220px;
-}
-
-/* ★追加: 対象期間だけPC時に少し幅を広くする */
-.date-range-item {
-  flex: 1.5;
-}
-
- /* PC/デフォルト表示のスタイル */
-.slip-header-item {
-  margin-right: 12px;
-}
-
-/* 数量入力欄の幅を固定化 */
-.container-qty {
-  width: 70px !important;    /* 固定したい幅（お好みのサイズに調整可能） */
-  box-sizing: border-box;    /* パディング等を含めた幅に固定 */
-  text-align: right;         /* 数字を右寄せ表示 */
-}
-
-/* 親要素（qty-cell）のレイアウトを揃える */
-.qty-cell {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start; /* ★左寄せに変更 */
-  gap: 6px;                    /* 入力欄と単位の間の余白 */
-}
-
-/* 単位テキストの自動伸縮を防ぐ */
-.unit-text {
-  flex-shrink: 0;            /* 単位テキストがつぶれないように保護 */
-  white-space: nowrap;       /* 単位の改行を防止 */
-}  
-
-/* サブタブの基本スタイル */
-.sub-nav-tab {
-  padding: 6px 16px;
-  background-color: #f0f0f0;
-  border: 1px solid #ccc;
-  border-bottom: none;
-  border-radius: 4px 4px 0 0;
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-
-/* アクティブ時のサブタブスタイル */
-.sub-nav-tab.active {
-  background-color: var(--primary-color, #0056b3);
-  color: #ffffff;
-  border-color: var(--primary-color, #0056b3);
-  font-weight: bold;
-}  
-
-
-
+  
+  /* レスポンシブ（スマホ向けスタイル） */
   @media (max-width: 767px) {
     html { font-size: 14px; }
     .search-display-grid { flex-direction: column; gap: 0.625rem; }
-    #containerTableBody tr td:nth-child(2), .table-container th:nth-child(2) { display: none; }
+    
+    #containerTableBody tr td:nth-child(2), 
+    .table-container th:nth-child(2) { display: none; }
+    
     .table-container th:nth-child(1) { width: 20%; }
     .table-container th:nth-child(3) { width: 35%; }
     .table-container th:nth-child(4) { width: 15%; }
     .table-container th:nth-child(5) { width: 30%; }
-    .responsive-date-wrap {width: 100% !important; }
+    .responsive-date-wrap { width: 100% !important; }
 
-  /* 1. ヘッダーを1項目ごとに改行（ブロック要素化） */
-  .slip-header-info div span,
-  .slip-header-info div small span {
-    display: block;
-    margin-bottom: 2px;
-  }
+    /* ヘッダー折り返し */
+    .slip-header-info div span,
+    .slip-header-info div small span {
+      display: block;
+      margin-bottom: 2px;
+    }
 
-  /* 2. JANコード列（2列目）を非表示 */
-  .report-table th:nth-child(2),
-  .report-table td:nth-child(2) {
-    display: none;
-  }
+    /* 帳票テーブルJAN非表示 */
+    .report-table th:nth-child(2),
+    .report-table td:nth-child(2) {
+      display: none;
+    }
+    .report-table th:nth-child(1),
+    .report-table td:nth-child(1) { width: 25%; }
+    .report-table th:nth-child(3),
+    .report-table td:nth-child(3) { width: 50%; }
+    .report-table th:nth-child(4),
+    .report-table td:nth-child(4) { width: 25% !important; }
 
-  /* 3. 残りの3列の幅割合を「商品コード 30% : 商品名 50% : 数量 20%」に設定 */
-  .report-table th:nth-child(1),
-  .report-table td:nth-child(1) {
-    width: 25%;
-  }
-  .report-table th:nth-child(3),
-  .report-table td:nth-child(3) {
-    width: 50%;
-  }
-  .report-table th:nth-child(4),
-  .report-table td:nth-child(4) {
-    width: 25% !important; /* 固定指定を上書き */
-  }
-    /* ボタンを折り返さず（nowrap）、画面幅いっぱいに均等配置 */
-  .report-btn-area {
-    display: flex !important;
-    justify-content: space-between !important;
-    gap: 6px !important; /* ボタン同士の余白を少し詰める */
-    width: 100%;
-  }
+    /* ボタンエリア均等配置 */
+    .report-btn-area {
+      display: flex !important;
+      justify-content: space-between !important;
+      gap: 6px !important;
+      width: 100%;
+    }
+    .report-btn-area button {
+      flex: 1;
+      white-space: nowrap;
+      padding: 8px 4px !important;
+      font-size: 0.85rem;
+      text-align: center;
+    }
 
-  /* ボタン内の文字改行を防ぎ、幅を均等化 */
-  .report-btn-area button {
-    flex: 1;                  /* 3つのボタンを均等な幅にする */
-    white-space: nowrap;       /* ★文字の折り返し（縦書き化）を防止 */
-    padding: 8px 4px !important; /* スマホ用に横パディングを少し調整 */
-    font-size: 0.85rem;       /* 文字サイズを少し小さくして収まりを良くする */
-    text-align: center;
+    .action-area {
+      display: flex !important;
+      width: 100%;
+      gap: 10px !important;
+      margin-bottom: 10px;
+    }
+    .action-area button {
+      flex: 1 1 50% !important;
+      width: 50% !important;
+      white-space: nowrap;
+      padding: 10px 4px !important;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    /* スマホ時の数量入力幅 */
+    .container-qty {
+      width: 40px !important;
+    }
   }
-  .action-area {
-    display: flex !important;
-    width: 100%;
-    gap: 10px !important;
-    margin-bottom:10px;
-  }
-
-  /* 2つのボタンを幅50%ずつに指定 */
-  .action-area button {
-    flex: 1 1 50%!important;
-    width: 50%!important;
-    white-space: nowrap;       /* 文字の改行（縦書き化）を防止 */
-    padding: 10px 4px !important; /* タップしやすい高さ調整 */
-    font-size: 0.9rem;
-    text-align: center;
-  }  
-
-  /* 数量入力欄の幅を固定化 */
-.container-qty {
-  width: 40px !important;   
-}
-
-  
-  }  
 </style>
 </head>
 <body>
@@ -604,7 +614,6 @@
   <h3 style="margin: 0;">空容器マスター一覧</h3>
   <div class="master-btn-group">
     <button type="button" class="btn-primary" style="margin-bottom: 3px;"onclick="openAddContainerModal()">+ 新規登録</button>
-    <button type="button" class="btn-secondary" onclick="openSearchContainerModal()">修正・削除</button>
   </div>
 </div>
 <!-- テーブル部分 -->
@@ -721,14 +730,14 @@
 
       <div style="margin-bottom: 20px; text-align: left;">
         <label style="display: block; font-size: 13px; font-weight: bold;">単位</label>
-        <input type="text" id="modalUnit" placeholder="個" style="width: 100%; padding: 8px; box-sizing: border-box;">
+        <input type="text" id="modalUnit" placeholder="バラ・ケース" style="width: 100%; padding: 8px; box-sizing: border-box;">
       </div>
 
       <!-- 操作ボタン領域 -->
       <div style="display: flex; justify-content: flex-end; gap: 8px;">
         <button type="button" class="btn-secondary" onclick="closeContainerModal()">キャンセル</button>
         <button type="button" id="btnSubmitAdd" class="btn-primary" onclick="handleContainerSubmit('add')">登録</button>
-        <button type="button" id="btnSubmitEdit" class="btn-primary" onclick="handleContainerSubmit('edit')" style="display: none;">保存</button>
+        <button type="button" id="btnSubmitEdit" class="btn-primary" onclick="handleContainerSubmit('edit')" style="display: none;">更新</button>
         <button type="button" id="btnSubmitDelete" class="btn-danger" onclick="handleContainerSubmit('delete')" style="display: none; background-color: #dc3545; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">削除</button>
       </div>
     </form>
@@ -951,16 +960,17 @@ function renderMasterContainerTable(containers) {
     const jsonStr = escapeHtml(JSON.stringify(itemPayload));
 
     const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><strong>${escapeHtml(code)}</strong></td>
-      <td>${escapeHtml(jan)}</td>
-      <td>${escapeHtml(name)}</td>
-      <td style="text-align: right;">${price !== '' ? Number(price).toLocaleString() + '円' : ''}</td>
-      <td>${escapeHtml(unit)}</td>
-      <td style="text-align: center;">
-        <button type="button" class="btn-secondary" onclick="openEditContainerModal('${jsonStr}')">修正・削除</button>
-      </td>
-    `;
+ // 行の生成部分のみ抜粋
+tr.innerHTML = `
+  <td><strong>${escapeHtml(code)}</strong></td>
+  <td>${escapeHtml(jan)}</td>
+  <td>${escapeHtml(name)}</td>
+  <td style="text-align: right;">${price !== '' ? Number(price).toLocaleString() + '円' : ''}</td>
+  <td>${escapeHtml(unit)}</td>
+  <td style="text-align: center;">
+    <button type="button" class="btn-secondary btn-table-action" onclick="openEditContainerModal('${jsonStr}')">修正・削除</button>
+  </td>
+`;
     tbody.appendChild(tr);
   });
 }
@@ -1941,24 +1951,28 @@ function toggleModalButtons(mode) {
   if (btnDelete) btnDelete.style.display = (mode === 'edit') ? 'inline-block' : 'none';
 }
 
-// 各ボタン押下時の確認処理と送信（連打防止＆重複メッセージ対応）
 async function handleContainerSubmit(actionType) {
   let confirmMessage = '';
   let apiAction = '';
   let targetBtn = null;
+  let loadingText = '';
 
+  // 押されたボタンに応じたテキストとアクションを設定
   if (actionType === 'add') {
     confirmMessage = '登録してよろしいですか？';
     apiAction = 'saveContainerMaster';
     targetBtn = document.getElementById('btnSubmitAdd');
+    loadingText = '登録中...';
   } else if (actionType === 'edit') {
     confirmMessage = '修正内容を保存してよろしいですか？';
     apiAction = 'updateContainerMaster';
     targetBtn = document.getElementById('btnSubmitEdit');
+    loadingText = '保存中...';
   } else if (actionType === 'delete') {
     confirmMessage = '本当にこのデータを削除してよろしいですか？';
     apiAction = 'deleteContainerMaster';
     targetBtn = document.getElementById('btnSubmitDelete');
+    loadingText = '削除中...';
   }
 
   if (!confirm(confirmMessage)) return;
@@ -1972,16 +1986,19 @@ async function handleContainerSubmit(actionType) {
     unit: document.getElementById('modalUnit').value.trim()
   };
 
-  // --- 2重登録防止処理 (ボタンを半透明＆無効化) ---
-  let originalText = '';
+  // --- 2重送信防止処理（非活性 ＆ ローディング表示） ---
+  const allModalBtns = document.querySelectorAll('#containerMasterModal button');
+  const originalText = targetBtn ? targetBtn.textContent : '';
+
+  // モーダル内の全ボタンを無効化（誤操作防止）
+  allModalBtns.forEach(btn => {
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    btn.style.cursor = 'not-allowed';
+  });
+
   if (targetBtn) {
-    originalText = targetBtn.textContent;
-    targetBtn.disabled = true;
-    targetBtn.style.opacity = '0.5';
-    targetBtn.style.cursor = 'not-allowed';
-    if (actionType === 'add') {
-      targetBtn.textContent = '登録中...';
-    }
+    targetBtn.textContent = loadingText;
   }
 
   try {
@@ -2000,7 +2017,6 @@ async function handleContainerSubmit(actionType) {
         await loadMasterData();
       }
     } else {
-      // 重複エラー等のメッセージ判定
       if (result.message && result.message.includes('既に存在')) {
         alert('重複データがあります');
       } else {
@@ -2011,16 +2027,18 @@ async function handleContainerSubmit(actionType) {
     console.error('送信エラー:', err);
     alert('通信エラーが発生しました。');
   } finally {
-    // --- ボタンの状態を復元 ---
+    // --- ボタンの状態を元に戻す ---
+    allModalBtns.forEach(btn => {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    });
+
     if (targetBtn) {
-      targetBtn.disabled = false;
-      targetBtn.style.opacity = '1';
-      targetBtn.style.cursor = 'pointer';
       targetBtn.textContent = originalText;
     }
   }
 }
-
 
 // 3. 各ボタン押下時の確認処理と送信
 async function handleContainerSubmit(actionType) {
