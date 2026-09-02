@@ -1234,6 +1234,7 @@ async function loadMasterData() {
       renderMasterRouteTable(masterRoutes); // ★この行を追加
       renderMasterStaffTable(masterStaffs);         // ★追記：担当者マスター描画関数の呼び出し
       renderMasterUserTable(masterUsersList); // ★ 配列を渡す
+      renderMasterRoleTable(result.data.roles || []);　// ★ ここに権限マスターの描画呼び出しを追加！
 
       const loadingOverlay = document.getElementById('loadingOverlay');
       if (loadingOverlay) loadingOverlay.style.display = 'none';
