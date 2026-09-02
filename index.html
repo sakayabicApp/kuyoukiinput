@@ -3270,7 +3270,7 @@ function renderPermissionCheckboxes(selectedPermissions = {}) {
   });
 }  
   
-// 権限マスター：マスターテーブルを更新して描画
+// 権限マスター：マスターテーブルを更新して描画（権限をまとめて1列に表示する方式）
 function renderMasterRoleTable(roles) {
   const tbody = document.getElementById('roleMasterTbody');
   if (!tbody) return;
@@ -3278,20 +3278,19 @@ function renderMasterRoleTable(roles) {
 
   const tabDefs = getSystemTabDefinitions();
 
-  // 動的にテーブルのヘッダー（th）も自動生成する場合の処理（オプション）
+  // テーブルのヘッダー（th）を固定の3列構成に変更
   const theadTr = document.querySelector('.role-master-table thead tr');
   if (theadTr) {
-    // 既存の固定thをクリアして、タブ定義から自動生成し直す
     theadTr.innerHTML = `
-      <th>区分コード</th>
-      <th>区分名</th>
-      ${tabDefs.map(tab => `<th style="text-align: center;">${escapeHtml(tab.label)}</th>`).join('')}
-      <th style="text-align: center;">操作</th>
+      <th style="width: 15%;">区分コード</th>
+      <th style="width: 25%;">区分名</th>
+      <th style="width: 45%;">アクセス可能権限</th>
+      <th style="width: 15%; text-align: center;">操作</th>
     `;
   }
 
   if (!roles || (Array.isArray(roles) && roles.length === 0) || (typeof roles === 'object' && Object.keys(roles).length === 0)) {
-    tbody.innerHTML = `<tr><td colspan="${tabDefs.length + 3}" style="text-align:center;">データがありません</td></tr>`;
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">データがありません</td></tr>';
     return;
   }
 
@@ -3328,19 +3327,23 @@ function renderMasterRoleTable(roles) {
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
 
-    // 各タブの権限有無に応じたマーク生成
-    let permColumnsHtml = '';
+    // 許可されている権限のラベルを配列に集めて、バッジ風の見た目にする
+    const activeLabels = [];
     tabDefs.forEach(tab => {
-      const hasPerm = item.permissions[tab.key];
-      const mark = hasPerm ? '<span style="color: green; font-weight: bold;">○</span>' : '-';
-      permColumnsHtml += `<td style="text-align: center;">${mark}</td>`;
+      if (item.permissions[tab.key]) {
+        activeLabels.push(tab.label);
+      }
     });
+
+    const permHtml = activeLabels.length > 0 
+      ? activeLabels.map(label => `<span style="display: inline-block; background: #e2f0d9; color: #385723; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin: 2px; border: 1px solid #c8e1bc;">${escapeHtml(label)}</span>`).join('')
+      : '<span style="color: #999;">なし</span>';
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><strong>${escapeHtml(item.roleCode)}</strong></td>
       <td>${escapeHtml(item.roleName)}</td>
-      ${permColumnsHtml}
+      <td>${permHtml}</td>
       <td style="text-align: center;">
         <button type="button" class="btn-secondary btn-table-action" onclick="openEditRoleModal('${jsonStr}')">修正・削除</button>
       </td>
