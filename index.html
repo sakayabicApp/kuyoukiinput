@@ -1008,6 +1008,8 @@ async function loadMasterData() {
       renderContainerTable(masterContainers);
       // ★追加：マスター管理タブ用の表を描画
       renderMasterContainerTable(masterContainers);
+      // ★追加：出荷店マスター描画関数の呼び出し
+  renderMasterStoreTable(masterStores);
 
       const loadingOverlay = document.getElementById('loadingOverlay');
       if (loadingOverlay) loadingOverlay.style.display = 'none';
