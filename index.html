@@ -1050,6 +1050,7 @@
       <!-- 機能ごとのアクセス許可設定（チェックボックス） -->
       <div style="margin-bottom: 20px; text-align: left; background: #f8f9fa; padding: 12px; border-radius: 6px; border: 1px solid #ddd;">
         <label style="display: block; font-size: 13px; font-weight: bold; margin-bottom: 8px;">アクセス可能機能</label>
+        <div id="dynamicPermContainer" style="display: flex; flex-direction: column; gap: 8px; font-size: 14px;"></div>
         <div style="display: flex; flex-direction: column; gap: 8px; font-size: 14px;">
           <label><input type="checkbox" id="permInput" value="1"> 伝票入力画面</label>
           <label><input type="checkbox" id="permHistory" value="1"> 伝票履歴画面</label>
@@ -3214,58 +3215,131 @@ async function handleUserSubmit(actionType) {
   // =========================================================================
 // 権限マスター 制御処理
 // =========================================================================
+/**
+ * 画面上のタブ要素から権限設定項目を自動スキャンして定義を取得する
+ */
+function getSystemTabDefinitions() {
+  const definitions = [];
+  
+  // 1. メインナビゲーションタブを自動取得
+  const mainTabs = document.querySelectorAll('.nav-tab[data-target]');
+  mainTabs.forEach(tab => {
+    definitions.push({
+      key: tab.getAttribute('data-target'),
+      label: tab.getAttribute('data-label') || tab.textContent.trim()
+    });
+  });
 
+  // 2. サブタブ（マスター管理内など）を自動取得
+  const subTabs = document.querySelectorAll('.sub-nav-tab[data-target]');
+  subTabs.forEach(tab => {
+    definitions.push({
+      key: tab.getAttribute('data-target'),
+      label: tab.getAttribute('data-label') || tab.textContent.trim()
+    });
+  });
+
+  return definitions;
+}
+
+/**
+ * モーダル内のチェックボックスエリアを自動生成する
+ */
+function renderPermissionCheckboxes(selectedPermissions = {}) {
+  const container = document.getElementById('dynamicPermContainer');
+  if (!container) return;
+
+  container.innerHTML = '';
+  const tabDefs = getSystemTabDefinitions();
+
+  tabDefs.forEach(tab => {
+    const isChecked = selectedPermissions[tab.key] == 1 || selectedPermissions[tab.key] === true;
+
+    const labelEl = document.createElement('label');
+    labelEl.style.display = 'flex';
+    labelEl.style.alignItems = 'center';
+    labelEl.style.gap = '8px';
+    labelEl.style.cursor = 'pointer';
+
+    labelEl.innerHTML = `
+      <input type="checkbox" id="perm_${tab.key}" data-perm-key="${tab.key}" value="1" ${isChecked ? 'checked' : ''}>
+      <span>${escapeHtml(tab.label)}</span>
+    `;
+    container.appendChild(labelEl);
+  });
+}  
+  
 // 権限マスター：マスターテーブルを更新して描画
 function renderMasterRoleTable(roles) {
   const tbody = document.getElementById('roleMasterTbody');
   if (!tbody) return;
   tbody.innerHTML = '';
 
-  // roles が空、または要素無しの場合
+  const tabDefs = getSystemTabDefinitions();
+
+  // 動的にテーブルのヘッダー（th）も自動生成する場合の処理（オプション）
+  const theadTr = document.querySelector('.role-master-table thead tr');
+  if (theadTr) {
+    // 既存の固定thをクリアして、タブ定義から自動生成し直す
+    theadTr.innerHTML = `
+      <th>区分コード</th>
+      <th>区分名</th>
+      ${tabDefs.map(tab => `<th style="text-align: center;">${escapeHtml(tab.label)}</th>`).join('')}
+      <th style="text-align: center;">操作</th>
+    `;
+  }
+
   if (!roles || (Array.isArray(roles) && roles.length === 0) || (typeof roles === 'object' && Object.keys(roles).length === 0)) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">データがありません</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="${tabDefs.length + 3}" style="text-align:center;">データがありません</td></tr>`;
     return;
   }
 
-  // オブジェクト/配列両対応でルーピング (担当者マスターのロジックを踏襲しつつ、項目を拡張)
   const roleEntries = Array.isArray(roles)
     ? roles.map(row => {
-        return {
+        const item = {
           roleCode: String(row.roleCode || '').trim(),
           roleName: String(row.roleName || '').trim(),
-          permInput: row.permInput == 1 || row.permInput === true || row.permInput === '1',
-          permHistory: row.permHistory == 1 || row.permHistory === true || row.permHistory === '1',
-          permMaster: row.permMaster == 1 || row.permMaster === true || row.permMaster === '1'
+          permissions: {}
         };
+        tabDefs.forEach(tab => {
+          const val = row[tab.key] !== undefined ? row[tab.key] : row['perm' + capitalizeFirstLetter(tab.key)];
+          item.permissions[tab.key] = val == 1 || val === true || val === '1';
+        });
+        return item;
       })
-    : Object.keys(roles).map(code => ({
-        roleCode: code,
-        roleName: roles[code].roleName || '',
-        permInput: roles[code].permInput == 1 || roles[code].permInput === true,
-        permHistory: roles[code].permHistory == 1 || roles[code].permHistory === true,
-        permMaster: roles[code].permMaster == 1 || roles[code].permMaster === true
-      }));
+    : Object.keys(roles).map(code => {
+        const item = {
+          roleCode: code,
+          roleName: roles[code].roleName || '',
+          permissions: {}
+        };
+        tabDefs.forEach(tab => {
+          const val = roles[code][tab.key] !== undefined ? roles[code][tab.key] : roles[code]['perm' + capitalizeFirstLetter(tab.key)];
+          item.permissions[tab.key] = val == 1 || val === true;
+        });
+        return item;
+      });
 
   roleEntries.forEach(item => {
     if (!item.roleCode) return;
 
-    // JSON化して修正ボタンに渡す（XSS対策・シングルクォート回避）
     const jsonStr = JSON.stringify(item)
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
 
-    // フラグに応じた表示（チェックありなら「○」、なしなら「-」）
-    const canInputStr   = item.permInput   ? '<span style="color: green; font-weight: bold;">○</span>' : '-';
-    const canHistoryStr = item.permHistory ? '<span style="color: green; font-weight: bold;">○</span>' : '-';
-    const canMasterStr  = item.permMaster  ? '<span style="color: green; font-weight: bold;">○</span>' : '-';
+    // 各タブの権限有無に応じたマーク生成
+    let permColumnsHtml = '';
+    tabDefs.forEach(tab => {
+      const hasPerm = item.permissions[tab.key];
+      const mark = hasPerm ? '<span style="color: green; font-weight: bold;">○</span>' : '-';
+      permColumnsHtml += `<td style="text-align: center;">${mark}</td>`;
+    });
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><strong>${escapeHtml(item.roleCode)}</strong></td>
       <td>${escapeHtml(item.roleName)}</td>
-      <td style="text-align: center;">${canInputStr}</td>
-      <td style="text-align: center;">${canHistoryStr}</td>
-      <td style="text-align: center;">${canMasterStr}</td>
+      ${permColumnsHtml}
       <td style="text-align: center;">
         <button type="button" class="btn-secondary btn-table-action" onclick="openEditRoleModal('${jsonStr}')">修正・削除</button>
       </td>
@@ -3274,6 +3348,11 @@ function renderMasterRoleTable(roles) {
   });
 }
 
+  // 頭文字大文字変換ヘルパー
+function capitalizeFirstLetter(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+  
 // 権限マスター：新規登録モーダルを開く
 function openAddRoleModal() {
   const codeEl = document.getElementById('modalRoleCode');
@@ -3287,10 +3366,8 @@ function openAddRoleModal() {
   }
   if (nameEl) nameEl.value = '';
 
-  // チェックボックスの初期化（デフォルトはOFF）
-  document.getElementById('permInput').checked = false;
-  document.getElementById('permHistory').checked = false;
-  document.getElementById('permMaster').checked = false;
+  // タブ定義を元にチェックボックスを初期化（すべてOFF）
+  renderPermissionCheckboxes({});
 
   const titleEl = document.getElementById('roleModalTitle');
   if (titleEl) titleEl.textContent = '権限マスター 新規登録';
@@ -3314,16 +3391,14 @@ function openEditRoleModal(jsonStr) {
   
   if (codeEl) {
     codeEl.value = data.roleCode || '';
-    codeEl.readOnly = true; // コードは編集不可
+    codeEl.readOnly = true;
     codeEl.style.backgroundColor = '#e9ecef';
     codeEl.style.cursor = 'not-allowed';
   }
   if (nameEl) nameEl.value = data.roleName || '';
 
-  // チェックボックスに値をセット
-  document.getElementById('permInput').checked = data.permInput || false;
-  document.getElementById('permHistory').checked = data.permHistory || false;
-  document.getElementById('permMaster').checked = data.permMaster || false;
+  // 保持している権限データを元にチェックボックスを構築・セット
+  renderPermissionCheckboxes(data.permissions || data);
 
   const titleEl = document.getElementById('roleModalTitle');
   if (titleEl) titleEl.textContent = '権限マスター 修正・削除';
@@ -3356,7 +3431,7 @@ async function handleRoleSubmit(actionType) {
 
   if (actionType === 'add') {
     confirmMessage = '登録してよろしいですか？';
-    apiAction = 'saveRoleMaster'; // GAS側で受け受けるアクション名
+    apiAction = 'saveRoleMaster';
     targetBtn = document.getElementById('btnRoleSubmitAdd');
     loadingText = '登録中...';
   } else if (actionType === 'edit') {
@@ -3374,12 +3449,15 @@ async function handleRoleSubmit(actionType) {
   const roleCode = document.getElementById('modalRoleCode').value.trim();
   const roleName = document.getElementById('modalRoleName').value.trim();
   
-  // チェックボックスの値を取得（チェックされていれば1、されていなければ0として送信）
-  const permInput = document.getElementById('permInput').checked ? 1 : 0;
-  const permHistory = document.getElementById('permHistory').checked ? 1 : 0;
-  const permMaster = document.getElementById('permMaster').checked ? 1 : 0;
+  // 動的チェックボックスから値を自動収集してペイロードに含める
+  const permissions = {};
+  const checkboxes = document.querySelectorAll('#dynamicPermContainer input[type="checkbox"]');
+  checkboxes.forEach(cb => {
+    const key = cb.getAttribute('data-perm-key');
+    permissions[key] = cb.checked ? 1 : 0;
+  });
 
-  // 入力チェック（削除以外は区分名も必須）
+  // 入力チェック
   if (!roleCode) {
     alert('区分コードを入力してください。');
     return;
@@ -3393,7 +3471,6 @@ async function handleRoleSubmit(actionType) {
   const allModalBtns = document.querySelectorAll('#roleMasterModal button');
   const originalText = targetBtn ? targetBtn.textContent : '';
 
-  // ボタンを半透明にして操作不可にする
   allModalBtns.forEach(btn => {
     btn.disabled = true;
     btn.style.opacity = '0.5';
@@ -3401,7 +3478,6 @@ async function handleRoleSubmit(actionType) {
   });
   if (targetBtn) targetBtn.textContent = loadingText;
 
-  // 確認ダイアログ
   if (!confirm(confirmMessage)) {
     isRoleSubmitting = false;
     allModalBtns.forEach(btn => {
@@ -3413,14 +3489,12 @@ async function handleRoleSubmit(actionType) {
     return;
   }
 
-  const payload = {
+  // 送信データ構造（roleCode, roleNameに加え、自動収集した各タブの権限フラグを展開）
+  const payload = Object.assign({
     action: apiAction,
     roleCode: roleCode,
-    roleName: roleName,
-    permInput: permInput,
-    permHistory: permHistory,
-    permMaster: permMaster
-  };
+    roleName: roleName
+  }, permissions);
 
   try {
     const response = await fetch(GAS_WEB_APP_URL, {
@@ -3450,7 +3524,6 @@ async function handleRoleSubmit(actionType) {
     if (targetBtn) targetBtn.textContent = originalText;
   }
 }
-  
   
 </script>
 </body>
