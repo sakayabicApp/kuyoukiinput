@@ -744,10 +744,10 @@
 
       <!-- 操作ボタン領域 -->
       <div style="display: flex; justify-content: flex-end; gap: 8px;">
-        <button type="button" class="btn-secondary" onclick="closeContainerModal()">キャンセル</button>
         <button type="button" id="btnSubmitAdd" class="btn-primary" onclick="handleContainerSubmit('add')">登録</button>
         <button type="button" id="btnSubmitEdit" class="btn-primary" onclick="handleContainerSubmit('edit')" style="display: none;">更新</button>
         <button type="button" id="btnSubmitDelete" class="btn-danger" onclick="handleContainerSubmit('delete')" style="display: none; background-color: #dc3545; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">削除</button>
+        <button type="button" class="btn-secondary" onclick="closeContainerModal()">キャンセル</button>
       </div>
     </form>
   </div>
@@ -2049,23 +2049,62 @@ async function handleContainerSubmit(actionType) {
   }
 }
 
-// 3. 各ボタン押下時の確認処理と送信
+// 処理中フラグ（広域変数で連打を二重ブロック）
+let isSubmitting = false;
+
 async function handleContainerSubmit(actionType) {
+  // すでに処理中の場合は即座に弾く
+  if (isSubmitting) return;
+
   let confirmMessage = '';
   let apiAction = '';
+  let targetBtn = null;
+  let loadingText = '';
 
   if (actionType === 'add') {
     confirmMessage = '登録してよろしいですか？';
     apiAction = 'saveContainerMaster';
+    targetBtn = document.getElementById('btnSubmitAdd');
+    loadingText = '登録中...';
   } else if (actionType === 'edit') {
     confirmMessage = '修正内容を保存してよろしいですか？';
     apiAction = 'updateContainerMaster';
+    targetBtn = document.getElementById('btnSubmitEdit');
+    loadingText = '保存中...';
   } else if (actionType === 'delete') {
     confirmMessage = '本当にこのデータを削除してよろしいですか？';
     apiAction = 'deleteContainerMaster';
+    targetBtn = document.getElementById('btnSubmitDelete');
+    loadingText = '削除中...';
   }
 
-  if (!confirm(confirmMessage)) return;
+  // ★ 1. 確認ダイアログの前に即時ロックをかける
+  isSubmitting = true;
+  const allModalBtns = document.querySelectorAll('#containerMasterModal button');
+  const originalText = targetBtn ? targetBtn.textContent : '';
+
+  // モーダル内の全ボタンを即座に非活性化
+  allModalBtns.forEach(btn => {
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    btn.style.cursor = 'not-allowed';
+  });
+
+  if (targetBtn) {
+    targetBtn.textContent = loadingText;
+  }
+
+  // ★ 2. キャンセルされた場合はロックを解除して終了
+  if (!confirm(confirmMessage)) {
+    isSubmitting = false;
+    allModalBtns.forEach(btn => {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    });
+    if (targetBtn) targetBtn.textContent = originalText;
+    return;
+  }
 
   const payload = {
     action: apiAction,
@@ -2084,16 +2123,35 @@ async function handleContainerSubmit(actionType) {
     });
     
     const result = await response.json();
+
     if (result.status === 'success') {
       alert('処理が完了しました。');
       closeContainerModal();
-      await loadMasterData(); // マスターデータを再読み込み
+      if (typeof loadMasterData === 'function') {
+        await loadMasterData();
+      }
     } else {
-      alert('エラー: ' + result.message);
+      if (result.message && result.message.includes('既に存在')) {
+        alert('重複データがあります');
+      } else {
+        alert('エラー: ' + result.message);
+      }
     }
   } catch (err) {
     console.error('送信エラー:', err);
     alert('通信エラーが発生しました。');
+  } finally {
+    // ★ 3. 処理完了後にロック解除
+    isSubmitting = false;
+    allModalBtns.forEach(btn => {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    });
+
+    if (targetBtn) {
+      targetBtn.textContent = originalText;
+    }
   }
 }
 </script>
