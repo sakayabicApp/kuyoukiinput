@@ -3210,6 +3210,246 @@ async function handleUserSubmit(actionType) {
   }
 }
 
+
+  // =========================================================================
+// 権限マスター 制御処理
+// =========================================================================
+
+// 権限マスター：マスターテーブルを更新して描画
+function renderMasterRoleTable(roles) {
+  const tbody = document.getElementById('roleMasterTbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  // roles が空、または要素無しの場合
+  if (!roles || (Array.isArray(roles) && roles.length === 0) || (typeof roles === 'object' && Object.keys(roles).length === 0)) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">データがありません</td></tr>';
+    return;
+  }
+
+  // オブジェクト/配列両対応でルーピング (担当者マスターのロジックを踏襲しつつ、項目を拡張)
+  const roleEntries = Array.isArray(roles)
+    ? roles.map(row => {
+        return {
+          roleCode: String(row.roleCode || '').trim(),
+          roleName: String(row.roleName || '').trim(),
+          permInput: row.permInput == 1 || row.permInput === true || row.permInput === '1',
+          permHistory: row.permHistory == 1 || row.permHistory === true || row.permHistory === '1',
+          permMaster: row.permMaster == 1 || row.permMaster === true || row.permMaster === '1'
+        };
+      })
+    : Object.keys(roles).map(code => ({
+        roleCode: code,
+        roleName: roles[code].roleName || '',
+        permInput: roles[code].permInput == 1 || roles[code].permInput === true,
+        permHistory: roles[code].permHistory == 1 || roles[code].permHistory === true,
+        permMaster: roles[code].permMaster == 1 || roles[code].permMaster === true
+      }));
+
+  roleEntries.forEach(item => {
+    if (!item.roleCode) return;
+
+    // JSON化して修正ボタンに渡す（XSS対策・シングルクォート回避）
+    const jsonStr = JSON.stringify(item)
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+
+    // フラグに応じた表示（チェックありなら「○」、なしなら「-」）
+    const canInputStr   = item.permInput   ? '<span style="color: green; font-weight: bold;">○</span>' : '-';
+    const canHistoryStr = item.permHistory ? '<span style="color: green; font-weight: bold;">○</span>' : '-';
+    const canMasterStr  = item.permMaster  ? '<span style="color: green; font-weight: bold;">○</span>' : '-';
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${escapeHtml(item.roleCode)}</strong></td>
+      <td>${escapeHtml(item.roleName)}</td>
+      <td style="text-align: center;">${canInputStr}</td>
+      <td style="text-align: center;">${canHistoryStr}</td>
+      <td style="text-align: center;">${canMasterStr}</td>
+      <td style="text-align: center;">
+        <button type="button" class="btn-secondary btn-table-action" onclick="openEditRoleModal('${jsonStr}')">修正・削除</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// 権限マスター：新規登録モーダルを開く
+function openAddRoleModal() {
+  const codeEl = document.getElementById('modalRoleCode');
+  const nameEl = document.getElementById('modalRoleName');
+  
+  if (codeEl) {
+    codeEl.value = '';
+    codeEl.readOnly = false;
+    codeEl.style.backgroundColor = '#fff';
+    codeEl.style.cursor = 'text';
+  }
+  if (nameEl) nameEl.value = '';
+
+  // チェックボックスの初期化（デフォルトはOFF）
+  document.getElementById('permInput').checked = false;
+  document.getElementById('permHistory').checked = false;
+  document.getElementById('permMaster').checked = false;
+
+  const titleEl = document.getElementById('roleModalTitle');
+  if (titleEl) titleEl.textContent = '権限マスター 新規登録';
+
+  document.getElementById('btnRoleSubmitAdd').style.display = 'inline-block';
+  document.getElementById('btnRoleSubmitEdit').style.display = 'none';
+  document.getElementById('btnRoleSubmitDelete').style.display = 'none';
+
+  const modal = document.getElementById('roleMasterModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+// 権限マスター：修正・削除モーダルを開く
+function openEditRoleModal(jsonStr) {
+  const data = typeof jsonStr === 'string' ? JSON.parse(
+    jsonStr.replace(/&quot;/g, '"').replace(/&#039;/g, "'")
+  ) : jsonStr;
+
+  const codeEl = document.getElementById('modalRoleCode');
+  const nameEl = document.getElementById('modalRoleName');
+  
+  if (codeEl) {
+    codeEl.value = data.roleCode || '';
+    codeEl.readOnly = true; // コードは編集不可
+    codeEl.style.backgroundColor = '#e9ecef';
+    codeEl.style.cursor = 'not-allowed';
+  }
+  if (nameEl) nameEl.value = data.roleName || '';
+
+  // チェックボックスに値をセット
+  document.getElementById('permInput').checked = data.permInput || false;
+  document.getElementById('permHistory').checked = data.permHistory || false;
+  document.getElementById('permMaster').checked = data.permMaster || false;
+
+  const titleEl = document.getElementById('roleModalTitle');
+  if (titleEl) titleEl.textContent = '権限マスター 修正・削除';
+
+  document.getElementById('btnRoleSubmitAdd').style.display = 'none';
+  document.getElementById('btnRoleSubmitEdit').style.display = 'inline-block';
+  document.getElementById('btnRoleSubmitDelete').style.display = 'inline-block';
+
+  const modal = document.getElementById('roleMasterModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+// 権限マスター：モーダルを閉じる
+function closeRoleModal() {
+  const modal = document.getElementById('roleMasterModal');
+  if (modal) modal.style.display = 'none';
+}
+
+// 連打防止フラグ
+let isRoleSubmitting = false;
+
+// 権限マスター：送信処理
+async function handleRoleSubmit(actionType) {
+  if (isRoleSubmitting) return;
+
+  let confirmMessage = '';
+  let apiAction = '';
+  let targetBtn = null;
+  let loadingText = '';
+
+  if (actionType === 'add') {
+    confirmMessage = '登録してよろしいですか？';
+    apiAction = 'saveRoleMaster'; // GAS側で受け受けるアクション名
+    targetBtn = document.getElementById('btnRoleSubmitAdd');
+    loadingText = '登録中...';
+  } else if (actionType === 'edit') {
+    confirmMessage = '修正内容を保存してよろしいですか？';
+    apiAction = 'updateRoleMaster';
+    targetBtn = document.getElementById('btnRoleSubmitEdit');
+    loadingText = '更新中...';
+  } else if (actionType === 'delete') {
+    confirmMessage = '本当にこのデータを削除してよろしいですか？\n※ユーザーに割り当てられている場合は影響が出る可能性があります。';
+    apiAction = 'deleteRoleMaster';
+    targetBtn = document.getElementById('btnRoleSubmitDelete');
+    loadingText = '削除中...';
+  }
+
+  const roleCode = document.getElementById('modalRoleCode').value.trim();
+  const roleName = document.getElementById('modalRoleName').value.trim();
+  
+  // チェックボックスの値を取得（チェックされていれば1、されていなければ0として送信）
+  const permInput = document.getElementById('permInput').checked ? 1 : 0;
+  const permHistory = document.getElementById('permHistory').checked ? 1 : 0;
+  const permMaster = document.getElementById('permMaster').checked ? 1 : 0;
+
+  // 入力チェック（削除以外は区分名も必須）
+  if (!roleCode) {
+    alert('区分コードを入力してください。');
+    return;
+  }
+  if (actionType !== 'delete' && !roleName) {
+    alert('区分名を入力してください。');
+    return;
+  }
+
+  isRoleSubmitting = true;
+  const allModalBtns = document.querySelectorAll('#roleMasterModal button');
+  const originalText = targetBtn ? targetBtn.textContent : '';
+
+  // ボタンを半透明にして操作不可にする
+  allModalBtns.forEach(btn => {
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    btn.style.cursor = 'not-allowed';
+  });
+  if (targetBtn) targetBtn.textContent = loadingText;
+
+  // 確認ダイアログ
+  if (!confirm(confirmMessage)) {
+    isRoleSubmitting = false;
+    allModalBtns.forEach(btn => {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    });
+    if (targetBtn) targetBtn.textContent = originalText;
+    return;
+  }
+
+  const payload = {
+    action: apiAction,
+    roleCode: roleCode,
+    roleName: roleName,
+    permInput: permInput,
+    permHistory: permHistory,
+    permMaster: permMaster
+  };
+
+  try {
+    const response = await fetch(GAS_WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload)
+    });
+    const result = await response.json();
+
+    if (result.status === 'success') {
+      alert('処理が完了しました。');
+      closeRoleModal();
+      if (typeof loadMasterData === 'function') await loadMasterData();
+    } else {
+      alert('エラー: ' + (result.message || '処理に失敗しました。'));
+    }
+  } catch (err) {
+    console.error('権限マスター送信エラー:', err);
+    alert('通信エラーが発生しました。');
+  } finally {
+    isRoleSubmitting = false;
+    allModalBtns.forEach(btn => {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    });
+    if (targetBtn) targetBtn.textContent = originalText;
+  }
+}
   
   
 </script>
