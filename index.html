@@ -891,8 +891,8 @@
   <button type="button" id="btnSubmitDelete" class="btn-modal btn-modal-danger" onclick="handleContainerSubmit('delete')" style="display: none;">削除</button>
   <button type="button" class="btn-modal btn-modal-secondary" onclick="closeContainerModal()">キャンセル</button>
 </div>
-    </form>
-  </div>
+</form>
+</div>
 </div>  
 
 <!-- 出荷店マスター モーダル -->
@@ -2913,22 +2913,36 @@ function renderMasterUserTable(users) {
   if (!tbody) return;
   tbody.innerHTML = '';
 
-  if (!users || (Array.isArray(users) && users.length === 0)) {
+  if (!users || !Array.isArray(users) || users.length === 0) {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">データがありません</td></tr>';
     return;
   }
 
   users.forEach(row => {
-    // getSheetData から返ってくる配列/オブジェクト構造に柔軟に対応
-    const keys = Object.keys(row);
-    const item = {
-      id: String(row.id || row[keys[0]] || '').trim(),       // A列: ユーザーID
-      password: String(row.password || row[keys[1]] || '').trim(), // B列: パスワード
-      name: String(row.name || row[keys[2]] || '').trim(),     // C列: 登録者名
-      roleCode: String(row.roleCode || row[keys[3]] || '').trim(), // D列: 管理区分
-      roleName: String(row.roleName || row[keys[4]] || '').trim()  // E列: 区分名
-    };
+    let item = {};
 
+    if (Array.isArray(row)) {
+      // スプレッドシートの値が [A, B, C, D, E] の二次元配列で返っている場合
+      item = {
+        id: String(row[0] || '').trim(),       // A列: ユーザーID
+        password: String(row[1] || '').trim(), // B列: パスワード
+        name: String(row[2] || '').trim(),     // C列: 登録者名
+        roleCode: String(row[3] || '').trim(), // D列: 管理区分
+        roleName: String(row[4] || '').trim()  // E列: 区分名
+      };
+    } else if (typeof row === 'object' && row !== null) {
+      // オブジェクト配列 { "0": "...", "1": "..." } や { id: "...", password: "..." } の場合
+      const keys = Object.keys(row);
+      item = {
+        id: String(row.id || row[keys[0]] || '').trim(),
+        password: String(row.password || row[keys[1]] || '').trim(),
+        name: String(row.name || row[keys[2]] || '').trim(),
+        roleCode: String(row.roleCode || row[keys[3]] || '').trim(),
+        roleName: String(row.roleName || row[keys[4]] || '').trim()
+      };
+    }
+
+    // ユーザーIDが存在しない行（ヘッダー等の空白行）はスキップ
     if (!item.id) return;
 
     const jsonStr = JSON.stringify(item)
