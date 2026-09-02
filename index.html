@@ -2238,34 +2238,37 @@ async function handleContainerSubmit(actionType) {
   }
 }
 
-// 出荷店マスター描画処理
-function renderStoreMasterTable(storeList) {
-  const tbody = document.getElementById('storeMasterTbody');
+// 出荷店マスターテーブルの描画関数例
+function renderMasterStoreTable(stores) {
+  const tbody = document.getElementById('storeMasterTbody'); // ※HTMLのtbodyのIDに合わせてください
   if (!tbody) return;
+
   tbody.innerHTML = '';
 
-  if (!storeList || storeList.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">データがありません</td></tr>';
+  if (!stores || stores.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="3" class="text-center">データがありません</td></tr>';
     return;
   }
 
-  storeList.forEach(item => {
-    const tr = document.createElement('tr');
-    const code = item.code || item[0] || '';
-    const name = item.name || item[1] || '';
+  stores.forEach(row => {
+    // オブジェクトのキーを動的に取得（列名に依存しないようにする）
+    const keys = Object.keys(row);
+    const code = String(row[keys[0]] || '').trim(); // A列：店舗コード
+    const name = String(row[keys[1]] || '').trim(); // B列：店舗名
 
-    const jsonStr = JSON.stringify({ code: code, name: name })
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
-
-    tr.innerHTML = `
-      <td><strong>${escapeHtml(code)}</strong></td>
-      <td>${escapeHtml(name)}</td>
-      <td style="text-align: center;">
-        <button type="button" class="btn-secondary btn-table-action" onclick="openEditStoreModal('${jsonStr}')">修正・削除</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
+    // コードが存在する場合のみ行を作成
+    if (code) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${code}</td>
+        <td>${name}</td>
+        <td>
+          <button type="button" onclick="editStore('${code}', '${name}')">編集</button>
+          <button type="button" onclick="deleteStore('${code}')">削除</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    }
   });
 }
 
