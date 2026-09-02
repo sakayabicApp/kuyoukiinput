@@ -1893,6 +1893,7 @@ function closeSearchCodeModal() {
   if (searchModal) searchModal.style.display = 'none';
 }
 
+
 // C. 検索実行ボタン押下時の処理
 function execSearchContainer() {
   const itemCode = document.getElementById('searchTargetCode').value.trim();
@@ -1902,19 +1903,18 @@ function execSearchContainer() {
     return;
   }
 
-  // GASのdoGetレスポンス構造（masterData.containers または masterContainers）から取得
-  const containers = window.masterData?.containers || window.masterContainers || [];
+  // GASのdoGet(data.containers)からデータ取得
+  const containers = window.masterData?.containers || [];
 
   if (!Array.isArray(containers) || containers.length === 0) {
-    alert('マスターデータが読み込まれていないか、空です。');
+    alert('マスターデータがロードされていないか、データが存在しません。');
     return;
   }
 
-  // 対象データの検索 (オブジェクトのキー名に合わせる)
+  // 対象データの検索（ヘッダー名 '商品コード' またはプロパティ名で判定）
   const target = containers.find(row => {
     if (!row) return false;
-    // 配列形式でもオブジェクト形式（プロパティ名）でも対応できるように保持
-    const code = row['商品コード'] || row.itemCode || (Array.isArray(row) ? row[0] : Object.values(row)[0]);
+    const code = row['商品コード'] ?? row.itemCode ?? (Array.isArray(row) ? row[0] : '');
     return String(code).trim() === String(itemCode).trim();
   });
 
@@ -1925,19 +1925,20 @@ function execSearchContainer() {
 
   // フォームへデータをセット
   try {
-    document.getElementById('modalItemCode').value = target['商品コード'] || target.itemCode || '';
-    document.getElementById('modalJanCode').value = target['JANコード'] || target.janCode || '';
-    document.getElementById('modalContainerName').value = target['空容器名'] || target.containerName || '';
-    document.getElementById('modalPrice').value = target['単価'] || target.price || 0;
-    document.getElementById('modalUnit').value = target['単位'] || target.unit || '';
+    document.getElementById('modalItemCode').value = target['商品コード'] ?? target.itemCode ?? '';
+    document.getElementById('modalJanCode').value = target['JANコード'] ?? target.janCode ?? '';
+    document.getElementById('modalContainerName').value = target['空容器名'] ?? target.containerName ?? '';
+    document.getElementById('modalPrice').value = target['単価'] ?? target.price ?? 0;
+    document.getElementById('modalUnit').value = target['単位'] ?? target.unit ?? '';
   } catch (e) {
     console.error('フォームセットエラー:', e);
     alert('データの読み込みに失敗しました。');
     return;
   }
 
-  // ポップアップを閉じて編集モーダルを開く
+  // 検索ポップアップを閉じて編集モーダルを開く
   closeSearchCodeModal();
+
   document.getElementById('containerModalTitle').textContent = '空容器マスター 修正・削除';
   document.getElementById('modalItemCode').readOnly = true;
 
@@ -1956,20 +1957,24 @@ function toggleModalButtons(mode) {
   if (btnDelete) btnDelete.style.display = (mode === 'edit') ? 'inline-block' : 'none';
 }
 
-// 3. 各ボタン押下時の確認処理と送信
+// 各ボタン押下時の確認処理と送信（連打防止＆重複メッセージ対応）
 async function handleContainerSubmit(actionType) {
   let confirmMessage = '';
   let apiAction = '';
+  let targetBtn = null;
 
   if (actionType === 'add') {
     confirmMessage = '登録してよろしいですか？';
     apiAction = 'saveContainerMaster';
+    targetBtn = document.getElementById('btnSubmitAdd');
   } else if (actionType === 'edit') {
     confirmMessage = '修正内容を保存してよろしいですか？';
     apiAction = 'updateContainerMaster';
+    targetBtn = document.getElementById('btnSubmitEdit');
   } else if (actionType === 'delete') {
     confirmMessage = '本当にこのデータを削除してよろしいですか？';
     apiAction = 'deleteContainerMaster';
+    targetBtn = document.getElementById('btnSubmitDelete');
   }
 
   if (!confirm(confirmMessage)) return;
@@ -1983,6 +1988,18 @@ async function handleContainerSubmit(actionType) {
     unit: document.getElementById('modalUnit').value.trim()
   };
 
+  // --- 2重登録防止処理 (ボタンを半透明＆無効化) ---
+  let originalText = '';
+  if (targetBtn) {
+    originalText = targetBtn.textContent;
+    targetBtn.disabled = true;
+    targetBtn.style.opacity = '0.5';
+    targetBtn.style.cursor = 'not-allowed';
+    if (actionType === 'add') {
+      targetBtn.textContent = '登録中...';
+    }
+  }
+
   try {
     const response = await fetch(GAS_WEB_APP_URL, {
       method: 'POST',
@@ -1991,6 +2008,7 @@ async function handleContainerSubmit(actionType) {
     });
     
     const result = await response.json();
+
     if (result.status === 'success') {
       alert('処理が完了しました。');
       closeContainerModal();
@@ -1998,14 +2016,26 @@ async function handleContainerSubmit(actionType) {
         await loadMasterData();
       }
     } else {
-      alert('エラー: ' + result.message);
+      // 重複エラー等のメッセージ判定
+      if (result.message && result.message.includes('既に存在')) {
+        alert('重複データがあります');
+      } else {
+        alert('エラー: ' + result.message);
+      }
     }
   } catch (err) {
     console.error('送信エラー:', err);
     alert('通信エラーが発生しました。');
+  } finally {
+    // --- ボタンの状態を復元 ---
+    if (targetBtn) {
+      targetBtn.disabled = false;
+      targetBtn.style.opacity = '1';
+      targetBtn.style.cursor = 'pointer';
+      targetBtn.textContent = originalText;
+    }
   }
 }
-
 
 
 // 3. 各ボタン押下時の確認処理と送信
