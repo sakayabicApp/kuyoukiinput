@@ -3312,33 +3312,35 @@ function renderPermissionCheckboxes(selectedPermissions = {}) {
 }
 
 function handlePermissionChange(changedCheckbox) {
-  const permKey = changedCheckbox.getAttribute('data-perm-key');
-  const isParentCheckbox = changedCheckbox.getAttribute('data-perm-key') === 'masterManagement';
+  // 親チェックボックスの直後にある子タブ用コンテナを取得
+  const parentLabel = changedCheckbox.closest('label');
+  const childrenContainer = parentLabel ? parentLabel.nextElementSibling : null;
 
-  if (isParentCheckbox) {
+  // 直後に childrenContainer（子要素のグループ）が存在する場合は親タブと判断
+  if (childrenContainer && childrenContainer.querySelector('input[type="checkbox"]')) {
     const isParentChecked = changedCheckbox.checked;
+    const childCheckboxes = childrenContainer.querySelectorAll('input[type="checkbox"]');
     
-    // 親チェックボックスの親要素（または次の兄弟要素）にある子タブのチェックボックス群を取得
-    const parentContainer = changedCheckbox.closest('label').nextElementSibling;
-    if (parentContainer) {
-      const childCheckboxes = parentContainer.querySelectorAll('input[type="checkbox"]');
-      
-      childCheckboxes.forEach(cb => {
-        if (!isParentChecked) {
-          cb.checked = false;
-          cb.disabled = true;
-          cb.closest('label').style.opacity = '0.5';
-          cb.closest('label').style.cursor = 'not-allowed';
-        } else {
-          cb.disabled = false;
-          cb.closest('label').style.opacity = '1';
-          cb.closest('label').style.cursor = 'pointer';
+    childCheckboxes.forEach(cb => {
+      if (!isParentChecked) {
+        cb.checked = false; // 親がOFFになったらチェックを外す
+        cb.disabled = true;  // 無効化
+        const label = cb.closest('label');
+        if (label) {
+          label.style.opacity = '0.5';
+          label.style.cursor = 'not-allowed';
         }
-      });
-    }
+      } else {
+        cb.disabled = false; // 有効化（チェック可能に）
+        const label = cb.closest('label');
+        if (label) {
+          label.style.opacity = '1';
+          label.style.cursor = 'pointer';
+        }
+      }
+    });
   }
 }
-
 
   
 // =========================================================================
@@ -3542,6 +3544,7 @@ let isRoleSubmitting = false;
 
 
 // 権限マスター：送信処理
+// 権限マスター：送信処理
 async function handleRoleSubmit(actionType) {
   if (isRoleSubmitting) return;
 
@@ -3557,26 +3560,6 @@ async function handleRoleSubmit(actionType) {
     alert('区分名を入力してください。');
     return;
   }
-
-  // --- ▼ 親権限とサブ権限の整合性チェック（削除以外） ▼ ---
-  if (actionType !== 'delete') {
-    const masterManagementCheckbox = document.getElementById('perm_masterManagement');
-    const isMasterChecked = masterManagementCheckbox ? masterManagementCheckbox.checked : false;
-    
-    let hasSubChecked = false;
-    const checkboxes = document.querySelectorAll('#dynamicPermContainer input[type="checkbox"]');
-    checkboxes.forEach(cb => {
-      if (cb.getAttribute('data-perm-key') !== 'masterManagement' && cb.checked) {
-        hasSubChecked = true;
-      }
-    });
-
-    if (!isMasterChecked && hasSubChecked) {
-      alert('「マスター管理」の権限が付与されていないため、下位のマスター機能を選択することはできません。');
-      return; // 送信をストップ
-    }
-  }
-  // --- ▲ ここまで ▲ ---
 
   let confirmMessage = '';
   let apiAction = '';
@@ -3665,7 +3648,6 @@ async function handleRoleSubmit(actionType) {
     if (targetBtn) targetBtn.textContent = originalText;
   }
 }
-
 
 </script>
 </body>
