@@ -3314,14 +3314,16 @@ function renderPermissionCheckboxes(selectedPermissions = {}) {
 }
 
 function handlePermissionChange(changedCheckbox) {
-  // 親チェックボックスの直後にある子タブ用コンテナを取得
   const parentLabel = changedCheckbox.closest('label');
-  const childrenContainer = parentLabel ? parentLabel.nextElementSibling : null;
+  if (!parentLabel) return;
 
-  // 直後に childrenContainer（子要素のグループ）が存在する場合は親タブと判断
-  if (childrenContainer && childrenContainer.querySelector('input[type="checkbox"]')) {
+  // 直後の兄弟要素を取得
+  const nextEl = parentLabel.nextElementSibling;
+
+  // ★ 直後の要素が存在し、かつそれが「<label>（別のメインタブ）」ではなく「DIV（サブタブのグループ容器）」である場合のみ子タブ制御を実行
+  if (nextEl && nextEl.tagName === 'DIV') {
     const isParentChecked = changedCheckbox.checked;
-    const childCheckboxes = childrenContainer.querySelectorAll('input[type="checkbox"]');
+    const childCheckboxes = nextEl.querySelectorAll('input[type="checkbox"]');
     
     childCheckboxes.forEach(cb => {
       if (!isParentChecked) {
@@ -3343,12 +3345,10 @@ function handlePermissionChange(changedCheckbox) {
     });
   }
 }
-
   
 // =========================================================================
 // 権限マスター 制御処理（データ構造自動適応版）
 // =========================================================================
-
 
 function renderMasterRoleTable(roles) {
   const tbody = document.getElementById('roleMasterTbody');
@@ -3560,7 +3560,6 @@ function closeRoleModal() {
 let isRoleSubmitting = false;
 
 
-// 権限マスター：送信処理
 // 権限マスター：送信処理
 async function handleRoleSubmit(actionType) {
   if (isRoleSubmitting) return;
