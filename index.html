@@ -1165,6 +1165,50 @@ function logout() {
   document.getElementById('loginModal').style.display = 'flex';
 }
 
+/**
+ * ログインユーザーの権限に応じてタブの表示/非表示を切り替える
+ * @param {Object} userPermissions - 例: { '空容器登録': 1, '出荷店マスター': 0, ... }
+ */
+function applyUserPermissions(userPermissions) {
+  if (!userPermissions || typeof userPermissions !== 'object') return;
+
+  // システムのタブ定義を取得
+  const tabHierarchy = getSystemTabDefinitions();
+
+  tabHierarchy.forEach(parent => {
+    // 親タブ（メインタブ）の表示制御
+    // ※ 1（またはtrue）なら表示、0なら非表示
+    const isParentAllowed = userPermissions[parent.label] == 1 || userPermissions[parent.label] === true;
+    
+    // HTML上の対応するメインタブ要素を取得（id や data属性で指定）
+    const parentTabEl = document.querySelector(`[data-tab-key="${parent.label}"]`) || 
+                        document.getElementById(`tab_${parent.key}`);
+
+    if (parentTabEl) {
+      parentTabEl.style.display = isParentAllowed ? '' : 'none';
+    }
+
+    // 子タブ（サブタブ）の表示制御
+    if (parent.children && parent.children.length > 0) {
+      parent.children.forEach(child => {
+        const isChildAllowed = userPermissions[child.label] == 1 || userPermissions[child.label] === true;
+        
+        const childTabEl = document.querySelector(`[data-tab-key="${child.label}"]`) || 
+                           document.getElementById(`tab_${child.key}`);
+
+        if (childTabEl) {
+          // 親が非表示なら子も強制非表示、親が表示かつ自身が1なら表示
+          if (!isParentAllowed) {
+            childTabEl.style.display = 'none';
+          } else {
+            childTabEl.style.display = isChildAllowed ? '' : 'none';
+          }
+        }
+      });
+    }
+  });
+}  
+
 // マスターデータ読み込み
 async function loadMasterData() {
   try {
