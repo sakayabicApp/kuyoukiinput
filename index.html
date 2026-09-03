@@ -469,13 +469,13 @@
     </div>
 
  <div class="nav-menu">
-      <button type="button" id="tabRegister" class="nav-tab active" data-target="register" data-label="空容器登録" onclick="switchPage('register')">
+      <button type="button" id="tabRegister" class="nav-tab active" data-target="register" data-main-label="空容器登録" onclick="switchPage('register')">
         空容器登録
       </button>
-      <button type="button" id="tabReport" class="nav-tab" data-target="report" data-label="帳票発行" onclick="switchPage('report')">
+      <button type="button" id="tabReport" class="nav-tab" data-target="report" data-main-label="帳票発行" onclick="switchPage('report')">
         帳票発行
       </button>
-      <button type="button" id="tabMaster" class="nav-tab" data-target="master" data-label="マスター管理" onclick="switchPage('master')">
+      <button type="button" id="tabMaster" class="nav-tab" data-target="master" data-main-label="マスター管理" onclick="switchPage('master')">
         マスター管理
       </button>
     </div>
@@ -659,19 +659,19 @@
       <button type="button" id="subTabItem" class="sub-nav-tab active" data-target="item" data-label="空容器マスター" onclick="switchMasterSubPage('item')">
         空容器マスター
       </button>
-      <button type="button" id="subTabStore" class="sub-nav-tab" data-target="store" data-label="出荷店マスター" onclick="switchMasterSubPage('store')">
+      <button type="button" id="subTabStore" class="sub-nav-tab" data-target="store" data-sub-label="出荷店マスター" onclick="switchMasterSubPage('store')">
         出荷店マスター
       </button>
-      <button type="button" id="subTabRoute" class="sub-nav-tab" data-target="route" data-label="ルートマスター" onclick="switchMasterSubPage('route')">
+      <button type="button" id="subTabRoute" class="sub-nav-tab" data-target="route" data-sub-label="ルートマスター" onclick="switchMasterSubPage('route')">
         ルートマスター
       </button>
-      <button type="button" id="subTabStaff" class="sub-nav-tab" data-target="staff" data-label="担当者マスター" onclick="switchMasterSubPage('staff')">
+      <button type="button" id="subTabStaff" class="sub-nav-tab" data-target="staff" data-sub-label="担当者マスター" onclick="switchMasterSubPage('staff')">
         担当者マスター
       </button>
-      <button type="button" id="subTabUser" class="sub-nav-tab" data-target="user" data-label="ユーザーマスター" onclick="switchMasterSubPage('user')">
+      <button type="button" id="subTabUser" class="sub-nav-tab" data-target="user" data-sub-label="ユーザーマスター" onclick="switchMasterSubPage('user')">
         ユーザーマスター
       </button>
-      <button type="button" id="subTabRole" class="sub-nav-tab" data-target="role" data-label="権限マスター" onclick="switchMasterSubPage('role')">権限マスター</button>
+      <button type="button" id="subTabRole" class="sub-nav-tab" data-target="role" data-sub-label="権限マスター" onclick="switchMasterSubPage('role')">権限マスター</button>
     </div>
 
     <!-- サブタブコンテンツ表示エリア -->
@@ -3221,7 +3221,7 @@ function getSystemTabDefinitions() {
   const mainTabs = document.querySelectorAll('.nav-tab[data-target]');
   mainTabs.forEach(mainTab => {
     const mainKey = mainTab.getAttribute('data-target');
-    const mainLabel = mainTab.getAttribute('data-label') || mainTab.textContent.trim();
+    const mainLabel = mainTab.getAttribute('data-main-label') || mainTab.textContent.trim();
 
     const parentNode = {
       key: mainKey,
@@ -3236,7 +3236,7 @@ function getSystemTabDefinitions() {
       subTabs.forEach(subTab => {
         parentNode.children.push({
           key: subTab.getAttribute('data-target'),
-          label: subTab.getAttribute('data-label') || subTab.textContent.trim(),
+          label: subTab.getAttribute('data-sub-label') || subTab.textContent.trim(),
           isParent: false
         });
       });
@@ -3662,25 +3662,7 @@ async function handleRoleSubmit(actionType) {
   }
 }
 
-  function getSystemTabDefinitions() {
-  const definitions = [];
-  
-  // .nav-tab や .sub-nav-tab など、対象のボタンをすべて取得
-  const tabs = document.querySelectorAll('.nav-tab, .sub-nav-tab, .sub-tab-btn');
-  tabs.forEach(tab => {
-    const target = tab.getAttribute('data-target');
-    const label = tab.getAttribute('data-label') || tab.textContent.trim();
-    
-    if (target) {
-      definitions.push({
-        key: target,   // 修正：カンマを1つにする
-        label: label   // スプレッドシート用ラベル (例: '空容器登録')
-      });
-    }
-  });
 
-  return definitions;
-}
 </script>
 </body>
 </html>
