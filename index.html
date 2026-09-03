@@ -3250,7 +3250,7 @@ function getSystemTabDefinitions() {
   return tabHierarchy;
 }
   
-//タブチェックボックスツキモーダル
+// タブチェックボックスツキモーダル
 function renderPermissionCheckboxes(selectedPermissions = {}) {
   const container = document.getElementById('dynamicPermContainer');
   if (!container) return;
@@ -3259,7 +3259,9 @@ function renderPermissionCheckboxes(selectedPermissions = {}) {
   const tabHierarchy = getSystemTabDefinitions();
 
   tabHierarchy.forEach(parent => {
-    const isParentChecked = selectedPermissions[parent.key] == 1 || selectedPermissions[parent.key] === true;
+    // 既存データの判定（日本語ラベル・英名どちらにも対応）
+    const isParentChecked = selectedPermissions[parent.label] == 1 || selectedPermissions[parent.label] === true ||
+                            selectedPermissions[parent.key] == 1 || selectedPermissions[parent.key] === true;
 
     // 親タブの描画
     const parentLabelEl = document.createElement('label');
@@ -3270,7 +3272,6 @@ function renderPermissionCheckboxes(selectedPermissions = {}) {
     parentLabelEl.style.fontWeight = 'bold';
     parentLabelEl.style.marginTop = '8px';
 
-    // ★ data-perm-key に parent.label を設定
     parentLabelEl.innerHTML = `
       <input type="checkbox" id="perm_${parent.key}" data-perm-key="${escapeHtml(parent.label)}" value="1" ${isParentChecked ? 'checked' : ''} onchange="handlePermissionChange(this)">
       <span>${escapeHtml(parent.label)}</span>
@@ -3288,10 +3289,12 @@ function renderPermissionCheckboxes(selectedPermissions = {}) {
       childrenContainer.style.gap = '6px';
       childrenContainer.style.marginTop = '4px';
 
+      // ★ 親にチェックが入っていれば disabled を解除 (disabled 属性をつけない)
+      const isDisabled = !isParentChecked;
+
       parent.children.forEach(child => {
-        const isChildChecked = selectedPermissions[child.key] == 1 || selectedPermissions[child.key] === true;
-        // 親がオフかつ子もオフなら、初期状態で無効化するなどの調整
-        const isDisabled = !isParentChecked;
+        const isChildChecked = selectedPermissions[child.label] == 1 || selectedPermissions[child.label] === true ||
+                               selectedPermissions[child.key] == 1 || selectedPermissions[child.key] === true;
 
         const childLabelEl = document.createElement('label');
         childLabelEl.style.display = 'flex';
@@ -3300,7 +3303,7 @@ function renderPermissionCheckboxes(selectedPermissions = {}) {
         childLabelEl.style.cursor = isDisabled ? 'not-allowed' : 'pointer';
         childLabelEl.style.opacity = isDisabled ? '0.5' : '1';
 
-        // ★ data-perm-key に child.label を設定
+        // 親がONなら ${isDisabled ? 'disabled' : ''} が空文字列になり、最初から操作可能になる
         childLabelEl.innerHTML = `
           <input type="checkbox" id="perm_${child.key}" data-perm-key="${escapeHtml(child.label)}" value="1" ${isChildChecked ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
           <span>${escapeHtml(child.label)}</span>
@@ -3469,6 +3472,9 @@ function openEditRoleModal(jsonStr) {
     codeEl.style.cursor = 'not-allowed';
   }
   if (nameEl) nameEl.value = data.roleName || data.name || '';
+
+  // ★ 登録されている権限データ（またはオブジェクト全体）を渡してチェックボックスを復元描画
+  renderPermissionCheckboxes(data.permissions || data);
 
   const titleEl = document.getElementById('roleModalTitle');
   if (titleEl) titleEl.textContent = '権限マスター 修正・削除';
