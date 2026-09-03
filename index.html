@@ -1221,34 +1221,27 @@ function applyUserPermissions(userPermissions) {
   if (!userPermissions || typeof userPermissions !== 'object') return;
 
   const tabHierarchy = getSystemTabDefinitions();
-  console.log('--- [デバッグ] タブ表示切り替え開始 ---');
-  console.log('受け取った権限データ:', userPermissions);
-  console.log('システムタブ定義:', tabHierarchy);
 
   tabHierarchy.forEach(parent => {
+    // 親タブ（メインタブ）の表示制御
     const isParentAllowed = userPermissions[parent.label] == 1 || userPermissions[parent.label] === true;
     
-    // 該当するHTML要素を探す
-    const parentTabEl = document.querySelector(`[data-tab-key="${parent.label}"]`) || 
-                        document.getElementById(`tab_${parent.key}`);
-
-    console.log(`[親タブ] ラベル: "${parent.label}" | 判定: ${isParentAllowed ? '表示(1)' : '非表示(0)'} | HTML要素:`, parentTabEl);
+    // HTML上の要素を取得（data-main-label 属性、または既存のIDに対応）
+    const parentTabEl = document.querySelector(`[data-main-label="${parent.label}"]`) || 
+                        document.getElementById(`tab${parent.key.charAt(0).toUpperCase() + parent.key.slice(1)}`);
 
     if (parentTabEl) {
       parentTabEl.style.display = isParentAllowed ? '' : 'none';
-    } else {
-      console.warn(`⚠️ 親タブのHTML要素が見つかりません -> label: "${parent.label}", id: "tab_${parent.key}"`);
     }
 
-    // 子タブの制御
+    // 子タブ（サブタブ）の表示制御
     if (parent.children && parent.children.length > 0) {
       parent.children.forEach(child => {
         const isChildAllowed = userPermissions[child.label] == 1 || userPermissions[child.label] === true;
         
-        const childTabEl = document.querySelector(`[data-tab-key="${child.label}"]`) || 
-                           document.getElementById(`tab_${child.key}`);
-
-        console.log(`  └ [子タブ] ラベル: "${child.label}" | 判定: ${isChildAllowed ? '表示(1)' : '非表示(0)'} | HTML要素:`, childTabEl);
+        // HTML上の要素を取得（data-sub-label 属性、または既存のIDに対応）
+        const childTabEl = document.querySelector(`[data-sub-label="${child.label}"]`) || 
+                           document.getElementById(`subTab${child.key.charAt(0).toUpperCase() + child.key.slice(1)}`);
 
         if (childTabEl) {
           if (!isParentAllowed) {
@@ -1256,14 +1249,13 @@ function applyUserPermissions(userPermissions) {
           } else {
             childTabEl.style.display = isChildAllowed ? '' : 'none';
           }
-        } else {
-          console.warn(`  ⚠️ 子タブのHTML要素が見つかりません -> label: "${child.label}", id: "tab_${child.key}"`);
         }
       });
     }
   });
-  console.log('--- [デバッグ] タブ表示切り替え終了 ---');
 }
+
+  
 // マスターデータ読み込み
 async function loadMasterData() {
   try {
