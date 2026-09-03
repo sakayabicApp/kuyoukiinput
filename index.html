@@ -3389,10 +3389,6 @@ function renderMasterRoleTable(roles) {
         return { roleCode: code, roleName: name, permissions: permissions };
       });
 
-  // 最初のデータから権限キーのリストを割り出す
-  const firstItem = roleEntries[0] || { permissions: {} };
-  const permKeys = Object.keys(firstItem.permissions);
-
   // ヘッダーを動的に構築
   const theadTr = document.querySelector('.role-master-table thead tr');
   if (theadTr) {
@@ -3404,6 +3400,11 @@ function renderMasterRoleTable(roles) {
     `;
   }
 
+  // ★ ループの外で一度だけタブ構成情報を取得＆ラベル分類（パフォーマンス向上）
+  const tabHierarchy = getSystemTabDefinitions();
+  const mainLabels = tabHierarchy.map(item => item.label);
+  const subLabels = tabHierarchy.flatMap(item => item.children ? item.children.map(child => child.label) : []);
+
   roleEntries.forEach(item => {
     if (!item.roleCode) return;
 
@@ -3411,23 +3412,38 @@ function renderMasterRoleTable(roles) {
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
 
-    // 有効な権限のキー名をバッジ風に表示
+    // ★ 有効（値が true/1）な権限のキー名（日本語ラベル）だけを抽出
     const activeLabels = [];
     Object.keys(item.permissions).forEach(key => {
       if (item.permissions[key]) {
-        // キー名をそのまま、または分かりやすく表示
         activeLabels.push(key);
       }
     });
 
+    // メインタブかサブタブかでスタイルを分岐してバッジHTMLを生成
     const permHtml = activeLabels.length > 0 
-      ? activeLabels.map(key => `<span style="display: inline-block; background: #e2f0d9; color: #385723; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin: 2px; border: 1px solid #c8e1bc;">${escapeHtml(key)}</span>`).join('')
+      ? activeLabels.map(key => {
+          let bgStyle = '';
+
+          if (mainLabels.includes(key)) {
+            // ■ メインタブ用スタイル（青系統）
+            bgStyle = 'background: #e1f5fe; color: #0277bd; border: 1px solid #b3e5fc;';
+          } else if (subLabels.includes(key)) {
+            // ■ サブタブ用スタイル（緑系統）
+            bgStyle = 'background: #e2f0d9; color: #385723; border: 1px solid #c8e1bc;';
+          } else {
+            // ■ その他（グレー系統）
+            bgStyle = 'background: #f0f0f0; color: #555555; border: 1px solid #cccccc;';
+          }
+
+          return `<span style="display: inline-block; ${bgStyle} padding: 2px 8px; border-radius: 4px; font-size: 12px; margin: 2px;">${escapeHtml(key)}</span>`;
+        }).join('')
       : '<span style="color: #999;">なし</span>';
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><strong>${escapeHtml(item.roleCode)}</strong></td>
-      <td>${escapeHtml(item.name || item.roleName)}</td>
+      <td>${escapeHtml(item.roleName)}</td>
       <td>${permHtml}</td>
       <td style="text-align: center;">
         <button type="button" class="btn-secondary btn-table-action" onclick="openEditRoleModal('${jsonStr}')">修正・削除</button>
@@ -3436,7 +3452,6 @@ function renderMasterRoleTable(roles) {
     tbody.appendChild(tr);
   });
 }
-
 
 // 権限マスター：修正・削除モーダルを開く
 function openEditRoleModal(jsonStr) {
