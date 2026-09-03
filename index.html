@@ -1188,28 +1188,32 @@ function handleLogin(response) {
 // ==========================================
 
 function fetchPermissions() {
-  if (!currentUserId) return; // ユーザーIDが無ければスキップ
+  // ★ 送信前にログを出力して中身を確認
+  console.log('送信するuserCode:', currentUserId);
+
+  if (!currentUserId) {
+    console.warn('currentUserId が空のため、処理をスキップしました');
+    return;
+  }
 
   fetch(GAS_WEB_APP_URL, {
     method: 'POST',
     body: JSON.stringify({
       action: 'getUserPermissions',
-      userCode: currentUserId // ★ 既存の変数を使用！
+      userCode: currentUserId
     })
   })
   .then(res => res.json())
   .then(res => {
-    console.log('取得した権限:', res.permissions);
+    console.log('GASからの応答:', res);
     if (res.status === 'success') {
-      // タブ制御関数を実行
       applyUserPermissions(res.permissions);
     } else {
       console.error('権限取得エラー:', res.message);
     }
   })
-  .catch(err => console.error('通信エラー:', err));
+  .catch(err => console.error('権限通信エラー:', err));
 }
- 
 // ==========================================
 // 3. 画面（タブ）の表示/非表示切り替え処理
 // ==========================================
