@@ -361,6 +361,7 @@
     html { font-size: 14px; }
     .search-display-grid { flex-direction: column; gap: 0.625rem; }
     
+ 
     #containerTableBody tr td:nth-child(2), 
     .table-container th:nth-child(2) { display: none; }
     
@@ -430,6 +431,51 @@
   .btn-modal {
     max-width: none; /* 上限を解除して横いっぱいに均等配置 */
   }
+/* テーブル全体をブロック化 */
+  .display-table, 
+  .display-table tbody {
+    display: block;
+    width: 100%;
+  }
+
+  /* PC用のヘッダー行を非表示 */
+  .display-table thead {
+    display: none;
+  }
+
+  /* 行データ(tr)をFlexbox化して折り返しを許可 */
+  .display-table tbody tr {
+    display: flex;
+    flex-wrap: wrap;
+    border-bottom: 1px solid #ccc;
+    padding: 8px 0;
+  }
+
+  /* データ未選択時（colspan="6"）の行は全幅表示 */
+  .display-table tbody tr td.empty-td {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* 通常のセル(td)の幅調整（1行に3項目＝約33.3%） */
+  .display-table tbody tr td:not(.empty-td) {
+    display: block;
+    box-sizing: border-box;
+    width: 33.33%; /* 上段3列、下段3列でピッタリ2行になります */
+    padding: 4px 6px;
+    font-size: 13px;
+  }
+
+  /* 見出しラベルを擬似要素(::before)で上部に小さく表示 */
+  .display-table tbody tr td:not(.empty-td)::before {
+    content: attr(data-label); /* HTMLの data-label 属性から文字を取得 */
+    display: block;
+    font-size: 10px;
+    color: #666;
+    font-weight: bold;
+    margin-bottom: 2px;
+  }
+    
 }
   }
 </style>
