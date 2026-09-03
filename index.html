@@ -656,7 +656,7 @@
     
    <!-- サブタブメニュー -->
     <div class="sub-nav-menu" style="display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 2px solid #ccc; padding-bottom: 8px;">
-      <button type="button" id="subTabItem" class="sub-nav-tab active" data-target="item" data-label="空容器マスター" onclick="switchMasterSubPage('item')">
+      <button type="button" id="subTabItem" class="sub-nav-tab active" data-target="item" data-sub-label="空容器マスター" onclick="switchMasterSubPage('item')">
         空容器マスター
       </button>
       <button type="button" id="subTabStore" class="sub-nav-tab" data-target="store" data-sub-label="出荷店マスター" onclick="switchMasterSubPage('store')">
@@ -3217,7 +3217,6 @@ async function handleUserSubmit(actionType) {
 function getSystemTabDefinitions() {
   const tabHierarchy = [];
 
-  // メインタブをすべて取得
   const mainTabs = document.querySelectorAll('.nav-tab[data-target]');
   mainTabs.forEach(mainTab => {
     const mainKey = mainTab.getAttribute('data-target');
@@ -3230,21 +3229,20 @@ function getSystemTabDefinitions() {
       children: []
     };
 
-    // メインタブに対応するサブタブのコンテナまたはサブタブ要素を探す
-    // クラス名が '.sub-nav-tab' 以外の場合は適宜変更してください（例: '.sub-tab' など）
-    // ここでは一般的なサブタブ要素を広く取得できるようにしています
-    const subTabs = mainTab.closest('li, .nav-item, div')?.querySelectorAll('.sub-nav-tab[data-target], .sub-tab[data-target]') 
-                    || document.querySelectorAll('.sub-nav-tab[data-target], .sub-tab[data-target]');
-    // もし「マスター管理」などのメインタブの場合、対応するサブタブを紐付ける
- // 各サブタブを紐付け（※もしマスター管理以外のメインタブにも子要素がある場合は共通化できます）
-    subTabs.forEach(subTab => {
-      // メインに紐づくサブタブかどうかの判定が必要な場合はここに条件を追加
-      parentNode.children.push({
-        key: subTab.getAttribute('data-target'),
-        label: subTab.getAttribute('data-sub-label') || subTab.textContent.trim(),
-        isParent: false
+    // メインキーに対応するページ領域（例: pageMaster, pageReport など）を特定してサブタブを自動取得
+    const pageId = 'page' + mainKey.charAt(0).toUpperCase() + mainKey.slice(1);
+    const pageContainer = document.getElementById(pageId);
+    
+    if (pageContainer) {
+      const subTabs = pageContainer.querySelectorAll('.sub-nav-tab[data-target]');
+      subTabs.forEach(subTab => {
+        parentNode.children.push({
+          key: subTab.getAttribute('data-target'),
+          label: subTab.getAttribute('data-sub-label') || subTab.textContent.trim(),
+          isParent: false
+        });
       });
-    });
+    }
 
     tabHierarchy.push(parentNode);
   });
