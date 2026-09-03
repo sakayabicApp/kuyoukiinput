@@ -3543,36 +3543,7 @@ function renderMasterRoleTable(roles) {
   });
 }
 
-// 権限マスター：修正・削除モーダルを開く
-function openEditRoleModal(jsonStr) {
-  const data = typeof jsonStr === 'string' ? JSON.parse(
-    jsonStr.replace(/&quot;/g, '"').replace(/&#039;/g, "'")
-  ) : jsonStr;
 
-  const codeEl = document.getElementById('modalRoleCode');
-  const nameEl = document.getElementById('modalRoleName');
-  
-  if (codeEl) {
-    codeEl.value = data.roleCode || data.code || '';
-    codeEl.readOnly = true;
-    codeEl.style.backgroundColor = '#e9ecef';
-    codeEl.style.cursor = 'not-allowed';
-  }
-  if (nameEl) nameEl.value = data.roleName || data.name || '';
-
-  // ★ 登録されている権限データ（またはオブジェクト全体）を渡してチェックボックスを復元描画
-  renderPermissionCheckboxes(data.permissions || data);
-
-  const titleEl = document.getElementById('roleModalTitle');
-  if (titleEl) titleEl.textContent = '権限マスター 修正・削除';
-
-  document.getElementById('btnRoleSubmitAdd').style.display = 'none';
-  document.getElementById('btnRoleSubmitEdit').style.display = 'inline-block';
-  document.getElementById('btnRoleSubmitDelete').style.display = 'inline-block';
-
-  const modal = document.getElementById('roleMasterModal');
-  if (modal) modal.style.display = 'flex';
-}
 
 // 権限マスター：モーダルを閉じる
 function closeRoleModal() {
