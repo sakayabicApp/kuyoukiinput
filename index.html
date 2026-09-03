@@ -1207,11 +1207,9 @@ function fetchPermissions() {
       console.error('権限取得エラー:', res.message);
     }
   })
-  .catch(err => console.error('権限通信エラー:', err));
-}
-  })
   .catch(err => console.error('通信エラー:', err));
-}  
+}
+ 
 // ==========================================
 // 3. 画面（タブ）の表示/非表示切り替え処理
 // ==========================================
