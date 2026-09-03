@@ -1163,6 +1163,17 @@ function logout() {
   localStorage.removeItem('containerAppUserId'); // ★追加
   currentUserName = '';
   currentUserId = ''; // ★追加
+  // ★1. メインタブ・サブタブの表示状態をすべて初期化（非表示）にする
+  const allTabs = document.querySelectorAll('.nav-tab, .sub-nav-tab');
+  allTabs.forEach(tab => {
+    tab.style.display = 'none';
+  });
+
+  // ★2. 表示ページを強制的にトップページ（空容器登録）に切り替える
+  if (typeof switchPage === 'function') {
+    switchPage('register');
+  }
+  
   document.getElementById('userBadge').style.display = 'none';
   document.getElementById('loadingOverlay').style.display = 'none';
   document.getElementById('loginModal').style.display = 'flex';
@@ -1253,6 +1264,10 @@ function applyUserPermissions(userPermissions) {
       });
     }
   });
+  // ★ 権限適用後、強制的にトップページ（空容器登録）に画面表示を切り替える
+  if (typeof switchPage === 'function') {
+    switchPage('register');
+  }
 }
 
   
