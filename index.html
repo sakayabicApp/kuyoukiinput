@@ -1220,22 +1220,27 @@ function fetchPermissions() {
 function applyUserPermissions(userPermissions) {
   if (!userPermissions || typeof userPermissions !== 'object') return;
 
-  // システムのタブ定義を取得
   const tabHierarchy = getSystemTabDefinitions();
+  console.log('--- [デバッグ] タブ表示切り替え開始 ---');
+  console.log('受け取った権限データ:', userPermissions);
+  console.log('システムタブ定義:', tabHierarchy);
 
   tabHierarchy.forEach(parent => {
-    // 親タブ（メインタブ）の表示制御
     const isParentAllowed = userPermissions[parent.label] == 1 || userPermissions[parent.label] === true;
     
-    // HTML上の対応するメインタブ要素を取得
+    // 該当するHTML要素を探す
     const parentTabEl = document.querySelector(`[data-tab-key="${parent.label}"]`) || 
                         document.getElementById(`tab_${parent.key}`);
 
+    console.log(`[親タブ] ラベル: "${parent.label}" | 判定: ${isParentAllowed ? '表示(1)' : '非表示(0)'} | HTML要素:`, parentTabEl);
+
     if (parentTabEl) {
       parentTabEl.style.display = isParentAllowed ? '' : 'none';
+    } else {
+      console.warn(`⚠️ 親タブのHTML要素が見つかりません -> label: "${parent.label}", id: "tab_${parent.key}"`);
     }
 
-    // 子タブ（サブタブ）の表示制御
+    // 子タブの制御
     if (parent.children && parent.children.length > 0) {
       parent.children.forEach(child => {
         const isChildAllowed = userPermissions[child.label] == 1 || userPermissions[child.label] === true;
@@ -1243,19 +1248,22 @@ function applyUserPermissions(userPermissions) {
         const childTabEl = document.querySelector(`[data-tab-key="${child.label}"]`) || 
                            document.getElementById(`tab_${child.key}`);
 
+        console.log(`  └ [子タブ] ラベル: "${child.label}" | 判定: ${isChildAllowed ? '表示(1)' : '非表示(0)'} | HTML要素:`, childTabEl);
+
         if (childTabEl) {
-          // 親が非表示なら子も強制非表示、親が表示かつ自身が1なら表示
           if (!isParentAllowed) {
             childTabEl.style.display = 'none';
           } else {
             childTabEl.style.display = isChildAllowed ? '' : 'none';
           }
+        } else {
+          console.warn(`  ⚠️ 子タブのHTML要素が見つかりません -> label: "${child.label}", id: "tab_${child.key}"`);
         }
       });
     }
   });
+  console.log('--- [デバッグ] タブ表示切り替え終了 ---');
 }
-
 // マスターデータ読み込み
 async function loadMasterData() {
   try {
