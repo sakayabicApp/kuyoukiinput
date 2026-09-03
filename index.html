@@ -1107,6 +1107,9 @@ function checkLogin() {
     loginModal.style.display = 'none';
 
     loadingOverlay.style.display = 'flex';
+
+    // ★ 追記: リロード時にも権限を取得してタブ表示を更新
+    fetchPermissions();
     loadMasterData();
   } else {
     loadingOverlay.style.display = 'none';
@@ -1165,10 +1168,53 @@ function logout() {
   document.getElementById('loginModal').style.display = 'flex';
 }
 
-/**
- * ログインユーザーの権限に応じてタブの表示/非表示を切り替える
- * @param {Object} userPermissions - 例: { '空容器登録': 1, '出荷店マスター': 0, ... }
- */
+// ★ 関数の外（スクリプトの先頭など）で変数を用意しておく
+let currentUserCode = '';
+
+// ==========================================
+// 1. ログイン成功時の処理
+// ==========================================
+function handleLogin(response) {
+  if (response.status === 'success') {
+    // ★ ログイン成功時にユーザーコードを保存
+    currentUserCode = response.userId; 
+    
+    // その後、権限を取得しにいく
+    fetchPermissions();
+  }
+}
+// ==========================================
+// 2. 権限データの通信・取得処理
+// ==========================================
+
+function fetchPermissions() {
+  if (!currentUserId) return; // ユーザーIDが無ければスキップ
+
+  fetch(GAS_WEB_APP_URL, {
+    method: 'POST',
+    body: JSON.stringify({
+      action: 'getUserPermissions',
+      userCode: currentUserId // ★ 既存の変数を使用！
+    })
+  })
+  .then(res => res.json())
+  .then(res => {
+    console.log('取得した権限:', res.permissions);
+    if (res.status === 'success') {
+      // タブ制御関数を実行
+      applyUserPermissions(res.permissions);
+    } else {
+      console.error('権限取得エラー:', res.message);
+    }
+  })
+  .catch(err => console.error('権限通信エラー:', err));
+}
+  })
+  .catch(err => console.error('通信エラー:', err));
+}  
+// ==========================================
+// 3. 画面（タブ）の表示/非表示切り替え処理
+// ==========================================
 function applyUserPermissions(userPermissions) {
   if (!userPermissions || typeof userPermissions !== 'object') return;
 
@@ -1177,10 +1223,9 @@ function applyUserPermissions(userPermissions) {
 
   tabHierarchy.forEach(parent => {
     // 親タブ（メインタブ）の表示制御
-    // ※ 1（またはtrue）なら表示、0なら非表示
     const isParentAllowed = userPermissions[parent.label] == 1 || userPermissions[parent.label] === true;
     
-    // HTML上の対応するメインタブ要素を取得（id や data属性で指定）
+    // HTML上の対応するメインタブ要素を取得
     const parentTabEl = document.querySelector(`[data-tab-key="${parent.label}"]`) || 
                         document.getElementById(`tab_${parent.key}`);
 
@@ -1207,7 +1252,7 @@ function applyUserPermissions(userPermissions) {
       });
     }
   });
-}  
+}
 
 // マスターデータ読み込み
 async function loadMasterData() {
