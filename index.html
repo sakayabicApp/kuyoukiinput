@@ -3270,8 +3270,9 @@ function renderPermissionCheckboxes(selectedPermissions = {}) {
     parentLabelEl.style.fontWeight = 'bold';
     parentLabelEl.style.marginTop = '8px';
 
+    // ★ data-perm-key に parent.label を設定
     parentLabelEl.innerHTML = `
-      <input type="checkbox" id="perm_${parent.key}" data-perm-key="${parent.key}" value="1" ${isParentChecked ? 'checked' : ''} onchange="handlePermissionChange(this)">
+      <input type="checkbox" id="perm_${parent.key}" data-perm-key="${escapeHtml(parent.label)}" value="1" ${isParentChecked ? 'checked' : ''} onchange="handlePermissionChange(this)">
       <span>${escapeHtml(parent.label)}</span>
     `;
     container.appendChild(parentLabelEl);
@@ -3299,8 +3300,9 @@ function renderPermissionCheckboxes(selectedPermissions = {}) {
         childLabelEl.style.cursor = isDisabled ? 'not-allowed' : 'pointer';
         childLabelEl.style.opacity = isDisabled ? '0.5' : '1';
 
+        // ★ data-perm-key に child.label を設定
         childLabelEl.innerHTML = `
-          <input type="checkbox" id="perm_${child.key}" data-perm-key="${child.key}" value="1" ${isChildChecked ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
+          <input type="checkbox" id="perm_${child.key}" data-perm-key="${escapeHtml(child.label)}" value="1" ${isChildChecked ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
           <span>${escapeHtml(child.label)}</span>
         `;
         childrenContainer.appendChild(childLabelEl);
@@ -3587,10 +3589,10 @@ async function handleRoleSubmit(actionType) {
   const permissions = {};
   const allCheckboxes = document.querySelectorAll('#dynamicPermContainer input[type="checkbox"]');
   allCheckboxes.forEach(cb => {
-    const key = cb.getAttribute('data-perm-key');
-    permissions[key] = cb.checked ? 1 : 0;
+    const permLabel = cb.getAttribute('data-perm-key'); // ★ 日本語ラベルを取得
+    permissions[permLabel] = cb.checked ? 1 : 0;
   });
-
+  
   isRoleSubmitting = true;
   const allModalBtns = document.querySelectorAll('#roleMasterModal button');
   const originalText = targetBtn ? targetBtn.textContent : '';
