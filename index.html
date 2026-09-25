@@ -1982,25 +1982,31 @@ result.data.forEach(group => {
   // ログインユーザーと登録者コードの照合
   const isOwner = normalizedRegCode !== '' && normalizedRegCode === normalizedCurrentId;
 
-  // アクションボタンエリア（取消ボタン用エリア含む）
-  const actionButtonsHtml = isOwner ? `
- <div style="display: flex; gap: 5px; flex-shrink: 0; align-items: center;">
-      <button type="button" id="edit-btn-${h.slipNo}" onclick="toggleEditMode('${h.slipNo}')" 
-              style="padding: 4px 8px; font-size: 0.8rem; background: #28a745; color: #fff; border: none; border-radius: 3px; cursor: pointer;">
-        修正
+// ボタンエリア：印刷ボタンは常設、修正・削除はオーナーのみ
+  const actionButtonsHtml = `
+    <div style="display: flex; gap: 5px; flex-shrink: 0; align-items: center;">
+      <!-- 印刷ボタン（誰でも押せる） -->
+      <button type="button" onclick="printSlip('${h.slipNo}')" 
+              style="padding: 4px 8px; font-size: 0.8rem; background: #17a2b8; color: #fff; border: none; border-radius: 3px; cursor: pointer;">
+        印刷
       </button>
-     
-      <button type="button" id="cancel-btn-${h.slipNo}" onclick="cancelEditMode('${h.slipNo}')" 
-              style="display: none; padding: 4px 8px; font-size: 0.8rem; background: #6c757d; color: #fff; border: none; border-radius: 3px; cursor: pointer;">
-        取消
-      </button>
-      
-      <button type="button" id="delete-btn-${h.slipNo}" onclick="openDeleteModal('${h.slipNo}', '${h.customerName}')" 
-              style="padding: 4px 8px; font-size: 0.8rem; background: #dc3545; color: #fff; border: none; border-radius: 3px; cursor: pointer;">
-        削除
-      </button>
+
+      ${isOwner ? `
+        <button type="button" id="edit-btn-${h.slipNo}" onclick="toggleEditMode('${h.slipNo}')" 
+                style="padding: 4px 8px; font-size: 0.8rem; background: #28a745; color: #fff; border: none; border-radius: 3px; cursor: pointer;">
+          修正
+        </button>
+        <button type="button" id="cancel-btn-${h.slipNo}" onclick="cancelEditMode('${h.slipNo}')" 
+                style="display: none; padding: 4px 8px; font-size: 0.8rem; background: #6c757d; color: #fff; border: none; border-radius: 3px; cursor: pointer;">
+          取消
+        </button>
+        <button type="button" id="delete-btn-${h.slipNo}" onclick="openDeleteModal('${h.slipNo}', '${h.customerName}')" 
+                style="padding: 4px 8px; font-size: 0.8rem; background: #dc3545; color: #fff; border: none; border-radius: 3px; cursor: pointer;">
+          削除
+        </button>
+      ` : ''}
     </div>
-  ` : '';
+  `;
 
         html += `
           <div id="slip-block-${h.slipNo}" style="background: #fff; padding: 10px; margin-top: 15px; border-left: 4px solid #007bff; display: flex; justify-content: space-between; align-items: center;">
