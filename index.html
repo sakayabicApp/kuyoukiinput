@@ -3803,6 +3803,30 @@ async function handleRoleSubmit(actionType) {
   }
 }
 
+async function printSlip(slipNo) {
+  try {
+    const response = await fetch(GAS_WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        action: 'printSlip',
+        slipNo: slipNo
+      })
+    });
+
+    const result = await response.json();
+
+    if (result.status === 'success') {
+      // 取得したPDFのURLを新しいタブで開く（または印刷エージェントへ渡す）
+      window.open(result.pdfUrl, '_blank');
+    } else {
+      alert('エラー: ' + result.message);
+    }
+  } catch (err) {
+    alert('通信エラーが発生しました: ' + err.message);
+  }
+}
+
 </script>
 </body>
 </html>
