@@ -3805,6 +3805,7 @@ async function handleRoleSubmit(actionType) {
 
 async function printSlip(slipNo) {
   try {
+    // 従来のボタンテキスト変更などのローディング処理があればここに
     const response = await fetch(GAS_WEB_APP_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
@@ -3817,8 +3818,9 @@ async function printSlip(slipNo) {
     const result = await response.json();
 
     if (result.status === 'success') {
-      // 取得したPDFのURLを新しいタブで開く（または印刷エージェントへ渡す）
-      window.open(result.pdfUrl, '_blank');
+      // 修正案：window.open ではなく、現在のタブで直接PDFのURLに飛ばす（またはリンクとして踏ませる）
+      window.location.href = result.pdfUrl;
+      
     } else {
       alert('エラー: ' + result.message);
     }
