@@ -3804,12 +3804,13 @@ async function handleRoleSubmit(actionType) {
 }
 
 
- /**
+/**
  * 伝票印刷処理（MP-B20 / URL Print Agent 連携）
  * @param {string} slipNo - 印刷対象の伝票番号
  */
 async function printSlip(slipNo) {
   try {
+    // 1. GASから印刷用データ（PDFのBase64）を取得
     const response = await fetch(GAS_WEB_APP_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
@@ -3822,25 +3823,29 @@ async function printSlip(slipNo) {
     const result = await response.json();
 
     if (result.status === 'success') {
-
-      // テスト用：短文をBase64化（"Hello"）
-      const testBase64 = "SGVsbG8="; 
+      const base64Data = result.pdfBase64;
       
-      if (!testBase64) {
+      if (!base64Data) {
         alert('エラー: 印刷データ(Base64)を取得できませんでした。');
         return;
       }
 
-      // Base64文字列をURLエンコード
-      const encodedData = encodeURIComponent(testBase64);
+      // 現在のWebアプリのURL（印刷終了後の戻り先）
+      const thisPage = window.location.href;
 
-      // 印刷後の戻り先URL（現在のWebアプリのURL）
-      const currentUrl = encodeURIComponent(window.location.href);
+      // 公式サンプル通りのURLスキーム構築（大文字小文字・スキーム名を厳密に指定）
+      const printUrl = 'siiprintagent://1.0/print?' +
+        'CallbackSuccess='  + encodeURIComponent(thisPage) + '&' +  // 成功時戻り先
+        'CallbackFail='     + encodeURIComponent(thisPage) + '&' +  // 失敗時戻り先
+        'Format='           + 'pdf' + '&' +                         // PDFフォーマット指定
+        'Data='             + encodeURIComponent(base64Data) + '&' +// Base64データ
+        'SelectOnError='    + 'yes' + '&' +                         // エラー時プリンター選択表示
+        'CutType='          + 'full' + '&' +                        // フルカット
+        'CutFeed='          + 'yes' + '&' +                         // カット前送り
+        'FitToWidth='       + 'no' + '&' +                          // 幅自動フィットなし
+        'PaperWidth='       + '58';                                 // 用紙幅 58mm
 
-      // siiprint カスタムURLスキームの組み立て
-      const printUrl = `siiprint://2.0/print?data=${encodedData}&success=${currentUrl}&error=${currentUrl}`;
-
-      // URL Print Agent アプリを起動して印刷処理を実行
+      // URL Print Agent アプリを起動して印刷
       window.location.href = printUrl;
 
     } else {
