@@ -3805,7 +3805,7 @@ async function handleRoleSubmit(actionType) {
 
 
 /**
- * 伝票印刷処理（MP-B20 / URL Print Agent 連携 - HTML形式）
+ * 伝票印刷処理（MP-B20 / URL Print Agent 連携 - PDF形式）
  * @param {string} slipNo - 印刷対象の伝票番号
  */
 async function printSlip(slipNo) {
@@ -3832,19 +3832,20 @@ async function printSlip(slipNo) {
 
     const resData = await response.json();
 
-    if (resData.status === 'success' && resData.htmlBase64) {
+    // pdfBase64 で受け取り
+    if (resData.status === 'success' && resData.pdfBase64) {
       const thisPage = window.location.href.split('#')[0];
 
-      // クエリパラメータの構築
+      // クエリパラメータの構築（Format=pdf に変更）
       const params = new URLSearchParams({
         'CallbackSuccess': thisPage,
         'CallbackFail': thisPage,
-        'Format': 'html',
-        'Data': resData.htmlBase64,
+        'Format': 'pdf',              // ★ PDF指定に変更
+        'Data': resData.pdfBase64,     // ★ PDFのBase64
         'SelectOnError': 'yes',
         'CutType': 'full',
         'CutFeed': 'no',
-        'FitToWidth': 'no',
+        'FitToWidth': 'yes',           // ★ PDFの場合は 幅に合わせる(yes) にするとキレイに収まります
         'PaperWidth': '58'
       });
 
