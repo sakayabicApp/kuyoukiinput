@@ -3808,37 +3808,54 @@ async function handleRoleSubmit(actionType) {
  * 伝票印刷処理（MP-B20 / URL Print Agent 連携）
  * @param {string} slipNo - 印刷対象の伝票番号
  */
-// GASからBase64形式のPDFデータを受け取って印刷を実行する例
-async function printSlip() {
+async function printSlip(slipNo) {
+  if (!slipNo) {
+    alert('伝票番号が指定されていません。');
+    return;
+  }
+
   try {
-    // 例: google.script.run を使ってGASの関数を呼び出す場合
-    google.script.run
-      .withSuccessHandler(function(base64Data) {
-        
-        const thisPage = window.location.href.split('#')[0];
+    // Webアプリ（GAS）のデプロイURLを設定
+    const GAS_ENDPOINT_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec'; // ★実際のURLに置き換えてください
 
-        // SII Print Agent URLスキーム構築
-        const printUrl = 'siiprintagent://1.0/print?' +
-          'CallbackSuccess='  + encodeURIComponent(thisPage) + '&' +
-          'CallbackFail='     + encodeURIComponent(thisPage) + '&' +
-          'Format='           + 'pdf' + '&' +
-          'Data='             + encodeURIComponent(base64Data) + '&' +
-          'SelectOnError='    + 'yes' + '&' +
-          'CutType='          + 'full' + '&' +
-          'CutFeed='          + 'no' + '&' +   // 余分な送りカットなし（HTML側で高さジャストになるため）
-          'FitToWidth='       + 'no' + '&' +   // CSSで既に58mmにレイアウト済なので等倍(no)でOK
-          'PaperWidth='       + '58';
-
-        window.location.href = printUrl;
-
+    const response = await fetch(GAS_ENDPOINT_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8' // GASのdoPostでCORSエラーを起こしにくい通信設定
+      },
+      body: JSON.stringify({
+        action: 'printSlip',
+        slipNo: slipNo
       })
-      .withFailureHandler(function(error) {
-        alert('PDF生成エラー: ' + error.message);
-      })
-      .createReceiptPdfBase64(sampleData); // GASへ渡すデータ
+    });
+
+    const resData = await response.json();
+
+    if (resData.status === 'success' && resData.pdfBase64) {
+      const thisPage = window.location.href.split('#')[0];
+
+      // SII Print Agent URLスキーム構築
+      const printUrl = 'siiprintagent://1.0/print?' +
+        'CallbackSuccess='  + encodeURIComponent(thisPage) + '&' +
+        'CallbackFail='     + encodeURIComponent(thisPage) + '&' +
+        'Format='           + 'pdf' + '&' +
+        'Data='             + encodeURIComponent(resData.pdfBase64) + '&' +
+        'SelectOnError='    + 'yes' + '&' +
+        'CutType='          + 'full' + '&' +
+        'CutFeed='          + 'no' + '&' +   // 余分な送りカットなし（HTML側で高さジャストになるため）
+        'FitToWidth='       + 'no' + '&' +   // CSSで既に58mmにレイアウト済なので等倍(no)でOK
+        'PaperWidth='       + '58';
+
+      // アプリ起動
+      window.location.href = printUrl;
+
+    } else {
+      alert('PDF生成エラー: ' + (resData.message || 'データ取得に失敗しました。'));
+    }
 
   } catch (error) {
     console.error('印刷処理エラー:', error);
+    alert('通信エラーが発生しました: ' + error.message);
   }
 }
 </script>
