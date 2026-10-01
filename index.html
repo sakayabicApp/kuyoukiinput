@@ -3805,7 +3805,7 @@ async function handleRoleSubmit(actionType) {
 
 
 /**
- * 伝票印刷処理（MP-B20 / URL Print Agent 連携）
+ * 伝票印刷処理（MP-B20 / URL Print Agent 連携 - HTML形式）
  * @param {string} slipNo - 印刷対象の伝票番号
  */
 async function printSlip(slipNo) {
@@ -3821,7 +3821,7 @@ async function printSlip(slipNo) {
     const response = await fetch(GAS_ENDPOINT_URL, {
       method: 'POST',
       headers: {
-        'Content-Type': 'text/plain;charset=utf-8' // GASのdoPostでCORSエラーを起こしにくい通信設定
+        'Content-Type': 'text/plain;charset=utf-8'
       },
       body: JSON.stringify({
         action: 'printSlip',
@@ -3831,26 +3831,26 @@ async function printSlip(slipNo) {
 
     const resData = await response.json();
 
-    if (resData.status === 'success' && resData.pdfBase64) {
+    if (resData.status === 'success' && resData.htmlBase64) {
       const thisPage = window.location.href.split('#')[0];
 
-      // SII Print Agent URLスキーム構築
+      // SII Print Agent URLスキーム構築（Format=html）
       const printUrl = 'siiprintagent://1.0/print?' +
         'CallbackSuccess='  + encodeURIComponent(thisPage) + '&' +
         'CallbackFail='     + encodeURIComponent(thisPage) + '&' +
-        'Format='           + 'pdf' + '&' +
-        'Data='             + encodeURIComponent(resData.pdfBase64) + '&' +
+        'Format='           + 'html' + '&' +
+        'Data='             + encodeURIComponent(resData.htmlBase64) + '&' +
         'SelectOnError='    + 'yes' + '&' +
         'CutType='          + 'full' + '&' +
-        'CutFeed='          + 'no' + '&' +   // 余分な送りカットなし（HTML側で高さジャストになるため）
-        'FitToWidth='       + 'no' + '&' +   // CSSで既に58mmにレイアウト済なので等倍(no)でOK
+        'CutFeed='          + 'no' + '&' +
+        'FitToWidth='       + 'no' + '&' +
         'PaperWidth='       + '58';
 
       // アプリ起動
       window.location.href = printUrl;
 
     } else {
-      alert('PDF生成エラー: ' + (resData.message || 'データ取得に失敗しました。'));
+      alert('印刷データ生成エラー: ' + (resData.message || 'データ取得に失敗しました。'));
     }
 
   } catch (error) {
