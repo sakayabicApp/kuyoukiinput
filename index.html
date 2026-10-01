@@ -3803,6 +3803,12 @@ async function handleRoleSubmit(actionType) {
   }
 }
 
+
+  /**
+ * 伝票印刷処理（MP-B20 / URL Print Agent 連携）
+ * @param {string} slipNo - 印刷対象の伝票番号
+ */
+  
 async function printSlip(slipNo) {
   try {
     // 従来のボタンテキスト変更などのローディング処理があればここに
@@ -3818,9 +3824,26 @@ async function printSlip(slipNo) {
     const result = await response.json();
 
     if (result.status === 'success') {
-      // 修正案：window.open ではなく、現在のタブで直接PDFのURLに飛ばす（またはリンクとして踏ませる）
-      window.location.href = result.pdfUrl;
+      // ★ 修正点: result.base64Data ではなく result.pdfBase64 を取得
+      const base64Data = result.pdfBase64;
       
+      if (!base64Data) {
+        alert('エラー: 印刷データ(Base64)を取得できませんでした。');
+        return;
+      }
+
+      // Base64文字列をURLエンコード
+      const encodedData = encodeURIComponent(base64Data);
+
+      // 印刷後の戻り先URL（現在のWebアプリのURL）
+      const currentUrl = encodeURIComponent(window.location.href);
+
+      // siiprint カスタムURLスキームの組み立て
+      const printUrl = `siiprint://2.0/print?data=${encodedData}&success=${currentUrl}&error=${currentUrl}`;
+
+      // URL Print Agent アプリを起動して印刷処理を実行
+      window.location.href = printUrl;
+
     } else {
       alert('エラー: ' + result.message);
     }
