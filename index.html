@@ -3814,11 +3814,9 @@ async function printSlip(slipNo) {
     return;
   }
 
-  try {
-    // Webアプリ（GAS）のデプロイURLを設定
-    const GAS_ENDPOINT_URL = 'https://script.google.com/macros/s/AKfycbw8g-XV7pCCeE99Ps1W3LuKqm1cHXrW8qFZwlfn8r_nUHLfgcC4ox39Zhs3K7WYmeo6/exec'; // ★実際のURLに置き換えてください
+  const GAS_ENDPOINT_URL = 'https://script.google.com/macros/s/AKfycbw8g-XV7pCCeE99Ps1W3LuKqm1cHXrW8qFZwlfn8r_nUHLfgcC4ox39Zhs3K7WYmeo6/exec';
 
-    try {
+  try {
     const formData = new FormData();
     formData.append('action', 'printSlip');
     formData.append('slipNo', slipNo);
@@ -3837,12 +3835,12 @@ async function printSlip(slipNo) {
     if (resData.status === 'success' && resData.htmlBase64) {
       const thisPage = window.location.href.split('#')[0];
 
-      // クエリパラメータの構築（改行や不要な文字を含めない標準的な構築手法）
+      // クエリパラメータの構築
       const params = new URLSearchParams({
         'CallbackSuccess': thisPage,
         'CallbackFail': thisPage,
         'Format': 'html',
-        'Data': resData.htmlBase64, // 改行除去済みのBase64
+        'Data': resData.htmlBase64,
         'SelectOnError': 'yes',
         'CutType': 'full',
         'CutFeed': 'no',
