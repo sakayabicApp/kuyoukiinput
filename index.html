@@ -3824,8 +3824,15 @@ async function printSlip(slipNo) {
     const result = await response.json();
 
     if (result.status === 'success') {
+
+      // テスト用：短文をBase64化（"Hello"）
+const testBase64 = "SGVsbG8="; 
+const encodedData = encodeURIComponent(testBase64);
+const currentUrl = encodeURIComponent(window.location.href);
+
+      
       // ★ 修正点: result.base64Data ではなく result.pdfBase64 を取得
-      const base64Data = result.pdfBase64;
+      //const base64Data = result.pdfBase64;
       
       if (!base64Data) {
         alert('エラー: 印刷データ(Base64)を取得できませんでした。');
@@ -3833,10 +3840,10 @@ async function printSlip(slipNo) {
       }
 
       // Base64文字列をURLエンコード
-      const encodedData = encodeURIComponent(base64Data);
+      //const encodedData = encodeURIComponent(base64Data);
 
       // 印刷後の戻り先URL（現在のWebアプリのURL）
-      const currentUrl = encodeURIComponent(window.location.href);
+      //const currentUrl = encodeURIComponent(window.location.href);
 
       // siiprint カスタムURLスキームの組み立て
       const printUrl = `siiprint://2.0/print?data=${encodedData}&success=${currentUrl}&error=${currentUrl}`;
