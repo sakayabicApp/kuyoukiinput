@@ -3834,12 +3834,11 @@ async function printSlip(slipNo) {
 
     if (resData.status === 'success' && resData.pdfBase64) {
 
-    const returnUrl = window.location.href.split('#')[0] + '#printed';  
       // 1. クエリパラメータの構築
       // ※ 元の画面へ勝手にリロードさせないため CallbackSuccess / CallbackFail は除外（または空指定）します
       const params = new URLSearchParams({
-        'CallbackSuccess': returnUrl,
-        'CallbackFail': returnUrl,
+        // 'CallbackSuccess': thispage,
+        // 'CallbackFail': thispage,
         'Format': 'pdf',
         'Data': resData.pdfBase64,
         'SelectOnError': 'yes',
