@@ -3832,28 +3832,42 @@ async function printSlip(slipNo) {
 
     const resData = await response.json();
 
-    // pdfBase64 で受け取り
     if (resData.status === 'success' && resData.pdfBase64) {
-      const thisPage = window.location.href.split('#')[0];
-
-      // クエリパラメータの構築（Format=pdf に変更）
+      
+      // 1. クエリパラメータの構築
+      // ※ 元の画面へ勝手にリロードさせないため CallbackSuccess / CallbackFail は除外（または空指定）します
       const params = new URLSearchParams({
-        'CallbackSuccess': thisPage,
-        'CallbackFail': thisPage,
-        'Format': 'pdf',              // ★ PDF指定に変更
-        'Data': resData.pdfBase64,     // ★ PDFのBase64
+        'Format': 'pdf',
+        'Data': resData.pdfBase64,
         'SelectOnError': 'yes',
         'CutType': 'full',
         'CutFeed': 'no',
-        'FitToWidth': 'yes',           // ★ PDFの場合は 幅に合わせる(yes) にするとキレイに収まります
+        'FitToWidth': 'yes',
         'PaperWidth': '58'
       });
 
-      // SII Print Agent URLスキーム生成
+      // 2. SII Print Agent URLスキーム生成
       const printUrl = `siiprintagent://1.0/print?${params.toString()}`;
 
-      // アプリ起動
-      window.location.href = printUrl;
+      // 3. 呼び出し処理（iframe と location.href の二重対策）
+      // モバイル環境によって iframe が弾かれる場合は window.location.href に切り替えます
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+
+      // 一部環境で iframe の src 代入がブロックされるのを防ぐため try-catch で安全に処理
+      try {
+        iframe.src = printUrl;
+      } catch (e) {
+        window.location.href = printUrl;
+      }
+
+      // 4. 後処理
+      setTimeout(() => {
+        if (document.body.contains(iframe)) {
+          document.body.removeChild(iframe);
+        }
+      }, 2000);
 
     } else {
       alert('GASエラー: ' + (resData.message || '不明なエラー'));
